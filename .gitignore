@@ -342,3 +342,7 @@ ASALocalRun/
 healthchecksdb
 
 MaskFiles/
+
+# Project-local toolchain (.NET SDK, reference assemblies, build scripts)
+# Recreate with: pwsh -File .tool\setup.ps1
+.tool/

@@ -1,69 +1,128 @@
 name: Build
 on:
   push:
+    branches: ['**']
+    tags: ['v*']
     paths:
       - 'Plain Craft Launcher 2/**'
-      - '.github/workflows/**'
+      - 'PCLCS/**'
+      - 'MeloongCore'
+      - '.github/**'
   pull_request:
     paths:
       - 'Plain Craft Launcher 2/**'
-      - '.github/workflows/**'
+      - 'PCLCS/**'
+      - 'MeloongCore'
+      - '.github/**'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+
 jobs:
-  build:
-    name: Build
-    runs-on: windows-latest
-    strategy:  
-       matrix:  
-         configuration: [Debug, Release]
-
+  automation-tests:
+    name: Automation tests
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.channel.outputs.matrix }}
+      configuration: ${{ steps.channel.outputs.configuration }}
+      channel: ${{ steps.channel.outputs.channel }}
     steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - run: node --test .github/scripts/automation.test.cjs
+      - name: Select build and release channel
+        id: channel
+        run: node .github/scripts/release-channel.cjs
 
-    - name: Checkout
-      uses: actions/checkout@v6
-      with:
-        fetch-depth: 1
-        submodules: true
+  build:
+    name: Build (${{ matrix.configuration }})
+    needs: automation-tests
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.automation-tests.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: true
+          persist-credentials: false
+      - uses: microsoft/setup-msbuild@v3
+        with:
+          msbuild-architecture: x64
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - name: Prepare build metadata
+        shell: pwsh
+        env:
+          BUILD_CLIENT_ID: ${{ github.event_name != 'pull_request' && secrets.CLIENT_ID || '' }}
+          BUILD_CURSEFORGE_API_KEY: ${{ github.event_name != 'pull_request' && secrets.CURSEFORGE_API_KEY || '' }}
+        run: ./.github/scripts/prepare-build.ps1
+      - name: Synchronize tagged version
+        if: startsWith(github.ref, 'refs/tags/')
+        run: node .github/scripts/stamp-version.cjs
+      - name: Restore packages
+        run: dotnet restore PCLCS/PCLCS.csproj
+      - name: Build
+        env:
+          CONFIGURATION: ${{ matrix.configuration }}
+        run: msbuild 'Plain Craft Launcher 2/Plain Craft Launcher 2.vbproj' -p:Configuration=$env:CONFIGURATION
+      - name: Package and checksum
+        shell: pwsh
+        env:
+          CONFIGURATION: ${{ matrix.configuration }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $exe = 'Plain Craft Launcher 2/bin/Plain Craft Launcher Slash.exe'
+          if (-not (Test-Path -LiteralPath $exe)) { throw 'Build output is missing' }
+          New-Item -ItemType Directory -Path dist -Force | Out-Null
+          $version = if ($env:GITHUB_REF_TYPE -eq 'tag') { $env:GITHUB_REF_NAME } else { $env:GITHUB_SHA.Substring(0, 7) }
+          $archive = "dist/PCL-Slash-$version-$env:CONFIGURATION-windows.zip"
+          Compress-Archive -LiteralPath $exe, 'README.md' -DestinationPath $archive
+          $hash = (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant()
+          $checksum = "$hash  $([IO.Path]::GetFileName($archive))"
+          [IO.File]::WriteAllText("$archive.sha256", $checksum + "`n", [Text.UTF8Encoding]::new($false))
+      - uses: actions/upload-artifact@v7
+        with:
+          name: PCL-Slash-${{ matrix.configuration }}
+          path: dist/*
+          if-no-files-found: error
 
-    - name: Set Describe
-      shell: bash
-      run: |
-          describe=`git describe --tags --always`
-          echo "describe=$describe" >> $GITHUB_ENV
-
-    - name: Setup MSBuild.exe
-      uses: microsoft/setup-msbuild@v3
-      with:
-        msbuild-architecture: x64
-    
-    - name: Update Help
-      run:  |
-        Set-Location ..
-        git clone https://github.com/LTCatt/PCL2Help.git -b master --single-branch --depth 1
-        Set-Location PCL2Help
-        Remove-Item -Path *.* -Recurse -Force
-        Compress-Archive -Path .\* -DestinationPath .\Help.zip
-        Copy-Item -Path .\Help.zip -Destination "${{ GITHUB.WORKSPACE }}\Plain Craft Launcher 2\Resources\Help.zip" -Force
-        Set-Location ..
-        Remove-Item PCL2Help -Recurse -Force
-        Set-Location ${{ GITHUB.WORKSPACE }}
-
-
-    - name: Replace
-      run: |
-        (gc "Plain Craft Launcher 2\Modules\ModSecret.vb") -replace 'Public OAuthClientId As String = If(Environment.GetEnvironmentVariable("PCL_MS_CLIENT_ID"), "")', 'Public OAuthClientId As String = If(Environment.GetEnvironmentVariable("PCL_MS_CLIENT_ID"), "${{ secrets.CLIENT_ID }}")' | Out-File "Plain Craft Launcher 2\Modules\ModSecret.vb"
-        (gc "Plain Craft Launcher 2\Modules\ModSecret.vb") -replace 'Public CurseForgeAPIKey As String = If(Environment.GetEnvironmentVariable("PCL_CURSEFORGE_API_KEY"), "")', 'Public CurseForgeAPIKey As String = If(Environment.GetEnvironmentVariable("PCL_CURSEFORGE_API_KEY"), "${{ secrets.CURSEFORGE_API_KEY }}")' | Out-File "Plain Craft Launcher 2\Modules\ModSecret.vb"
-        (gc "Plain Craft Launcher 2\Modules\Base\ModBase.vb") -replace 'Public Const CommitHash As String = ""', 'Public Const CommitHash As String = "${{ github.sha }}"' | Out-File "Plain Craft Launcher 2\Modules\Base\ModBase.vb"
-        
-    - name: Restore NuGet Packages
-      run: dotnet restore PCLCS\PCLCS.csproj
-
-    - name: Build
-      run: msbuild "Plain Craft Launcher 2\Plain Craft Launcher 2.vbproj" -p:Configuration=${{ matrix.configuration }}
-
-    - name: Upload a Build Artifact
-      uses: actions/upload-artifact@v7
-      with:
-        name: ${{ matrix.configuration }} ${{ env.describe }}
-        path: Plain Craft Launcher 2\obj\${{ matrix.configuration }}\Plain Craft Launcher 2.exe
+  draft-release:
+    name: Prepare draft release
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    needs: [automation-tests, build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      RELEASE_TAG: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - uses: actions/download-artifact@v8
+        with:
+          name: PCL-Slash-${{ needs.automation-tests.outputs.configuration }}
+          path: release-assets
+      - name: Generate notes from commits
+        run: node .github/scripts/release-notes.cjs
+      - name: Create draft and attach packages
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const updateDraft = require('./.github/scripts/update-draft-release.cjs');
+            await updateDraft({ github, context, core });

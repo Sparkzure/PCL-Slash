@@ -5,6 +5,15 @@ Public Module ModBase
 
 #Region "声明"
 
+    '分支品牌；PCL 命名空间与已有数据目录保留，以兼容主页、帮助与版本配置。
+    Public Const BrandName As String = "PCL-Slash"
+    Public Const BrandFullName As String = "Plain Craft Launcher Slash"
+    Public Const WindowTitle As String = BrandFullName & "　"
+    Public Const LauncherFileName As String = BrandFullName & ".exe"
+    Public Const SourceRepository As String = "https://github.com/sparkzure/PCL-Slash"
+    Public Const FeedbackUrl As String = SourceRepository & "/issues"
+    Public Const SingletonMutexName As String = "PCL-Slash_SingletonMutex"
+
     '下列版本信息由更新器自动修改
     Public Const VersionBaseName As String = "2.14.0.0" '显示用版本名
     Public Const CommitHash As String = "" 'Commit Hash，由 GitHub Workflow 自动替换
@@ -43,11 +52,11 @@ Public Module ModBase
     ''' <summary>
     ''' 程序内嵌图片文件夹路径，以 / 结尾。
     ''' </summary>
-    Public PathImage As String = "pack://application:,,,/Plain Craft Launcher 2;component/Images/"
+    Public PathImage As String = "pack://application:,,,/Plain Craft Launcher Slash;component/Images/"
     ''' <summary>
     ''' 程序的缓存文件夹路径，以 \ 结尾。
     ''' </summary>
-    Public PathTemp As String = PathUtils.AddSlashSuffix(If(Settings.Get(Of String)("SystemSystemCache") = "", Path.GetTempPath() & "PCL\", Settings.Get(Of String)("SystemSystemCache")).Replace("/", "\"))
+    Public PathTemp As String = PathUtils.AddSlashSuffix(If(Settings.Get(Of String)("SystemSystemCache") = "", Path.GetTempPath() & BrandName & "\", Settings.Get(Of String)("SystemSystemCache")).Replace("/", "\"))
     ''' <summary>
     ''' 当前程序的语言。
     ''' </summary>
@@ -1002,7 +1011,7 @@ Public Module ModBase
         Catch ex As Exception
             Logger.Warn(ex, $"无法打开网页（{Url}）")
             ClipboardSet(Url, False)
-            MyMsgBox("可能由于浏览器未正确配置，PCL 无法为你打开网页。" & vbCrLf & "网址已经复制到剪贴板，若有需要可以手动粘贴访问。" & vbCrLf &
+            MyMsgBox("可能由于浏览器未正确配置，PCL-Slash 无法为你打开网页。" & vbCrLf & "网址已经复制到剪贴板，若有需要可以手动粘贴访问。" & vbCrLf &
                      $"网址：{Url}", "无法打开网页")
         End Try
     End Sub
@@ -1112,6 +1121,11 @@ Public Module ModBase
     ''' 注意：性能较差，不应大量使用。
     ''' </summary>
     Public Function GetObjectFromXML(Str As String) As Object
+        '兼容改名前的第三方主页、帮助文件和内嵌图片引用。
+        Str = Str.Replace("clr-namespace:PCL;assembly=Plain Craft Launcher 2", "clr-namespace:PCL;assembly=Plain Craft Launcher Slash").
+            Replace("/Plain Craft Launcher 2;component/", "/Plain Craft Launcher Slash;component/").
+            Replace("clr-namespace:PCL;assembly=PCL-Slash", "clr-namespace:PCL;assembly=Plain Craft Launcher Slash").
+            Replace("/PCL-Slash;component/", "/Plain Craft Launcher Slash;component/")
         Str = Str. '兼容旧版自定义事件写法
             Replace("EventType=""", "local:CustomEventService.EventType=""").
             Replace("EventData=""", "local:CustomEventService.EventData=""").

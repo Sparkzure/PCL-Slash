@@ -8,12 +8,12 @@ Imports System.Runtime.InteropServices
 
 '查看程序集特性的值
 
-<Assembly: AssemblyTitle("Plain Craft Launcher 启动器")>
+<Assembly: AssemblyTitle(ModBase.BrandFullName & " 启动器")>
 <Assembly: AssemblyDescription("Minecraft 启动器")>
 <Assembly: AssemblyCompany("")>
-<Assembly: AssemblyProduct("Plain Craft Launcher")>
-<Assembly: AssemblyCopyright("Copyright © 成都瓜皮龙科技有限公司")>
-<Assembly: AssemblyConfiguration("PCL2 Config Mark")>
+<Assembly: AssemblyProduct(ModBase.BrandFullName)>
+<Assembly: AssemblyCopyright("Plain Craft Launcher Slash © Lecyn and contributors; Original Plain Craft Launcher © 成都瓜皮龙科技有限公司")>
+<Assembly: AssemblyConfiguration("PCL-Slash Config Mark")>
 <Assembly: ComVisible(False)>
 
 '若要开始生成可本地化的应用程序，请设置
