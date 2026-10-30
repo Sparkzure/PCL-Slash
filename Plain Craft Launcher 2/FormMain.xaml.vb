@@ -456,8 +456,8 @@ Public Class FormMain
             Select Case Settings.Get(Of Integer)("SystemCount")
                 Case 1
                     MyMsgBox("欢迎使用 PCL-Slash 快照版！" & vbCrLf &
-                             "快照版包含尚未在正式版发布的测试性功能，仅用于赞助者本人尝鲜。所以请不要发给其他人或者用于制作整合包哦！" & vbCrLf &
-                             "如果你并非通过赞助或赞助者本人邀请进群获得的本程序，那么可能是有人在违规传播，记得提醒他一下啦。", "快照版使用说明")
+                             "快照版用于体验尚未进入正式版的新功能，可能存在尚未修复的问题。" & vbCrLf &
+                             "欢迎通过关于页面中的问题反馈入口，告诉我们你遇到的问题。", "快照版使用说明")
             End Select
             If Settings.Get(Of Integer)("SystemCount") >= 99 Then
                 If ThemeUnlock(6, False) Then
