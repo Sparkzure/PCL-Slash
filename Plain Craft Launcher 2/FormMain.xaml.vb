@@ -412,9 +412,9 @@ Public Class FormMain
             If Settings.Get(Of Integer)("SystemEulaVersion") < EulaVersion Then
                 Select Case MyMsgBox(
                     If(Settings.Get(Of Integer)("SystemEulaVersion") = 0,
-                        "在使用 PCL-Slash 前，请先阅读用户协议与免责声明。",
-                        $"PCL-Slash 的用户协议与免责声明已更新。{vbCrLf}请阅读更新后的用户协议与免责声明。"),
-                        "协议授权", "同意", "拒绝", "查看用户协议与免责声明",
+                        "在使用 PCL-Slash 前，请先阅读原版 PCL 用户协议与免责声明，以及「更多 → 关于与鸣谢」中的分支法律信息。",
+                        $"请阅读原版 PCL 用户协议与免责声明，以及「更多 → 关于与鸣谢」中的分支法律信息。"),
+                        "协议授权", "同意", "拒绝", "查看原版 PCL 协议",
                         Button3Action:=Sub() OpenWebsite("https://shimo.im/docs/rGrd8pY8xWkt6ryW"))
                     Case 1
                         Settings.Set("SystemEulaVersion", EulaVersion)

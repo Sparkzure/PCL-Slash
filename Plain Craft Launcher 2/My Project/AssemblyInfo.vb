@@ -12,7 +12,7 @@ Imports System.Runtime.InteropServices
 <Assembly: AssemblyDescription("Minecraft 启动器")>
 <Assembly: AssemblyCompany("")>
 <Assembly: AssemblyProduct(ModBase.BrandFullName)>
-<Assembly: AssemblyCopyright("Copyright © 成都瓜皮龙科技有限公司")>
+<Assembly: AssemblyCopyright("Plain Craft Launcher Slash © Lecyn and contributors; Original Plain Craft Launcher © 成都瓜皮龙科技有限公司")>
 <Assembly: AssemblyConfiguration("PCL-Slash Config Mark")>
 <Assembly: ComVisible(False)>
 

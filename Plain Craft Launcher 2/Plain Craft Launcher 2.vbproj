@@ -759,6 +759,7 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\Heads\LTCat.jpg" />
+    <Resource Include="Images\Heads\Lecyn.jpg" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Newtonsoft.Json.dll" />
