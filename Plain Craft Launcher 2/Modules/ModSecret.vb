@@ -207,13 +207,19 @@ Friend Module ModSecret
     End Sub
     Friend Function ThemeCheckOne(Id As Integer) As Boolean
         Select Case Id
-            Case 0 To 4, 14, DefaultThemeId, CangGreenThemeId
+            Case 0 To 4, DefaultThemeId, CangGreenThemeId
                 Return True
+            Case 14
+                Return ThemeHiddenUnlockedCount() >= 5
             Case 5 To 7, 9 To 13
                 Return Settings.Get(Of String)("UiLauncherThemeHide2").Split("|"c).Contains(Id.ToString())
             Case Else
                 Return False
         End Select
+    End Function
+    Friend Function ThemeHiddenUnlockedCount() As Integer
+        '只计算不同的隐藏主题，忽略普通主题、已移除主题及无效记录。
+        Return New Integer() {5, 6, 7, 9, 10, 11, 12, 13}.Count(Function(Id) ThemeCheckOne(Id))
     End Function
     Friend Function ThemeUnlock(Id As Integer, Optional ShowDoubleHint As Boolean = True, Optional UnlockHint As String = Nothing) As Boolean
         If Id < 5 OrElse Id > 13 OrElse Id = 8 OrElse ThemeCheckOne(Id) Then Return False

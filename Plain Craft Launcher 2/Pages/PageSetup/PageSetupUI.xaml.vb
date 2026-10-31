@@ -330,37 +330,19 @@ Refresh:
     End Sub
 
     Public Sub RefreshThemeChoices()
-        Dim Index As Integer = 0
         For Each Choice In PanLauncherTheme.Children.OfType(Of MyRadioBox)()
             Dim Id = Integer.Parse(SettingService.GetValue(Choice))
             Dim Available = ThemeCheckOne(Id)
             Choice.Visibility = Visibility.Visible
             Choice.IsEnabled = Available
-            Grid.SetColumn(Choice, Index Mod 5 + 1)
-            Grid.SetRow(Choice, Index \ 5)
-            Dim Mask = TryCast(FindName("ThemeLock" & Id), Border)
-            If Mask IsNot Nothing Then
-                Grid.SetColumn(Mask, Index Mod 5 + 1)
-                Grid.SetRow(Mask, Index \ 5)
-                Mask.Visibility = If(Available, Visibility.Collapsed, Visibility.Visible)
-            End If
-            Index += 1
-        Next
-        Dim Rows = Math.Max(1, CInt(Math.Ceiling(Index / 5.0)))
-        PanLauncherTheme.Height = Rows * 30
-        While PanLauncherTheme.RowDefinitions.Count < Rows
-            PanLauncherTheme.RowDefinitions.Add(New RowDefinition())
-        End While
-        Grid.SetRowSpan(LabLauncherTheme5Unlock, Rows)
-        For RowIndex = 0 To PanLauncherTheme.RowDefinitions.Count - 1
-            PanLauncherTheme.RowDefinitions(RowIndex).Height = New GridLength(If(RowIndex < Rows, 30, 0))
+            ToolTipService.SetShowOnDisabled(Choice, True)
         Next
         CardLauncher.TriggerForceResize()
     End Sub
 
-    '保留玄素黑的快速连续点击彩蛋，遮罩仍可接收彩蛋操作。
+    '两个分区的标题均保留玄素黑的快速连续点击彩蛋。
     Private LastThemeSecretClick As Long = 0
-    Private Sub LabLauncherTheme5Unlock_MouseLeftButtonUp() Handles LabLauncherTheme5Unlock.MouseLeftButtonUp, ThemeLock5.MouseLeftButtonUp
+    Private Sub LabLauncherTheme5Unlock_MouseLeftButtonUp() Handles LabLauncherTheme5Unlock.MouseLeftButtonUp, LabLauncherHiddenTheme.MouseLeftButtonUp
         Dim Tick = GetTimeMs()
         If LastThemeSecretClick <> 0 AndAlso Tick - LastThemeSecretClick < 1000 Then
             LastThemeSecretClick = 0
@@ -373,8 +355,8 @@ Refresh:
         End If
     End Sub
 
-    '遮罩与主题标题均保留原有的解密彩蛋线索入口。
-    Private Sub LabLauncherTheme11Click_MouseRightButtonUp() Handles LabLauncherTheme5Unlock.MouseRightButtonUp, RadioLauncherTheme11.MouseRightButtonUp, ThemeLock11.MouseRightButtonUp
+    '主题标题保留原有的解密彩蛋线索入口，未解锁时也可触发。
+    Private Sub LabLauncherTheme11Click_MouseRightButtonUp() Handles LabLauncherTheme5Unlock.MouseRightButtonUp, RadioLauncherTheme11.MouseRightButtonUp, LabLauncherHiddenTheme.MouseRightButtonUp
         If MyMsgBox(
             "1. 不爬取或攻击相关服务或网站，不盗取相关账号，没有谜题可以或需要以此来解决。" & vbCrLf &
             "2. 不得篡改或损毁相关公开信息，请尽量让它们保持原状。" & vbCrLf &

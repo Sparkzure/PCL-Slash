@@ -38,18 +38,7 @@
                             <local:MySlider local:SettingService.Key="UiLauncherLight" 
                                             Grid.Row="2" Grid.Column="4" x:Name="SliderLauncherLight" Visibility="Collapsed" MaxValue="40" ValueByKey="5" Margin="0,10,0,0" />
                         </Grid>
-                        <Grid x:Name="PanLauncherTheme" Height="120" Margin="0,0,0,7">
-                            <Grid.Resources>
-                                <Style x:Key="ThemeLockMaskStyle" TargetType="Border">
-                                    <Setter Property="Background" Value="#40FFFFFF" />
-                                    <Setter Property="BorderBrush" Value="{DynamicResource ColorBrushGray5}" />
-                                    <Setter Property="BorderThickness" Value="0.5" />
-                                    <Setter Property="CornerRadius" Value="3" />
-                                    <Setter Property="Margin" Value="0,3,5,3" />
-                                    <Setter Property="Panel.ZIndex" Value="1" />
-                                    <Setter Property="ToolTip" Value="彩蛋主题，触发后解锁" />
-                                </Style>
-                            </Grid.Resources>
+                        <Grid x:Name="PanLauncherTheme" Margin="0,0,0,7">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" SharedSizeGroup="Name1" />
                                 <ColumnDefinition />
@@ -59,12 +48,14 @@
                                 <ColumnDefinition />
                             </Grid.ColumnDefinitions>
                             <Grid.RowDefinitions>
-                                <RowDefinition />
-                                <RowDefinition />
-                                <RowDefinition />
-                                <RowDefinition />
+                                <RowDefinition Height="30" />
+                                <RowDefinition Height="30" />
+                                <RowDefinition Height="10" />
+                                <RowDefinition Height="30" />
+                                <RowDefinition Height="30" />
                             </Grid.RowDefinitions>
-                            <TextBlock x:Name="LabLauncherTheme5Unlock" VerticalAlignment="Center" HorizontalAlignment="Left" Text="主题" Margin="0,0,20,0" Grid.RowSpan="4" Background="Transparent" ToolTip="灰色是个谎言" />
+                            <TextBlock x:Name="LabLauncherTheme5Unlock" VerticalAlignment="Center" HorizontalAlignment="Left" Text="主题" Margin="0,0,20,0" Background="Transparent" ToolTip="灰色是个谎言" />
+                            <TextBlock x:Name="LabLauncherHiddenTheme" Grid.Row="3" VerticalAlignment="Center" HorizontalAlignment="Left" Text="隐藏主题" Margin="0,0,20,0" Background="Transparent" ToolTip="触发彩蛋后解锁" />
                             <local:MyRadioBox local:SettingService.Key="UiLauncherTheme" local:SettingService.Value="15"
                                               Grid.Column="1" Grid.Row="0" Text="天依蓝" x:Name="RadioLauncherTheme15" ToolTip="默认主题 · #66CCFF" />
                             <local:MyRadioBox local:SettingService.Key="UiLauncherTheme" local:SettingService.Value="16"
@@ -79,48 +70,24 @@
                                               Grid.Column="1" Grid.Row="1" Text="菠萝黄" x:Name="RadioLauncherTheme3" />
                             <local:MyRadioBox local:SettingService.Key="UiLauncherTheme" local:SettingService.Value="4"
                                               Grid.Column="2" Grid.Row="1" Text="橡木棕" x:Name="RadioLauncherTheme4" />
-                            <local:MyRadioBox local:SettingService.Key="UiLauncherTheme" local:SettingService.Value="5"
-                                              Grid.Column="3" Grid.Row="1" Text="玄素黑" x:Name="RadioLauncherTheme5" IsEnabled="False" />
-                            <local:MyRadioBox local:SettingService.Key="UiLauncherTheme" local:SettingService.Value="12"
-                                              Grid.Column="4" Grid.Row="1" Text="滑稽彩" x:Name="RadioLauncherTheme12" IsEnabled="False" />
-                            <local:MyRadioBox local:SettingService.Key="UiLauncherTheme" local:SettingService.Value="6"
-                                              Grid.Column="5" Grid.Row="1" Text="铁杆粉" x:Name="RadioLauncherTheme6" IsEnabled="False" />
-                            <local:MyRadioBox local:SettingService.Key="UiLauncherTheme" local:SettingService.Value="7"
-                                              Grid.Column="1" Grid.Row="2" Text="神秘紫" x:Name="RadioLauncherTheme7" IsEnabled="False" />
-                            <local:MyRadioBox local:SettingService.Key="UiLauncherTheme" local:SettingService.Value="13"
-                                              Grid.Column="2" Grid.Row="2" Text="欧皇彩" x:Name="RadioLauncherTheme13" IsEnabled="False" />
-                            <local:MyRadioBox local:SettingService.Key="UiLauncherTheme" local:SettingService.Value="9"
-                                              Grid.Column="3" Grid.Row="2" Text="活跃橙" x:Name="RadioLauncherTheme9" IsEnabled="False" />
-                            <local:MyRadioBox local:SettingService.Key="UiLauncherTheme" local:SettingService.Value="10"
-                                              Grid.Column="4" Grid.Row="2" Text="跳票红" x:Name="RadioLauncherTheme10" IsEnabled="False" />
-                            <local:MyRadioBox local:SettingService.Key="UiLauncherTheme" local:SettingService.Value="11"
-                                              Grid.Column="5" Grid.Row="2" Text="极客蓝" x:Name="RadioLauncherTheme11" IsEnabled="False" />
                             <local:MyRadioBox local:SettingService.Key="UiLauncherTheme" local:SettingService.Value="14"
-                                              Grid.Column="1" Grid.Row="3" Text="自定义" x:Name="RadioLauncherTheme14" />
-                            <Border x:Name="ThemeLock5" Style="{StaticResource ThemeLockMaskStyle}" Grid.Column="3" Grid.Row="1">
-                                <Path Data="M2,5 V3 A3,3 0 0 1 8,3 V5 M1,5 H9 V11 H1 Z" Stroke="{DynamicResource ColorBrushGray3}" StrokeThickness="1" Width="8" Height="10" Stretch="Uniform" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,0" IsHitTestVisible="False" />
-                            </Border>
-                            <Border x:Name="ThemeLock12" Style="{StaticResource ThemeLockMaskStyle}" Grid.Column="4" Grid.Row="1">
-                                <Path Data="M2,5 V3 A3,3 0 0 1 8,3 V5 M1,5 H9 V11 H1 Z" Stroke="{DynamicResource ColorBrushGray3}" StrokeThickness="1" Width="8" Height="10" Stretch="Uniform" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,0" IsHitTestVisible="False" />
-                            </Border>
-                            <Border x:Name="ThemeLock6" Style="{StaticResource ThemeLockMaskStyle}" Grid.Column="5" Grid.Row="1">
-                                <Path Data="M2,5 V3 A3,3 0 0 1 8,3 V5 M1,5 H9 V11 H1 Z" Stroke="{DynamicResource ColorBrushGray3}" StrokeThickness="1" Width="8" Height="10" Stretch="Uniform" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,0" IsHitTestVisible="False" />
-                            </Border>
-                            <Border x:Name="ThemeLock7" Style="{StaticResource ThemeLockMaskStyle}" Grid.Column="1" Grid.Row="2">
-                                <Path Data="M2,5 V3 A3,3 0 0 1 8,3 V5 M1,5 H9 V11 H1 Z" Stroke="{DynamicResource ColorBrushGray3}" StrokeThickness="1" Width="8" Height="10" Stretch="Uniform" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,0" IsHitTestVisible="False" />
-                            </Border>
-                            <Border x:Name="ThemeLock13" Style="{StaticResource ThemeLockMaskStyle}" Grid.Column="2" Grid.Row="2">
-                                <Path Data="M2,5 V3 A3,3 0 0 1 8,3 V5 M1,5 H9 V11 H1 Z" Stroke="{DynamicResource ColorBrushGray3}" StrokeThickness="1" Width="8" Height="10" Stretch="Uniform" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,0" IsHitTestVisible="False" />
-                            </Border>
-                            <Border x:Name="ThemeLock9" Style="{StaticResource ThemeLockMaskStyle}" Grid.Column="3" Grid.Row="2">
-                                <Path Data="M2,5 V3 A3,3 0 0 1 8,3 V5 M1,5 H9 V11 H1 Z" Stroke="{DynamicResource ColorBrushGray3}" StrokeThickness="1" Width="8" Height="10" Stretch="Uniform" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,0" IsHitTestVisible="False" />
-                            </Border>
-                            <Border x:Name="ThemeLock10" Style="{StaticResource ThemeLockMaskStyle}" Grid.Column="4" Grid.Row="2">
-                                <Path Data="M2,5 V3 A3,3 0 0 1 8,3 V5 M1,5 H9 V11 H1 Z" Stroke="{DynamicResource ColorBrushGray3}" StrokeThickness="1" Width="8" Height="10" Stretch="Uniform" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,0" IsHitTestVisible="False" />
-                            </Border>
-                            <Border x:Name="ThemeLock11" Style="{StaticResource ThemeLockMaskStyle}" Grid.Column="5" Grid.Row="2">
-                                <Path Data="M2,5 V3 A3,3 0 0 1 8,3 V5 M1,5 H9 V11 H1 Z" Stroke="{DynamicResource ColorBrushGray3}" StrokeThickness="1" Width="8" Height="10" Stretch="Uniform" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,4,0" IsHitTestVisible="False" />
-                            </Border>
+                                              Grid.Column="3" Grid.Row="1" Text="自定义" x:Name="RadioLauncherTheme14" IsEnabled="False" ToolTip="解锁 5 个隐藏主题后开放自定义配色" />
+                            <local:MyRadioBox local:SettingService.Key="UiLauncherTheme" local:SettingService.Value="5"
+                                              Grid.Column="1" Grid.Row="3" Text="玄素黑" x:Name="RadioLauncherTheme5" IsEnabled="False" ToolTip="灰色是个谎言" />
+                            <local:MyRadioBox local:SettingService.Key="UiLauncherTheme" local:SettingService.Value="12"
+                                              Grid.Column="2" Grid.Row="3" Text="滑稽彩" x:Name="RadioLauncherTheme12" IsEnabled="False" ToolTip="滑稽树上滑稽果，滑稽树下你和我，滑稽之日搞事情，欢乐多又多" />
+                            <local:MyRadioBox local:SettingService.Key="UiLauncherTheme" local:SettingService.Value="6"
+                                              Grid.Column="3" Grid.Row="3" Text="铁杆粉" x:Name="RadioLauncherTheme6" IsEnabled="False" ToolTip="99 次重逢的喜悦" />
+                            <local:MyRadioBox local:SettingService.Key="UiLauncherTheme" local:SettingService.Value="7"
+                                              Grid.Column="4" Grid.Row="3" Text="神秘紫" x:Name="RadioLauncherTheme7" IsEnabled="False" ToolTip="072 101 108 112 032 068 101 118 032 048 046 052 046 052" />
+                            <local:MyRadioBox local:SettingService.Key="UiLauncherTheme" local:SettingService.Value="13"
+                                              Grid.Column="5" Grid.Row="3" Text="欧皇彩" x:Name="RadioLauncherTheme13" IsEnabled="False" ToolTip="这就是传说中的欧皇了吧" />
+                            <local:MyRadioBox local:SettingService.Key="UiLauncherTheme" local:SettingService.Value="9"
+                                              Grid.Column="1" Grid.Row="4" Text="活跃橙" x:Name="RadioLauncherTheme9" IsEnabled="False" />
+                            <local:MyRadioBox local:SettingService.Key="UiLauncherTheme" local:SettingService.Value="10"
+                                              Grid.Column="2" Grid.Row="4" Text="跳票红" x:Name="RadioLauncherTheme10" IsEnabled="False" ToolTip="进行一次正版登录，支持正版游戏！" />
+                            <local:MyRadioBox local:SettingService.Key="UiLauncherTheme" local:SettingService.Value="11"
+                                              Grid.Column="3" Grid.Row="4" Text="极客蓝" x:Name="RadioLauncherTheme11" IsEnabled="False" ToolTip="右键打开解密游戏入口" />
                         </Grid>
                         <local:MyCheckBox local:SettingService.Key="UiLauncherLogo" Text="打开启动器时显示 PCL-Slash 图标" Margin="-1,0,0,1" Height="22" />
                     </StackPanel>
