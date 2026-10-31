@@ -1,0 +1,62 @@
+name: Version Bot
+on:
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: '发布通道：snapshot 快照版 / release 正式版'
+        type: choice
+        required: true
+        options: [snapshot, release]
+      version:
+        description: '目标版本（不带 v），例如 2.14.1.0-snapshot.1 或 2.14.1.0'
+        type: string
+        required: true
+  # 只运行默认分支的可信脚本，不检出或执行 PR 分支代码。
+  pull_request_target:
+    types: [closed]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: version-bot
+  cancel-in-progress: false
+
+jobs:
+  release-bot:
+    if: >-
+      github.repository == 'sparkzure/PCL-Slash' &&
+      (github.event_name == 'workflow_dispatch' ||
+       (github.event.pull_request.merged == true &&
+        startsWith(github.event.pull_request.head.ref, 'codex/release/')))
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      - name: Authenticate release bot
+        id: app
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.RELEASE_BOT_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+      - name: Create version PR or tag merged version
+        uses: actions/github-script@v9
+        env:
+          RELEASE_CHANNEL: ${{ inputs.channel }}
+          RELEASE_VERSION: ${{ inputs.version }}
+          RELEASE_BOT_SLUG: ${{ steps.app.outputs.app-slug }}
+        with:
+          github-token: ${{ steps.app.outputs.token }}
+          script: |
+            const { run } = require('./.github/scripts/release-bot.cjs');
+            await run({ github, context, core,
+              channel: process.env.RELEASE_CHANNEL,
+              version: process.env.RELEASE_VERSION,
+              appSlug: process.env.RELEASE_BOT_SLUG });
