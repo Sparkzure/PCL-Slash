@@ -14,7 +14,7 @@ Public Module ModBase
     Public Const FeedbackUrl As String = SourceRepository & "/issues"
     Public Const SingletonMutexName As String = "PCL-Slash_SingletonMutex"
 
-    '下列版本信息由更新器自动修改
+    '下列版本信息由版本 Bot 和发布构建维护
     Public Const VersionBaseName As String = "2.14.1.1-snapshot.1" '显示用版本名
     Public Const CommitHash As String = "" 'Commit Hash，由 GitHub Workflow 自动替换
 #If RELEASE Then

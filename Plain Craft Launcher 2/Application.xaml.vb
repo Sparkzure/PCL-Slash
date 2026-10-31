@@ -10,7 +10,7 @@ Public Class Application
             '保留旧数据目录名；启动器品牌、注册表、临时缓存和单例标识独立。
             MeloongCore.Main.Init("PCL")
             MeloongCore.Wpf.Main.Init()
-            If Not (e.Args.Contains("--update") OrElse e.Args.Contains("--gpu") OrElse e.Args.Contains("--memory")) Then '若是通过命令行调用，则不检查单例、不轮换日志（#9137）
+            If Not (e.Args.Contains("--gpu") OrElse e.Args.Contains("--memory")) Then '若是通过命令行调用，则不检查单例、不轮换日志（#9137）
                 WaitingMutex(e)
                 Logger.Instance = New PclLogger With {.logFolder = Paths.BaseThenName, .MinLevel = If(ModeDebug, LogLevel.Trace, LogLevel.Info)}
             End If
@@ -39,11 +39,7 @@ Public Class Application
             End Try
             '检查参数调用
             If e.Args.Length > 0 Then
-                If e.Args(0) = "--update" Then
-                    '自动更新
-                    UpdateReplace(e.Args(1), e.Args(2).Trim(""""), e.Args(3).Trim(""""), e.Args(4))
-                    Environment.Exit(ProcessReturnValues.TaskDone)
-                ElseIf e.Args(0) = "--gpu" Then
+                If e.Args(0) = "--gpu" Then
                     '调整显卡设置
                     Try
                         SetGPUPreference(e.Args(1).Trim(""""))

@@ -345,7 +345,7 @@ Public Class CustomEvent
                     End Sub)
 
                 Case EventType.检查更新
-                    UpdateCheckByButton()
+                    ShowLauncherUpdateDialog()
 
                 Case Else
                     MyMsgBox("未知的事件类型：" & Type & vbCrLf & "请检查事件类型填写是否正确，或者 PCL-Slash 是否为最新版本。", "事件执行失败")

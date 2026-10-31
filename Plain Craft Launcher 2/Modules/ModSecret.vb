@@ -207,13 +207,19 @@ Friend Module ModSecret
     End Sub
     Friend Function ThemeCheckOne(Id As Integer) As Boolean
         Select Case Id
-            Case 0 To 4, 14, DefaultThemeId, CangGreenThemeId
+            Case 0 To 4, DefaultThemeId, CangGreenThemeId
                 Return True
+            Case 14
+                Return ThemeHiddenUnlockedCount() >= 5
             Case 5 To 7, 9 To 13
                 Return Settings.Get(Of String)("UiLauncherThemeHide2").Split("|"c).Contains(Id.ToString())
             Case Else
                 Return False
         End Select
+    End Function
+    Friend Function ThemeHiddenUnlockedCount() As Integer
+        '只计算不同的隐藏主题，忽略普通主题、已移除主题及无效记录。
+        Return New Integer() {5, 6, 7, 9, 10, 11, 12, 13}.Count(Function(Id) ThemeCheckOne(Id))
     End Function
     Friend Function ThemeUnlock(Id As Integer, Optional ShowDoubleHint As Boolean = True, Optional UnlockHint As String = Nothing) As Boolean
         If Id < 5 OrElse Id > 13 OrElse Id = 8 OrElse ThemeCheckOne(Id) Then Return False
@@ -230,28 +236,6 @@ Friend Module ModSecret
 
 #End Region
 
-#Region "更新"
-
-    Friend Sub UpdateCheckByButton()
-        Hint("该版本中不包含更新功能……")
-    End Sub
-
-    Friend IsUpdateWaitingRestart As Boolean = False
-    Public Sub UpdateRestart(TriggerRestartAndByEnd As Boolean)
-    End Sub
-    Public Sub UpdateReplace(ProcessId As Integer, OldFileName As String, NewFileName As String, TriggerRestart As Boolean)
-    End Sub
-
-    ''' <summary>
-    ''' 确保 PathTemp/Latest.exe 是最新正式版的 PCL，它会被用于整合包打包。
-    ''' 如果不是，则下载一个。
-    ''' </summary>
-    Friend Sub DownloadLatestPCL(Optional LoaderToSyncProgress As LoaderBase = Nothing)
-        '注意：如果要自行实现这个功能，请换用另一个文件路径，以免与官方版本冲突
-    End Sub
-
-#End Region
-
 #Region "联网配置"
 
     ''' <summary>
@@ -260,7 +244,7 @@ Friend Module ModSecret
     ''' </summary>
     Public ServerConfig As JObject
 
-    Public ServerLoader As New LoaderTask(Of Integer, Integer)("PCL-Slash 配置更新", Sub() Logger.Info("该版本中不包含更新通知功能……"), Priority:=ThreadPriority.BelowNormal) With
+    Public ServerLoader As New LoaderTask(Of Integer, Integer)("PCL-Slash 联机配置", Sub() Logger.Info("该版本未配置联机服务配置源"), Priority:=ThreadPriority.BelowNormal) With
         {.ReloadTimeout = 1000 * 60 * 60} '超时 1 小时
 
 #End Region
