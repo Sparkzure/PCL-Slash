@@ -17,7 +17,7 @@ Public Class PageOtherAbout
         ClipboardSet(Identify)
     End Sub
     Private Sub BtnAboutUpdate_Click(sender As Object, e As MouseButtonEventArgs) Handles BtnAboutUpdate.Click
-        UpdateCheckByButton()
+        ShowLauncherUpdateDialog()
     End Sub
 
 End Class
