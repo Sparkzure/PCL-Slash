@@ -305,7 +305,7 @@ Public Class FormMain
         End If
         '刷新主题
         ThemeCheckAll(False)
-        ThemeRefresh(Settings.Get(Of Integer)("UiLauncherTheme"))
+        ThemeRefresh(Settings.Get(Of String)("UiThemeSelected"))
         '注册拖拽事件（不能直接加 Handles，否则没用；#6340）
         [AddHandler](DragDrop.DragEnterEvent, New DragEventHandler(AddressOf HandleDrag), handledEventsToo:=True)
         [AddHandler](DragDrop.DragOverEvent, New DragEventHandler(AddressOf HandleDrag), handledEventsToo:=True)
@@ -455,7 +455,7 @@ Public Class FormMain
                              "欢迎通过关于页面中的问题反馈入口，告诉我们你遇到的问题。", "快照版使用说明")
             End Select
             If Settings.Get(Of Integer)("SystemCount") >= 99 Then
-                If ThemeUnlock(6, False) Then
+                If ThemeUnlock(LauncherTheme.LoyalPink, False) Then
                     MyMsgBox("你已经使用了 99 次 PCL-Slash 啦，感谢你长期以来的支持！" & vbCrLf &
                              "隐藏主题 铁杆粉 已解锁！", "提示")
                 End If
@@ -476,29 +476,6 @@ Public Class FormMain
         End If
         '被移除的窗口设置选项
         If Settings.Get(Of Integer)("LaunchArgumentWindowType") = 5 Then Settings.Set("LaunchArgumentWindowType", 1)
-        '修改主题设置项名称
-        If HighestVersionCode <= 207 Then
-            Dim UnlockedTheme As New List(Of String) From {"2"}
-            UnlockedTheme.AddRange(New List(Of String)(Settings.Get(Of String)("UiLauncherThemeHide").ToString.Split("|")))
-            UnlockedTheme.AddRange(New List(Of String)(Settings.Get(Of String)("UiLauncherThemeHide2").ToString.Split("|")))
-            Settings.Set("UiLauncherThemeHide2", UnlockedTheme.Distinct.ToList.Join("|"c))
-        End If
-        '重置欧皇彩
-        If LastVersionCode <= 115 AndAlso Settings.Get(Of String)("UiLauncherThemeHide2").ToString.Split("|").Contains("13") Then
-            Dim UnlockedTheme As New List(Of String)(Settings.Get(Of String)("UiLauncherThemeHide2").ToString.Split("|"))
-            UnlockedTheme.Remove("13")
-            Settings.Set("UiLauncherThemeHide2", UnlockedTheme.Join("|"c))
-            MyMsgBox("由于新版 PCL-Slash 修改了欧皇彩的解锁方式，你需要重新解锁欧皇彩。" & vbCrLf &
-                     "多谢各位的理解啦！", "重新解锁提醒")
-        End If
-        '重置滑稽彩
-        If LastVersionCode <= 152 AndAlso Settings.Get(Of String)("UiLauncherThemeHide2").ToString.Split("|").Contains("12") Then
-            Dim UnlockedTheme As New List(Of String)(Settings.Get(Of String)("UiLauncherThemeHide2").ToString.Split("|"))
-            UnlockedTheme.Remove("12")
-            Settings.Set("UiLauncherThemeHide2", UnlockedTheme.Join("|"c))
-            MyMsgBox("由于新版 PCL-Slash 修改了滑稽彩的解锁方式，你需要重新解锁滑稽彩。" & vbCrLf &
-                     "多谢各位的理解啦！", "重新解锁提醒")
-        End If
         '移动自定义皮肤
         If LastVersionCode <= 161 AndAlso FileUtils.Exists(Paths.Base & "PCL\CustomSkin.png") AndAlso Not FileUtils.Exists(Paths.AppDataThenName & "CustomSkin.png") Then
             FileUtils.Copy(Paths.Base & "PCL\CustomSkin.png", Paths.AppDataThenName & "CustomSkin.png")
