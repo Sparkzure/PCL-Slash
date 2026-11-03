@@ -43,7 +43,7 @@ Public Module ModLauncherUpdate
                 LatestReleaseTag = Tag
             End SyncLock
             If Comparison.Value <= 0 Then
-                HintLauncherUpdateStatus("未发现新版本", HintType.Green)
+                HintLauncherUpdateStatus("此为最新版本", HintType.Green)
                 Return
             End If
             HintLauncherUpdateStatus($"发现新版 {Tag}", HintType.Green)
