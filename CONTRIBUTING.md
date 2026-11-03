@@ -151,3 +151,9 @@ powershell.exe -NoProfile -STA -ExecutionPolicy Bypass -File tests/verify-launch
 ```
 
 如果 Bot 使用默认 `GITHUB_TOKEN` 推送标签，通常不会再次触发标签构建流程。需要使用 GitHub App 令牌，或显式派发工作流，并保持草稿由管理员发布的步骤。参见 [GitHub 的工作流触发规则](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow)。
+
+## 内置联机功能移除
+
+本分支不再包含联机页面、联机设置、邀请码事件、剪贴板自动加入、EasyTier 模块下载与启动、云端联机配置及相应资源。自定义事件中的 `加入房间`、页面 `Link` 和子页面 `SetupLink` / `LinkMain` 已删除；其余事件和页面的数字编号保持不变，导航按控件的 `Tag` 匹配。
+
+构建后执行 `powershell.exe -NoProfile -STA -ExecutionPolicy Bypass -File tests/verify-no-link.ps1`，检查联机类型、配置和资源已移除，现有页面编号、设置导航与更新通知仍可用。
