@@ -1,4 +1,4 @@
-param([string]$PreviewPath)
+﻿param([string]$PreviewPath)
 $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $assembly = [Reflection.Assembly]::LoadFrom((Join-Path $repoRoot 'Plain Craft Launcher 2/bin/Plain Craft Launcher Slash.exe'))
@@ -79,8 +79,37 @@ try {
     if ($status.Invoke($null, @()) -ne $true) { throw 'Older release was reported as an update' }
     $entries = $assembly.GetType('PCL.Settings').GetField('Entries').GetValue($null)
     if (-not $entries['SystemLauncherUpdateNotify'].DefaultValue -or $entries.ContainsKey('SystemSystemUpdate')) { throw 'Update notification settings are incorrect' }
+    foreach ($removed in @('HintNotice', 'HintLauncherReleaseTag', 'SystemSystemActivity', 'SystemHighestSavedBetaVersionReg', 'SystemHighestBetaVersionReg', 'SystemHighestAlphaVersionReg')) {
+        if ($entries.ContainsKey($removed)) { throw "Announcement state remains: $removed" }
+    }
+    if ($null -ne $assembly.GetType('PCL.FormMain').GetMethod('ShowUpdateLog', [Reflection.BindingFlags]'Instance, Public, NonPublic')) { throw 'Launcher changelog popup remains' }
+    # Exercise actual release-result handling without contacting GitHub or opening a window.
+    $main = $assembly.GetType('PCL.ModMain')
+    $hints = $main.GetField('HintWaiting', $flags).GetValue($null)
+    $dialogs = $main.GetField('WaitingMyMsgBox', $flags).GetValue($null)
+    $apply = $module.GetMethod('ApplyLauncherReleaseStatus', $flags)
+    $entries['SystemLauncherUpdateNotify'].Set($true, $null)
+    foreach ($case in @(
+        @('v99.0.0', '更新信息：发现新版 v99.0.0', $false),
+        @('v0.0.0', '更新信息：此为最新版本', $true),
+        @('invalid', '更新信息：无法识别版本信息', $true)
+    )) {
+        $hintCount = $hints.Count
+        $dialogCount = $dialogs.Count
+        $apply.Invoke($null, @($case[0]))
+        if ($hints.Count -ne $hintCount + 1 -or $dialogs.Count -ne $dialogCount) { throw 'Release check did not use only a status hint' }
+        $hint = @($hints.ToArray())[-1]
+        if ($hint.GetType().GetField('Text').GetValue($hint) -cne $case[1]) { throw 'Wrong release status hint' }
+        if ($status.Invoke($null, @()) -ne $case[2]) { throw 'Release status was not preserved' }
+    }
+    $entries['SystemLauncherUpdateNotify'].Set($false, $null)
+    $hintCount = $hints.Count
+    $module.GetMethod('CheckLauncherReleases', $flags).Invoke($null, @())
+    $hint = @($hints.ToArray())[-1]
+    if ($hints.Count -ne $hintCount + 1 -or $hint.GetType().GetField('Text').GetValue($hint) -cne '更新检查已关闭') { throw 'Disabled check status is incorrect' }
     $page = [Activator]::CreateInstance($assembly.GetType('PCL.PageSetupSystem'))
     if ($null -ne $page.FindName('ComboSystemUpdate') -or $null -eq $page.FindName('BtnSystemUpdate') -or $null -eq $page.FindName('CheckLauncherUpdateNotify')) { throw 'Manual update controls are missing or automatic update choices remain' }
+    if ($null -ne $page.FindName('ComboSystemActivity') -or $page.FindName('CheckLauncherUpdateNotify').Text -cne '启动时检查新版') { throw 'Announcement UI remains or the check label is incorrect' }
     if ($PreviewPath) {
         $card = $page.FindName('BtnSystemUpdate').Parent.Parent.Parent
         $card.Measure([Windows.Size]::new(760, [double]::PositiveInfinity))
@@ -97,7 +126,7 @@ try {
         if ($null -ne $assembly.GetType('PCL.ModSecret').GetMethod($old, $flags)) { throw "Legacy updater entry point remains: $old" }
     }
     if ($module.GetField('LauncherReleasesUrl').GetRawConstantValue() -ne 'https://github.com/sparkzure/PCL-Slash/releases') { throw 'Update URL is not the upstream releases page' }
-    Write-Output 'PASS: version ordering, release channels, draft filtering, unknown status, manual update UI and legacy updater removal.'
+    Write-Output 'PASS: version ordering, release channels, status-only update hints, manual update UI and announcement removal.'
 } finally {
     $application.Shutdown()
 }

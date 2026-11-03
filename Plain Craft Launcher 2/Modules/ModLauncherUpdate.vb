@@ -9,15 +9,15 @@ Public Module ModLauncherUpdate
     Public LauncherReleaseLoader As New LoaderTask(Of Integer, Integer)("启动器更新通知", AddressOf CheckLauncherReleases,
         Priority:=ThreadPriority.BelowNormal) With {.ReloadTimeout = 1000 * 60 * 60}
 
-    Public Sub ShowLauncherUpdateDialog(Optional NewVersion As String = Nothing)
-        Dim Message = If(String.IsNullOrEmpty(NewVersion), "", $"发现新版本：{NewVersion}{vbCrLf}{vbCrLf}") &
-            $"请前往 Releases 页面自行下载新版，解压后退出启动器，将新版 EXE 替换当前的 {LauncherFileName}，再重新打开即可完成更新。{vbCrLf}{vbCrLf}请保留原有的 PCL 文件夹和游戏文件夹，以继续使用已有设置与游戏。"
+    '仅供用户主动打开手动更新说明，后台检查只显示左下角提示。
+    Public Sub ShowLauncherUpdateDialog()
+        Dim Message = $"请前往 Releases 页面自行下载新版，解压后退出启动器，将新版 EXE 替换当前的 {LauncherFileName}，再重新打开即可完成更新。{vbCrLf}{vbCrLf}请保留原有的 PCL 文件夹和游戏文件夹，以继续使用已有设置与游戏。"
         If MyMsgBox(Message, "启动器更新", "前往 Releases", "取消") = 1 Then OpenWebsite(LauncherReleasesUrl)
     End Sub
 
     Private Sub CheckLauncherReleases()
         If Not Settings.Get(Of Boolean)("SystemLauncherUpdateNotify") Then
-            HintLauncherUpdateStatus("更新通知已关闭")
+            HintLauncherUpdateStatus("更新检查已关闭")
             Return
         End If
         HintLauncherUpdateStatus("正在获取……")
@@ -33,26 +33,7 @@ Public Module ModLauncherUpdate
                 HintLauncherUpdateStatus("暂无可用发布")
                 Return
             End If
-            Dim Tag = Latest("tag_name").ToString()
-            Dim Comparison = CompareLauncherVersions(Tag, VersionBaseName)
-            If Not Comparison.HasValue Then
-                HintLauncherUpdateStatus("无法识别版本信息", HintType.Red)
-                Return
-            End If
-            SyncLock ReleaseLock
-                LatestReleaseTag = Tag
-            End SyncLock
-            If Comparison.Value <= 0 Then
-                HintLauncherUpdateStatus("此为最新版本", HintType.Green)
-                Return
-            End If
-            HintLauncherUpdateStatus($"发现新版 {Tag}", HintType.Green)
-            RunInUi(Sub()
-                        If IsProgramEnding OrElse Not Settings.Get(Of Boolean)("SystemLauncherUpdateNotify") Then Return
-                        If Settings.Get(Of String)("HintLauncherReleaseTag") = Tag Then Return
-                        Settings.Set("HintLauncherReleaseTag", Tag)
-                        ShowLauncherUpdateDialog(Tag)
-                    End Sub)
+            ApplyLauncherReleaseStatus(Latest("tag_name").ToString())
         Catch ex As Exception
             '网络错误、API 限流或尚无正式发布时，不影响启动，也不误报为最新版。
             If TypeOf ex Is HttpRequestCodeException AndAlso CType(ex, HttpRequestCodeException).StatusCode = Net.HttpStatusCode.NotFound Then
@@ -64,9 +45,21 @@ Public Module ModLauncherUpdate
         End Try
     End Sub
 
+    Friend Sub ApplyLauncherReleaseStatus(Tag As String)
+        Dim Comparison = CompareLauncherVersions(Tag, VersionBaseName)
+        If Not Comparison.HasValue Then
+            HintLauncherUpdateStatus("无法识别版本信息", HintType.Red)
+            Return
+        End If
+        SyncLock ReleaseLock
+            LatestReleaseTag = Tag
+        End SyncLock
+        HintLauncherUpdateStatus(If(Comparison.Value <= 0, "此为最新版本", $"发现新版 {Tag}"), HintType.Green)
+    End Sub
+
     Private Sub HintLauncherUpdateStatus(Message As String, Optional Type As HintType = HintType.Blue)
         If IsProgramEnding Then Return
-        Hint(If(Settings.Get(Of Boolean)("SystemLauncherUpdateNotify"), "更新信息：" & Message, "更新通知已关闭"), Type)
+        Hint(If(Settings.Get(Of Boolean)("SystemLauncherUpdateNotify"), "更新信息：" & Message, "更新检查已关闭"), Type)
     End Sub
 
     Public Function IsLauncherLatestRelease() As Boolean?
