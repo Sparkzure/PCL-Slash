@@ -26,6 +26,17 @@ type(scope): 简明描述
 
 仓库管理员可在分支保护或 Ruleset 中将 `Commit message check` 设为必需检查，并让 squash 提交使用符合规范的 PR 标题。
 
+## Pull Request 流程
+
+1. 从上游 `main` 同步最新代码，通过 Fork 提交 PR；一次 PR 聚焦一个可独立审查的改动，未完成时先标为 Draft。
+2. 按本仓库的 [PR 模板](.github/PULL_REQUEST_TEMPLATE.md) 说明改动原因、行为变化、关联 Issue、验证结果和兼容性。模板已从 OpenList 引入并适配本项目，保留双语摘要、测试、检查清单和完整 AI 使用声明。实质 AI 辅助内容按模板注明工具、范围、人工验证及 `Co-Authored-By` 归属信息。
+3. PR 标题使用上述 Conventional Commits 格式。标题不合规时自动留言并使 `PR title check` 失败；修改标题后更新同一条评论，避免重复留言。scope 沿用本项目规则，可省略。
+4. 所有 PR 均运行 Build 的自动化测试和 Debug、Snapshot、Release 三种配置构建；`Commit message check` 检查标题与基线之后新增的 commit。标题反馈工作流仅运行目标分支上的可信脚本，不执行 PR 代码；Fork 构建不注入凭据。
+5. 由维护者审查并决定合并。建议将 `PR title check`、`Commit message check`、`Automation tests` 和三种 Build 检查设为必需项，并要求至少一次人工审查；这些保护规则需仓库管理员在 GitHub 设置中启用，工作流不会自动更改仓库设置。
+6. 合并后的 PR 标题会进入对应版本发行说明，PR 正文中的测试报告不会复制到发行说明。发布仍须管理员编辑草稿后手动完成。
+
+模板和标题反馈均由本仓库的 [PR 模板](.github/PULL_REQUEST_TEMPLATE.md) 与 [标题反馈工作流](.github/workflows/pr-feedback.yml) 提供。
+
 ## 本地检查
 
 应用构建使用本地的 `Plain Craft Launcher 2/bin/build.cmd`。流水线使用 Windows 上的 MSBuild，并使用源码中自带的帮助包。
@@ -33,10 +44,10 @@ type(scope): 简明描述
 自动发布逻辑使用 Node.js 24 内置测试运行器，无需安装 npm 依赖：
 
 ```text
-node --test .github/scripts/automation.test.cjs .github/scripts/release-bot.test.cjs
+node --test .github/scripts/*.test.cjs
 ```
 
-PR 不注入构建凭据；上游仓库的分支与标签构建可使用 `CLIENT_ID` 和 `CURSEFORGE_API_KEY` 两个仓库 Secret。草稿创建与附件上传使用内置 `GITHUB_TOKEN`，仅草稿任务申请 `contents: write`。
+PR 不注入构建凭据；上游仓库的分支与标签构建可使用 `CLIENT_ID` 和 `CURSEFORGE_API_KEY` 两个仓库 Secret。草稿创建与附件上传使用内置 `GITHUB_TOKEN`，仅草稿任务申请 `contents: write` 以及读取 PR 元数据的 `pull-requests: read`；标题反馈单独申请 `pull-requests: write`，用于管理提示评论。
 
 ## 标签与草稿发布
 
@@ -53,7 +64,7 @@ PR 不注入构建凭据；上游仓库的分支与标签构建可使用 `CLIENT
 2. 如需手动发布，先维护递增的 `VersionCode` 并合并，再在管理员的上游仓库克隆中创建并推送标签，例如 `git tag v2.14.1.0`，再执行 `git push origin v2.14.1.0`。
 3. 流水线检查自动化脚本、按标签选择 Snapshot 或 Release 构建，并生成 ZIP 和 SHA-256 校验文件。任何构建失败都不会创建草稿。
 4. 将对应通道的压缩包、校验文件和完整 `CHANGELOG.md` 附加到 GitHub Release **草稿**。不会将 Release 编译的程序误作快照版上传，也不会将 Snapshot 程序上传到正式版草稿。
-5. 草稿保留提交正文与验证说明。快照版汇总上一个可达版本标签之后的非合并提交；正式版以上一个可达正式版标签为界，包含其间的全部快照开发记录。首个版本包含标签之前的全部非合并提交；旧格式提交归入“其他变更”。较长的记录以附件完整保留。
+5. 草稿与 `CHANGELOG.md` 只列出已合并 PR 的完整标题、PR 链接和提出者链接，不收录 commit 信息或 PR 正文。同一个 PR 只出现一次，支持 merge、squash 和 rebase 合并。正式版以上一个可达正式版标签为起点；Snapshot 以上一个可达版本标签（包括 Snapshot、Beta、正式版等）为起点；Beta 以上一个可达 Beta 标签为起点，即使中间有正式版也不会截断。范围不包含起点、包含当前标签。没有同类起点时，从当前标签可达的全部历史中收集 PR。直接提交、未合并 PR 和范围外 PR 不进入说明；没有 PR 时明确提示。较长的记录以附件完整保留。
 6. 仓库管理员在 Releases 中修改标题、说明、附件及预发布标记，核对完成后自行点击 **Publish release**。流水线始终只创建草稿，不自动正式发布。
 
 同一标签重跑时，仅替换同名构建附件，保留管理员已修改的标题和正文；已发布的版本不再修改。正常分支构建、PR 与手动 Build 任务均不会创建 Release 草稿。需要重新生成正文时，可从附件 `CHANGELOG.md` 中复制所需内容。

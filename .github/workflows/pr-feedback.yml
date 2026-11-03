@@ -1,0 +1,28 @@
+name: PR title feedback
+on:
+  pull_request_target:
+    types: [opened, edited, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: pr-title-feedback-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  title-feedback:
+    name: PR title check
+    runs-on: ubuntu-latest
+    steps:
+      # 仅执行目标分支上的可信脚本，不检出或运行 PR 代码。
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          persist-credentials: false
+      - uses: actions/github-script@v9
+        with:
+          script: |
+            const feedback = require('./.github/scripts/pr-feedback.cjs');
+            await feedback({ github, context, core });

@@ -9,11 +9,6 @@ on:
       - 'MeloongCore'
       - '.github/**'
   pull_request:
-    paths:
-      - 'Plain Craft Launcher 2/**'
-      - 'PCLCS/**'
-      - 'MeloongCore'
-      - '.github/**'
   workflow_dispatch:
 
 permissions:
@@ -38,7 +33,7 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version: '24'
-      - run: node --test .github/scripts/automation.test.cjs .github/scripts/release-bot.test.cjs
+      - run: node --test .github/scripts/*.test.cjs
       - name: Select build and release channel
         id: channel
         run: node .github/scripts/release-channel.cjs
@@ -104,6 +99,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      pull-requests: read
     env:
       RELEASE_TAG: ${{ github.ref_name }}
     steps:
@@ -118,8 +114,12 @@ jobs:
         with:
           name: PCL-Slash-${{ needs.automation-tests.outputs.configuration }}
           path: release-assets
-      - name: Generate notes from commits
-        run: node .github/scripts/release-notes.cjs
+      - name: Generate notes from merged PR titles
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const { generateNotes } = require('./.github/scripts/release-notes.cjs');
+            await generateNotes({ github, context, core });
       - name: Create draft and attach packages
         uses: actions/github-script@v9
         with:
