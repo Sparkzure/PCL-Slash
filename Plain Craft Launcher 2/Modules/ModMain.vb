@@ -1024,7 +1024,7 @@ NextFile:
             Timer4Count = 0
             Try
 #Region "每 250ms 执行一次的代码"
-                If ThemeNow = 12 Then ThemeRefresh()
+                If CurrentTheme = LauncherTheme.FunnyRainbow Then ThemeRefresh()
 #End Region
             Catch ex As Exception
                 Logger.Warn(ex, "中程主时钟执行异常")

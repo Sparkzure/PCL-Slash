@@ -331,8 +331,8 @@ Refresh:
 
     Public Sub RefreshThemeChoices()
         For Each Choice In PanLauncherTheme.Children.OfType(Of MyRadioBox)()
-            Dim Id = Integer.Parse(SettingService.GetValue(Choice))
-            Dim Available = ThemeCheckOne(Id)
+            Dim Key = SettingService.GetValue(Choice)
+            Dim Available = ThemeCheckOne(Key)
             Choice.Visibility = Visibility.Visible
             Choice.IsEnabled = Available
             ToolTipService.SetShowOnDisabled(Choice, True)
@@ -342,13 +342,13 @@ Refresh:
 
     '两个分区的标题均保留玄素黑的快速连续点击彩蛋。
     Private LastThemeSecretClick As Long = 0
-    Private Sub LabLauncherTheme5Unlock_MouseLeftButtonUp() Handles LabLauncherTheme5Unlock.MouseLeftButtonUp, LabLauncherHiddenTheme.MouseLeftButtonUp
+    Private Sub LabLauncherThemeHeading_MouseLeftButtonUp() Handles LabLauncherThemeHeading.MouseLeftButtonUp, LabLauncherHiddenThemeHeading.MouseLeftButtonUp
         Dim Tick = GetTimeMs()
         If LastThemeSecretClick <> 0 AndAlso Tick - LastThemeSecretClick < 1000 Then
             LastThemeSecretClick = 0
-            If ThemeUnlock(5, UnlockHint:="隐藏主题 玄素黑 已解锁！") Then
+            If ThemeUnlock(LauncherTheme.MonochromeBlack, UnlockHint:="隐藏主题 玄素黑 已解锁！") Then
                 RefreshThemeChoices()
-                Settings.Set("UiLauncherTheme", 5)
+                Settings.Set("UiThemeSelected", LauncherTheme.MonochromeBlack)
             End If
         Else
             LastThemeSecretClick = Tick
@@ -356,7 +356,7 @@ Refresh:
     End Sub
 
     '主题标题保留原有的解密彩蛋线索入口，未解锁时也可触发。
-    Private Sub LabLauncherTheme11Click_MouseRightButtonUp() Handles LabLauncherTheme5Unlock.MouseRightButtonUp, RadioLauncherTheme11.MouseRightButtonUp, LabLauncherHiddenTheme.MouseRightButtonUp
+    Private Sub LauncherThemeHeading_MouseRightButtonUp() Handles LabLauncherThemeHeading.MouseRightButtonUp, RadioLauncherThemeGeekBlue.MouseRightButtonUp, LabLauncherHiddenThemeHeading.MouseRightButtonUp
         If MyMsgBox(
             "1. 不爬取或攻击相关服务或网站，不盗取相关账号，没有谜题可以或需要以此来解决。" & vbCrLf &
             "2. 不得篡改或损毁相关公开信息，请尽量让它们保持原状。" & vbCrLf &
@@ -368,8 +368,8 @@ Refresh:
     End Sub
 
     '主题自定义
-    Private Sub RadioLauncherTheme14_Change(sender As Object, e As RouteEventArgs) Handles RadioLauncherTheme14.Changed
-        If RadioLauncherTheme14.Checked Then
+    Private Sub RadioLauncherThemeCustom_Change(sender As Object, e As RouteEventArgs) Handles RadioLauncherThemeCustom.Changed
+        If RadioLauncherThemeCustom.Checked Then
             If LabLauncherHue.Visibility = Visibility.Visible Then Return
             LabLauncherHue.Visibility = Visibility.Visible
             SliderLauncherHue.Visibility = Visibility.Visible
