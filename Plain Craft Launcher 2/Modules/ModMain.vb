@@ -373,9 +373,6 @@ EndHint:
     Public FrmSpeedLeft As PageSpeedLeft
     Public FrmSpeedRight As PageSpeedRight
 
-    '联机页面声明
-    Public FrmLinkMain As PageLinkMain
-
     '下载页面声明
     Public FrmDownloadLeft As PageDownloadLeft
     Public FrmDownloadInstall As PageDownloadInstall
@@ -390,7 +387,6 @@ EndHint:
     Public FrmSetupLaunch As PageSetupLaunch
     Public FrmSetupUI As PageSetupUI
     Public FrmSetupSystem As PageSetupSystem
-    Public FrmSetupLink As PageSetupLink
 
     '其他页面声明
     Public FrmOtherLeft As PageOtherLeft

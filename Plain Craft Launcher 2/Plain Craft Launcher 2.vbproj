@@ -305,9 +305,6 @@
     <Compile Include="Pages\PageLaunch\PageLoginNideSkin.xaml.vb">
       <DependentUpon>PageLoginNideSkin.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Pages\PageLink\PageLinkMain.xaml.vb">
-      <DependentUpon>PageLinkMain.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Pages\PageOther\PageOtherHelpDetail.xaml.vb">
       <DependentUpon>PageOtherHelpDetail.xaml</DependentUpon>
     </Compile>
@@ -381,9 +378,6 @@
     </Compile>
     <Compile Include="Pages\PageSetup\PageSetupSystem.xaml.vb">
       <DependentUpon>PageSetupSystem.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Pages\PageSetup\PageSetupLink.xaml.vb">
-      <DependentUpon>PageSetupLink.xaml</DependentUpon>
     </Compile>
     <Compile Include="Pages\PageSetup\PageSetupUI.xaml.vb">
       <DependentUpon>PageSetupUI.xaml</DependentUpon>
@@ -565,10 +559,6 @@
     <None Include="Resources\Custom.xaml">
       <SubType>Designer</SubType>
     </None>
-    <Page Include="Pages\PageLink\PageLinkMain.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
     <Page Include="Pages\PageOther\PageOtherHelpDetail.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -634,10 +624,6 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Pages\PageSetup\PageSetupSystem.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Pages\PageSetup\PageSetupLink.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -909,9 +895,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\System.Net.Http.Formatting.dll" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\Heads\EasyTier.png" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\lwjgl-unsafe-agent.jar" />

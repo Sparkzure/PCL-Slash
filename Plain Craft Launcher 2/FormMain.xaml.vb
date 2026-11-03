@@ -80,9 +80,6 @@ Public Class FormMain
                 BugCount += 13
             End If
             If LastVersion < 379 Then 'Release 2.12.1
-                If LastVersion >= 376 Then
-                    FeatureList.Add(New KeyValuePair(Of Integer, String)(5, "删除：暂时隐藏联机入口……不过只是暂时关闭，它还会回来的！"))
-                End If
                 FeatureList.Add(New KeyValuePair(Of Integer, String)(3, "新增：适配新的 Minecraft 版本号系统与 Unobfuscated 版本"))
                 FeatureList.Add(New KeyValuePair(Of Integer, String)(2, "优化：巨幅优化各个下载页面和 Mod 管理页面的性能"))
                 FeatureList.Add(New KeyValuePair(Of Integer, String)(1, "优化：更换披风时会显示当前使用的披风"))
@@ -90,7 +87,6 @@ Public Class FormMain
                 BugCount += 29
             End If
             If LastVersion < 376 Then 'Release 2.11.2
-                'FeatureList.Add(New KeyValuePair(Of Integer, String)(5, "新增：联机功能！"))
                 FeatureCount += 32
                 BugCount += 21
             End If
@@ -215,9 +211,6 @@ Public Class FormMain
                 End If
             End If
             If LastVersion < 377 Then 'Snapshot 2.12.0
-                If LastVersion >= 373 Then
-                    FeatureList.Add(New KeyValuePair(Of Integer, String)(5, "删除：暂时隐藏联机入口……不过只是暂时关闭，它还会回来的！"))
-                End If
                 FeatureList.Add(New KeyValuePair(Of Integer, String)(3, "新增：适配新的 Minecraft 版本号系统与 Unobfuscated 版本"))
                 FeatureList.Add(New KeyValuePair(Of Integer, String)(2, "优化：巨幅优化各个下载页面和 Mod 管理页面的性能"))
                 FeatureList.Add(New KeyValuePair(Of Integer, String)(1, "优化：更换披风时会显示当前使用的披风"))
@@ -225,26 +218,14 @@ Public Class FormMain
                 BugCount += 29
             End If
             If LastVersion < 375 Then 'Snapshot 2.11.2
-                'If LastVersion >= 373 Then
-                '    FeatureList.Add(New KeyValuePair(Of Integer, String)(3, "优化：对联机进行了各种各样的优化，以改善稳定性"))
-                '    FeatureList.Add(New KeyValuePair(Of Integer, String)(2, "优化：若有加入者的网络环境比房主更好，会提示可以让那位加入者担任房主"))
-                'End If
                 FeatureCount += 16
                 BugCount += 4
             End If
             If LastVersion < 374 Then 'Snapshot 2.11.1
-                'If LastVersion >= 373 Then
-                '    FeatureList.Add(New KeyValuePair(Of Integer, String)(3, "优化：使用离线登录也可以直接加入联机房间了"))
-                '    FeatureList.Add(New KeyValuePair(Of Integer, String)(3, "优化：会从所有共享节点中自动选择负载最低的进行中继连接"))
-                '    FeatureList.Add(New KeyValuePair(Of Integer, String)(2, "优化：若复制了邀请码，则可以直接快速加入房间"))
-                '    FeatureList.Add(New KeyValuePair(Of Integer, String)(2, "优化：关闭 PCL 时总是会提示是否退出联机，防止在关闭 PCL 时无意地关闭或退出了房间"))
-                '    FeatureList.Add(New KeyValuePair(Of Integer, String)(2, "新增：允许自定义要连接的节点"))
-                'End If
                 FeatureCount += 9
                 BugCount += 7
             End If
             If LastVersion < 373 Then 'Snapshot 2.11.0
-                'FeatureList.Add(New KeyValuePair(Of Integer, String)(5, "新增：联机功能！"))
                 FeatureCount += 7
                 BugCount += 10
             End If
@@ -428,7 +409,6 @@ Public Class FormMain
                 Thread.Sleep(100)
                 DlClientListMojangLoader.Start(1) 'PCL 会同时根据这里的加载结果决定是否使用官方源进行下载
                 RunCountSub()
-                ServerLoader.Start()
                 LauncherReleaseLoader.Start()
                 RunInNewThread(AddressOf TryClearTaskTemp, "TryClearTaskTemp", ThreadPriority.BelowNormal)
             Catch ex As Exception
@@ -546,8 +526,6 @@ Public Class FormMain
                 Next
             End Sub, "强行停止下载任务")
         End If
-        '关闭联机？
-        If FrmLinkMain?.TryExit(Not SendWarning, True) Then Return
         '关闭
         RunInUiWait(
         Sub()
@@ -858,23 +836,6 @@ Public Class FormMain
         Catch ex As Exception
             Logger.Error(ex, "切回窗口时出错")
         End Try
-        '读取剪贴板，自动加入联机房间
-        Return 'TODO: 联机复活赛
-        If PageLinkMain.LinkState <> PageLinkMain.LinkStates.Waiting Then Return '已启动联机
-        If PageCurrent = PageType.Link Then Return '已在联机界面
-        Dim Code = ClipboardGetText() : If Code Is Nothing Then Return '剪贴板无文本
-        If Settings.Get(Of String)("LinkLastAutoJoinInviteCode") = Code Then Return
-        If PageLinkMain.ValidateCodeFormat(Code) IsNot Nothing Then Return '不是邀请码
-        Settings.Set("LinkLastAutoJoinInviteCode", Code)
-        RunInThread(
-        Sub()
-            If MyMsgBox("嘿，是否使用复制的邀请码加入房间？", "加入联机房间", "加入", "取消") = 2 Then Return '防止弹窗阻碍主线程，所以必须放在工作线程
-            RunInUi(
-            Sub()
-                PageLinkMain.Join(Code)
-                ClipboardSet(Nothing, False)
-            End Sub)
-        End Sub)
     End Sub
 
     '文件拖放
@@ -1151,10 +1112,6 @@ Public Class FormMain
         ''' </summary>
         Download = 1
         ''' <summary>
-        ''' 联机。
-        ''' </summary>
-        Link = 2
-        ''' <summary>
         ''' 设置。
         ''' </summary>
         Setup = 3
@@ -1184,7 +1141,7 @@ Public Class FormMain
         HelpDetail = 9
     End Enum
     ''' <summary>
-    ''' 次要页面种类。其数值必须与 StackPanel 中的下标一致。
+    ''' 次要页面种类。导航使用对应控件的 Tag 匹配编号。
     ''' 该枚举在自定义事件中使用，是公开 API 的一部分。
     ''' </summary>
     Public Enum PageSubType
@@ -1196,10 +1153,8 @@ Public Class FormMain
         DownloadResourcePack = 5
         DownloadShader = 6
         SetupLaunch = 0
-        SetupLink = 1
         SetupUI = 2
         SetupSystem = 3
-        LinkMain = 0
         OtherHelp = 0
         OtherAbout = 1
         OtherTest = 2
@@ -1323,9 +1278,11 @@ Public Class FormMain
     Public Sub PageChange(Stack As PageStackData, Optional SubType As PageSubType = PageSubType.Default)
         If PageNameGet(Stack) = "" Then
             '切换到主页面
+            Dim TargetButton = PanTitleSelect.Children.OfType(Of MyRadioButton)().FirstOrDefault(Function(Button) CInt(Button.Tag) = CInt(Stack.Page))
+            If TargetButton Is Nothing Then Throw New ArgumentOutOfRangeException(NameOf(Stack), "未知的主页面种类：" & Stack.Page)
             PageChangeExit()
             IsChangingPage = True '防止下面的勾选直接触发了 PageChangeActual
-            CType(PanTitleSelect.Children(Stack), MyRadioButton).SetChecked(True, True, PageNameGet(PageCurrent) = "")
+            TargetButton.SetChecked(True, True, PageNameGet(PageCurrent) = "")
             IsChangingPage = False
             Select Case Stack.Page
                 Case PageType.Download
@@ -1333,7 +1290,7 @@ Public Class FormMain
                     CType(FrmDownloadLeft.PanItem.Children(SubType), MyListItem).SetChecked(True, True, Stack = PageCurrent)
                 Case PageType.Setup
                     If FrmSetupLeft Is Nothing Then FrmSetupLeft = New PageSetupLeft
-                    CType(FrmSetupLeft.PanItem.Children(SubType), MyListItem).SetChecked(True, True, Stack = PageCurrent)
+                    FrmSetupLeft.PanItem.Children.OfType(Of MyListItem)().First(Function(Item) CInt(Item.Tag) = CInt(SubType)).SetChecked(True, True, Stack = PageCurrent)
                 Case PageType.Other
                     If FrmOtherLeft Is Nothing Then FrmOtherLeft = New PageOtherLeft
                     CType(FrmOtherLeft.PanItem.Children(SubType), MyListItem).SetChecked(True, True, Stack = PageCurrent)
@@ -1352,7 +1309,7 @@ Public Class FormMain
     ''' <summary>
     ''' 通过点击导航栏改变页面。
     ''' </summary>
-    Private Sub BtnTitleSelect_Click(sender As MyRadioButton, raiseByMouse As Boolean) Handles BtnTitleSelect0.Check, BtnTitleSelect1.Check, BtnTitleSelect2.Check, BtnTitleSelect3.Check, BtnTitleSelect4.Check
+    Private Sub BtnTitleSelect_Click(sender As MyRadioButton, raiseByMouse As Boolean) Handles BtnTitleSelect0.Check, BtnTitleSelect1.Check, BtnTitleSelect3.Check, BtnTitleSelect4.Check
         If IsChangingPage Then Return
         PageChangeActual(Val(sender.Tag))
     End Sub
@@ -1431,9 +1388,6 @@ Public Class FormMain
                     If FrmDownloadLeft Is Nothing Then FrmDownloadLeft = New PageDownloadLeft
                     'PageGet 方法会在未设置 SubType 时指定默认值，并建立相关页面的实例
                     PageChangeAnim(FrmDownloadLeft, FrmDownloadLeft.PageGet(SubType))
-                Case PageType.Link '联机
-                    If FrmLinkMain Is Nothing Then FrmLinkMain = New PageLinkMain
-                    PageChangeAnim(New MyPageLeft, FrmLinkMain)
                 Case PageType.Setup '设置
                     If FrmSetupLeft Is Nothing Then FrmSetupLeft = New PageSetupLeft
                     PageChangeAnim(FrmSetupLeft, FrmSetupLeft.PageGet(SubType))
