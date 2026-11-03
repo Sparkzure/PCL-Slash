@@ -53,7 +53,7 @@ test('tagged builds synchronize display and assembly versions, retaining Version
   assert.equal((fs.readFileSync(assembly, 'utf8').match(/AssemblyInformationalVersion/g) || []).length, 1);
   assert.match(fs.readFileSync(base, 'utf8'), /VersionBaseName As String = "2.14.1.0"/);
 });
-test('release range uses reachable previous tags and retains full commit bodies', t => {
+test('release and snapshot ranges use reachable tags from required channels', t => {
   const cwd = fixture(t);
   const git = args => execFileSync('git', args, { cwd, encoding: 'utf8' }).trim();
   const commit = message => git(['-c', 'user.name=Tests', '-c', 'user.email=test@example.invalid', 'commit', '--allow-empty', '-m', message]);
@@ -75,23 +75,24 @@ test('release range uses reachable previous tags and retains full commit bodies'
   assert.equal(previousTag('v1.1.0', cwd), 'v1.0.0');
   const commits = readCommits('v1.0.0..v1.1.0', cwd);
   assert.equal(commits.length, 3);
-  const notes = renderNotes({ tag: 'v1.1.0', previous: 'v1.0.0', commits, repository: 'sparkzure/PCL-Slash' });
-  assert.match(notes, /新增功能/);
-  assert.match(notes, /#39C5BB/);
-  assert.match(notes, /验证：构建通过/);
-  assert.doesNotMatch(notes, /unrelated/);
-  assert.match(notes, /compare\/v1.0.0\.\.\.v1.1.0/);
 });
-test('first-release history, legacy messages, breaking changes and long notes', () => {
-  const notes = renderNotes({ tag: 'v1.0.0', previous: null, repository: 'sparkzure/PCL-Slash', commits: [
-    { sha: 'a'.repeat(40), message: '旧版更新\n\n历史详情' },
-    { sha: 'b'.repeat(40), message: 'fix!: 修改接口\n\nBREAKING CHANGE: 需要迁移' }
+
+test('notes contain only PR titles, PR links and submitters', () => {
+  const notes = renderNotes({ repository: 'sparkzure/PCL-Slash', pulls: [
+    { number: 12, title: 'fix: 修复 [登录] <失败>', body: '不要收录 PR 正文', user: { login: 'lecyn' } },
+    { number: 13, title: 'feat: 新主题', user: null }
   ] });
-  assert.match(notes, /其他变更/);
-  assert.match(notes, /不兼容变更/);
-  assert.match(notes, /历史详情/);
+  assert.ok(notes.includes('fix: 修复 '));
+  assert.ok(!notes.includes('<失败>'));
+  assert.ok(notes.includes('[#12](https://github.com/sparkzure/PCL-Slash/pull/12)'));
+  assert.ok(notes.includes('by [@lecyn](https://github.com/lecyn)'));
+  assert.match(notes, /提出者账号已删除/);
+  const bot = renderNotes({ repository: 'sparkzure/PCL-Slash', pulls: [{ number: 14, title: 'chore: release', user: { login: 'pcl-slash-release-bot[bot]' } }] });
+  assert.ok(bot.includes('(https://github.com/apps/pcl-slash-release-bot)'));
+  assert.doesNotMatch(notes, /不要收录|commit\/|BREAKING CHANGE|验证：/);
+  assert.match(renderNotes({ repository: 'sparkzure/PCL-Slash', pulls: [] }), /没有已合并的 PR/);
   assert.equal(draftBody(notes), notes);
-  const full = (notes + '\n').repeat(3000);
+  const full = notes.repeat(3000);
   assert.ok(draftBody(full).length < 100000);
   assert.match(draftBody(full), /CHANGELOG.md/);
 });
