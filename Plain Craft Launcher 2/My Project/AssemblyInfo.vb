@@ -55,4 +55,4 @@ Imports System.Runtime.InteropServices
 <Assembly: AssemblyFileVersion("2.14.1.1")>
 <Assembly: NeutralResourcesLanguage("")>
 
-<Assembly: AssemblyInformationalVersion("2.14.1.1-snapshot.3")>
+<Assembly: AssemblyInformationalVersion("2.14.1.1-snapshot.4")>
