@@ -33,7 +33,7 @@ type(scope): 简明描述
 3. PR 标题使用上述 Conventional Commits 格式。标题不合规时自动留言并使 `PR title check` 失败；修改标题后更新同一条评论，避免重复留言。scope 沿用本项目规则，可省略。
 4. 所有 PR 均运行 Build 的自动化测试和 Debug、Snapshot、Release 三种配置构建；`Commit message check` 检查标题与基线之后新增的 commit。标题反馈工作流仅运行目标分支上的可信脚本，不执行 PR 代码；Fork 构建不注入凭据。
 5. 由维护者审查并决定合并。建议将 `PR title check`、`Commit message check`、`Automation tests` 和三种 Build 检查设为必需项，并要求至少一次人工审查；这些保护规则需仓库管理员在 GitHub 设置中启用，工作流不会自动更改仓库设置。
-6. 合并后的 PR 标题会进入对应版本发行说明，PR 正文中的测试报告不会复制到发行说明。发布仍须管理员编辑草稿后手动完成。
+6. 发行说明从版本范围内的 commit 标题生成，按提交类型分类，并链接到 commit 和提交作者；PR 标题与正文不再作为日志来源。发布仍须管理员编辑草稿后手动完成。
 
 模板和标题反馈均由本仓库的 [PR 模板](.github/PULL_REQUEST_TEMPLATE.md) 与 [标题反馈工作流](.github/workflows/pr-feedback.yml) 提供。
 
@@ -47,7 +47,7 @@ type(scope): 简明描述
 node --test .github/scripts/*.test.cjs
 ```
 
-PR 不注入构建凭据；上游仓库的分支与标签构建可使用 `CLIENT_ID` 和 `CURSEFORGE_API_KEY` 两个仓库 Secret。草稿创建与附件上传使用内置 `GITHUB_TOKEN`，仅草稿任务申请 `contents: write` 以及读取 PR 元数据的 `pull-requests: read`；标题反馈单独申请 `pull-requests: write`，用于管理提示评论。
+PR 不注入构建凭据；上游仓库的分支与标签构建可使用 `CLIENT_ID` 和 `CURSEFORGE_API_KEY` 两个仓库 Secret。提交日志读取、草稿创建与附件上传使用内置 `GITHUB_TOKEN`，仅草稿任务申请 `contents: write`；标题反馈单独申请 `pull-requests: write`，用于管理提示评论。
 
 ## 主题配置
 
@@ -82,7 +82,7 @@ PR 不注入构建凭据；上游仓库的分支与标签构建可使用 `CLIENT
 2. 如需手动发布，先维护递增的 `VersionCode` 并合并，再在管理员的上游仓库克隆中创建并推送标签，例如 `git tag v2.14.1.0`，再执行 `git push origin v2.14.1.0`。
 3. 流水线检查自动化脚本、按标签选择 Snapshot 或 Release 构建，并生成 ZIP 和 SHA-256 校验文件。任何构建失败都不会创建草稿。
 4. 将对应通道的压缩包、校验文件和完整 `CHANGELOG.md` 附加到 GitHub Release **草稿**。不会将 Release 编译的程序误作快照版上传，也不会将 Snapshot 程序上传到正式版草稿。
-5. 草稿与 `CHANGELOG.md` 只列出已合并 PR 的完整标题、PR 链接和提出者链接，不收录 commit 信息或 PR 正文。同一个 PR 只出现一次，支持 merge、squash 和 rebase 合并。正式版以上一个可达正式版标签为起点；Snapshot 以上一个可达版本标签（包括 Snapshot、Beta、正式版等）为起点；Beta 以上一个可达 Beta 标签为起点，即使中间有正式版也不会截断。范围不包含起点、包含当前标签。没有同类起点时，从当前标签可达的全部历史中收集 PR。直接提交、未合并 PR 和范围外 PR 不进入说明；没有 PR 时明确提示。较长的记录以附件完整保留。
+5. 草稿与 `CHANGELOG.md` 从 commit 生成，包含完整提交标题、短 SHA（链接至完整 commit）及提交作者链接，不收录提交正文、验证报告或 PR 元数据。按 Conventional Commits 类型分为新增功能、问题修复、性能优化、代码重构、文档、代码风格、测试、构建、持续集成、维护和回退；旧格式或未知类型归入“其他”。标题带 `!` 或正文含 `BREAKING CHANGE:` / `BREAKING-CHANGE:` 的提交单列为“破坏性变更”，每个 SHA 仅出现一次。同一分类内按版本范围中的提交顺序排列，空分类不显示。普通合并提交跳过，其分支上的实际提交正常收录；直接提交、squash 和 rebase 后的提交均收录。作者已关联 GitHub 时链接到其个人或 Bot 页面；未关联账号时显示 Git 作者姓名，并链接到按其邮箱或姓名筛选的仓库提交记录。正式版以上一个可达正式版标签为起点；Snapshot 以上一个可达版本标签（包括 Snapshot、Beta、正式版等）为起点；Beta 以上一个可达 Beta 标签为起点，即使中间有正式版也不会截断。范围不包含起点、包含当前标签，并始终排除历史基线 `5ef81e490ae46b1100d61e33d0183094c7a80ca8` 本身及其全部祖先（包括基线前已合并的分支提交）。没有同类起点时，只收录当前标签可达、且不属于基线及其祖先的非合并提交。基线及更早的版本不会生成旧记录。没有可记录的提交时明确提示。提交元数据分页获取，并与本地 Git 范围逐一校验；无法读取基线、API 获取失败或缺少提交时停止生成，避免日志被截断。较长的记录以附件完整保留。
 6. 仓库管理员在 Releases 中修改标题、说明、附件及预发布标记，核对完成后自行点击 **Publish release**。流水线始终只创建草稿，不自动正式发布。
 
 同一标签重跑时，仅替换同名构建附件，保留管理员已修改的标题和正文；已发布的版本不再修改。正常分支构建、PR 与手动 Build 任务均不会创建 Release 草稿。需要重新生成正文时，可从附件 `CHANGELOG.md` 中复制所需内容。

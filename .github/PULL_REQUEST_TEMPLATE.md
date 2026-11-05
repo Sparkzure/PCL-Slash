@@ -5,12 +5,12 @@ PR title / PR 标题:
 - Allowed types: `feat`, `fix`, `perf`, `refactor`, `docs`, `style`, `test`, `build`, `ci`, `chore`, `revert`
 - Scope is optional; the title must not exceed 100 characters.
 - For breaking changes, add `!`: `feat(login)!: change auth flow`
-- Release notes use the PR title and link to the PR and its author.
+- Release notes use commit titles, grouped by type, with links to each commit and its author.
 
 - 使用 Conventional Commits：`type(scope): 描述`。
 - scope 可省略；标题不超过 100 个字符。
 - 不兼容变更加 `!`，例如 `feat(login)!: 调整登录流程`。
-- 发行说明会使用 PR 标题，并链接至 PR 和提出者，请准确描述最终改动。
+- 发行说明使用 commit 标题，按类型分类并链接至 commit 和提交作者；PR 标题仍须准确描述最终改动。
 -->
 
 ## Summary / 摘要

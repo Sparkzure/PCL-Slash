@@ -99,7 +99,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      pull-requests: read
     env:
       RELEASE_TAG: ${{ github.ref_name }}
     steps:
@@ -114,7 +113,7 @@ jobs:
         with:
           name: PCL-Slash-${{ needs.automation-tests.outputs.configuration }}
           path: release-assets
-      - name: Generate notes from merged PR titles
+      - name: Generate categorized notes from commits
         uses: actions/github-script@v9
         with:
           script: |
