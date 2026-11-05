@@ -9,9 +9,10 @@ Public Module ModLauncherUpdate
     Public LauncherReleaseLoader As New LoaderTask(Of Integer, Integer)("启动器更新通知", AddressOf CheckLauncherReleases,
         Priority:=ThreadPriority.BelowNormal) With {.ReloadTimeout = 1000 * 60 * 60}
 
-    '仅供用户主动打开手动更新说明，后台检查只显示左下角提示。
-    Public Sub ShowLauncherUpdateDialog()
-        Dim Message = $"请前往 Releases 页面自行下载新版，解压后退出启动器，将新版 EXE 替换当前的 {LauncherFileName}，再重新打开即可完成更新。{vbCrLf}{vbCrLf}请保留原有的 PCL 文件夹和游戏文件夹，以继续使用已有设置与游戏。"
+    '仅显示版本号和手动更新说明，不展示更新日志。
+    Public Sub ShowLauncherUpdateDialog(Optional NewVersion As String = Nothing)
+        Dim Message = If(String.IsNullOrEmpty(NewVersion), "", $"发现新版本：{NewVersion}{vbCrLf}{vbCrLf}") &
+            $"请前往 Releases 页面自行下载新版，解压后退出启动器，将新版 EXE 替换当前的 {LauncherFileName}，再重新打开即可完成更新。{vbCrLf}{vbCrLf}请保留原有的 PCL 文件夹和游戏文件夹，以继续使用已有设置与游戏。"
         If MyMsgBox(Message, "启动器更新", "前往 Releases", "取消") = 1 Then OpenWebsite(LauncherReleasesUrl)
     End Sub
 
@@ -23,11 +24,11 @@ Public Module ModLauncherUpdate
         HintLauncherUpdateStatus("正在获取……")
         Try
             Dim Channel = GetLauncherUpdateChannel(VersionBaseName, BuildType = BuildTypes.Release)
-            Dim ApiUrl = SourceRepository.Replace("https://github.com/", "https://api.github.com/repos/") & "/releases"
-            ApiUrl &= If(Channel = "release", "/latest", "?per_page=100")
+            Dim ApiUrl = GetLauncherReleaseApiUrl(Channel, Settings.Get(Of Integer)("SystemLauncherUpdateSource"),
+                Settings.Get(Of String)("SystemLauncherUpdateCustomSource"))
             Dim Response = NetRequestByClient(ApiUrl, Accept:="application/vnd.github+json", Timeout:=15000,
                 Headers:={{"X-GitHub-Api-Version", "2022-11-28"}}, RequireJson:=True)
-            Dim Releases = If(Channel = "release", New JArray(JObject.Parse(Response)), JArray.Parse(Response))
+            Dim Releases = ParseLauncherReleases(Response)
             Dim Latest = FindLatestLauncherRelease(Releases, Channel)
             If Latest Is Nothing Then
                 HintLauncherUpdateStatus("暂无可用发布")
@@ -45,6 +46,13 @@ Public Module ModLauncherUpdate
         End Try
     End Sub
 
+    Friend Function ParseLauncherReleases(Response As String) As JArray
+        Dim Data = JToken.Parse(Response)
+        If TypeOf Data Is JArray Then Return DirectCast(Data, JArray)
+        If TypeOf Data Is JObject Then Return New JArray(Data)
+        Throw New ArgumentException("更新检查源返回的发布数据格式无效。")
+    End Function
+
     Friend Sub ApplyLauncherReleaseStatus(Tag As String)
         Dim Comparison = CompareLauncherVersions(Tag, VersionBaseName)
         If Not Comparison.HasValue Then
@@ -55,7 +63,52 @@ Public Module ModLauncherUpdate
             LatestReleaseTag = Tag
         End SyncLock
         HintLauncherUpdateStatus(If(Comparison.Value <= 0, "此为最新版本", $"发现新版 {Tag}"), HintType.Green)
+        If Comparison.Value <= 0 Then Return
+        RunInUi(Sub()
+                    If Not ShouldNotifyLauncherRelease(Tag) Then Return
+                    Settings.Set("HintLauncherReleaseTag", Tag)
+                    ShowLauncherUpdateDialog(Tag)
+                End Sub, ForceWaitUntilLoaded:=True)
     End Sub
+
+    Friend Function ShouldNotifyLauncherRelease(Tag As String) As Boolean
+        If IsProgramEnding OrElse Not Settings.Get(Of Boolean)("SystemLauncherUpdateNotify") Then Return False
+        Dim Comparison = CompareLauncherVersions(Tag, VersionBaseName)
+        Return Comparison.HasValue AndAlso Comparison.Value > 0 AndAlso Settings.Get(Of String)("HintLauncherReleaseTag") <> Tag
+    End Function
+
+    Friend Function GetLauncherReleaseApiUrl(Channel As String, Source As Integer, CustomSource As String) As String
+        Dim ApiUrl = SourceRepository.Replace("https://github.com/", "https://api.github.com/repos/") & "/releases"
+        ApiUrl &= If(Channel = "release", "/latest", "?per_page=100")
+        Select Case Source
+            Case 0
+                Return ApiUrl
+            Case 1
+                Return "https://gh-proxy.com/" & ApiUrl
+            Case 2
+                Dim Address = If(CustomSource, "").Trim()
+                If Address = "" Then Throw New ArgumentException("请输入自定义 GitHub API 源地址。")
+                Dim Target As Uri = Nothing
+                If Not Uri.TryCreate(Address, UriKind.Absolute, Target) OrElse
+                    (Target.Scheme <> Uri.UriSchemeHttp AndAlso Target.Scheme <> Uri.UriSchemeHttps) OrElse
+                    Target.Host = "" OrElse Target.UserInfo <> "" OrElse Target.Fragment <> "" OrElse
+                    Address.Any(Function(c) Char.IsWhiteSpace(c) OrElse c = "{"c OrElse c = "}"c) Then
+                    Throw New ArgumentException("请填写完整的 HTTP 或 HTTPS 更新检查链接，且不能包含用户名、密码、片段标记或占位符。")
+                End If
+                Return Address
+            Case Else
+                Throw New ArgumentException("未知的启动器更新检查源，请重新选择。")
+        End Select
+    End Function
+
+    Friend Function ValidateLauncherUpdateCustomSource(Address As String) As String
+        Try
+            GetLauncherReleaseApiUrl("release", 2, Address)
+            Return ""
+        Catch ex As ArgumentException
+            Return ex.Message
+        End Try
+    End Function
 
     Private Sub HintLauncherUpdateStatus(Message As String, Optional Type As HintType = HintType.Blue)
         If IsProgramEnding Then Return

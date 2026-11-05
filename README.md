@@ -20,7 +20,9 @@
 2. 将下载的文件解压到你希望存放启动器的文件夹，运行 `Plain Craft Launcher Slash.exe`。
 3. 添加游戏账号，选择已有游戏目录或下载游戏版本，然后启动游戏。
 
-启动器会在后台检查新版，仅在左下角显示检查结果。Beta 和 Snapshot 分别检查各自通道，也会检查后续正式版。更新时请前往 Releases 下载新版，退出启动器后替换 `Plain Craft Launcher Slash.exe`，并保留原有的 `PCL` 文件夹和游戏文件夹。可以在“设置 → 其他 → 启动器”中点击“查看更新”打开手动更新说明，或关闭“启动时检查新版”。
+启动器会在后台检查新版，在左下角显示检查结果，发现新版时弹窗通知，同一版本仅通知一次。Beta 和 Snapshot 分别检查各自通道，也会检查后续正式版。更新时请前往 Releases 下载新版，退出启动器后替换 `Plain Craft Launcher Slash.exe`，并保留原有的 `PCL` 文件夹和游戏文件夹。可以在“设置 → 其他 → 启动器”中点击“查看更新”打开手动更新说明，或关闭“启动时检查新版”。启动器升级后不弹出更新日志。
+
+“更新检查源”可选择 GitHub 官方、GH-Proxy 镜像或自定义源。自定义源填写完整的更新检查链接，例如 `https://exmple.com/repos/sparkzure/PCL-Slash/releases?per_page=100`；前缀代理可填写 `https://exmple.com/https://api.github.com/repos/sparkzure/PCL-Slash/releases?per_page=100`。程序直接请求填写的地址，返回数据须为 GitHub Releases 格式的 JSON。
 
 本分支已移除内置联机功能，包括邀请码、联机模块下载和云端联机配置。
 

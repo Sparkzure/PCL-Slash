@@ -1,5 +1,9 @@
 Public Class PageSetupSystem
 
+    Public Sub New()
+        InitializeComponent()
+        TextLauncherUpdateCustomSource.ValidateRules.Add(New ValidateFunc(AddressOf ValidateLauncherUpdateCustomSource))
+    End Sub
 
     Private Sub PageSetupSystem_Loaded(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
 
@@ -25,6 +29,7 @@ Public Class PageSetupSystem
     End Sub
     Public Sub Reload()
         SettingService.RefreshSettings(Me)
+        RefreshLauncherUpdateSourceUi()
     End Sub
     Public Sub Reset()
         Try
@@ -78,6 +83,14 @@ Public Class PageSetupSystem
     End Sub
 
     '手动更新
+    Private Sub ComboLauncherUpdateSource_SelectionChanged() Handles ComboLauncherUpdateSource.SelectionChanged
+        RefreshLauncherUpdateSourceUi()
+    End Sub
+    Private Sub RefreshLauncherUpdateSourceUi()
+        If PanLauncherUpdateCustomSource Is Nothing Then Return
+        PanLauncherUpdateCustomSource.Visibility = If(ComboLauncherUpdateSource.SelectedIndex = 2, Visibility.Visible, Visibility.Collapsed)
+    End Sub
+
     Private Sub BtnSystemUpdate_Click(sender As Object, e As EventArgs) Handles BtnSystemUpdate.Click
         ShowLauncherUpdateDialog()
     End Sub

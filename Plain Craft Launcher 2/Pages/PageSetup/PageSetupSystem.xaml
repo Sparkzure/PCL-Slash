@@ -105,13 +105,16 @@
                 </Grid>
             </local:MyCard>
             <local:MyCard Margin="0,0,0,15" Title="启动器">
-                <Grid Margin="25,40,25,20">
+                <Grid Margin="25,40,25,20" Grid.IsSharedSizeScope="True">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
                         <ColumnDefinition Width="1*" />
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="28" />
+                        <RowDefinition Height="9" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
                         <RowDefinition Height="9" />
                         <RowDefinition Height="28" />
                         <RowDefinition Height="5" />
@@ -123,19 +126,35 @@
                     <StackPanel Grid.Column="1" Orientation="Horizontal">
                         <local:MyButton x:Name="BtnSystemUpdate" MinWidth="140" Height="28" Text="查看更新" Padding="13,0" Margin="0,0,20,0" />
                         <local:MyCheckBox x:Name="CheckLauncherUpdateNotify" Text="启动时检查新版" VerticalAlignment="Center" local:SettingService.Key="SystemLauncherUpdateNotify"
-                                          ToolTip="启动时检查 GitHub Releases 中已发布的版本，仅在左下角显示检查结果。请自行下载并替换 EXE 更新。" />
+                                          ToolTip="启动时检查 GitHub Releases 中已发布的版本，在左下角显示检查结果，发现新版时弹窗通知。同一版本仅通知一次。" />
                     </StackPanel>
-                    <TextBlock Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left" Text="缓存文件夹" Margin="0,0,25,0" />
-                    <local:MyTextBox x:Name="TextSystemCache" Grid.Row="2" Grid.ColumnSpan="2" local:SettingService.Key="SystemSystemCache" Grid.Column="1" ToolTip="PCL-Slash 的下载、皮肤等缓存文件的存储位置。&#xa;不推荐路径中带有空格。&#xa;留空即为默认值，重启 PCL-Slash 后生效。" HintText="默认">
+                    <TextBlock Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left" Text="更新检查源" Margin="0,0,25,0" />
+                    <local:MyComboBox x:Name="ComboLauncherUpdateSource" Height="28" Grid.Row="2" Grid.Column="1" local:SettingService.Key="SystemLauncherUpdateSource">
+                        <local:MyComboBoxItem Content="GitHub 官方（默认）" />
+                        <local:MyComboBoxItem Content="GH-Proxy 镜像" />
+                        <local:MyComboBoxItem Content="自定义源" />
+                    </local:MyComboBox>
+                    <Grid x:Name="PanLauncherUpdateCustomSource" Grid.Row="3" Grid.ColumnSpan="2" Margin="0,9,0,0" Visibility="Collapsed">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="Name" />
+                            <ColumnDefinition />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock VerticalAlignment="Center" Text="自定义源" Margin="0,0,25,0" />
+                        <local:MyTextBox x:Name="TextLauncherUpdateCustomSource" Grid.Column="1" local:SettingService.Key="SystemLauncherUpdateCustomSource"
+                                         HintText="https://exmple.com/repos/sparkzure/PCL-Slash/releases?per_page=100"
+                                         ToolTip="填写完整的更新检查链接，例如 https://exmple.com/repos/sparkzure/PCL-Slash/releases?per_page=100。&#xa;前缀代理示例：https://exmple.com/https://api.github.com/repos/sparkzure/PCL-Slash/releases?per_page=100。&#xa;链接须返回 GitHub Releases 格式的 JSON，所选源仅用于检查启动器更新。" />
+                    </Grid>
+                    <TextBlock Grid.Row="5" VerticalAlignment="Center" HorizontalAlignment="Left" Text="缓存文件夹" Margin="0,0,25,0" />
+                    <local:MyTextBox x:Name="TextSystemCache" Grid.Row="5" Grid.ColumnSpan="2" local:SettingService.Key="SystemSystemCache" Grid.Column="1" ToolTip="PCL-Slash 的下载、皮肤等缓存文件的存储位置。&#xa;不推荐路径中带有空格。&#xa;留空即为默认值，重启 PCL-Slash 后生效。" HintText="默认">
                         <local:MyTextBox.ValidateRules>
                             <local:ValidateNullable />
                             <local:ValidateFolderPath UseMinecraftCharCheck="False" />
                         </local:MyTextBox.ValidateRules>
                     </local:MyTextBox>
-                    <local:MyCheckBox Margin="0,5,0,4" Text="匿名数据收集" Grid.Row="4" Height="22" Grid.ColumnSpan="2"
+                    <local:MyCheckBox Margin="0,5,0,4" Text="匿名数据收集" Grid.Row="7" Height="22" Grid.ColumnSpan="2"
                         x:Name="CheckSystemTelemetry" local:SettingService.Key="SystemSystemTelemetry" 
                         ToolTip="当前版本未配置匿名统计上报地址，不发送此类遥测数据。&#xa;账号登录、资源下载等功能仍需访问相应服务。" />
-                    <Grid Height="35" Grid.Row="5" Grid.ColumnSpan="5" Margin="0,12,0,0">
+                    <Grid Height="35" Grid.Row="8" Grid.ColumnSpan="5" Margin="0,12,0,0">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
@@ -144,7 +163,7 @@
                         <local:MyButton Grid.Column="0" x:Name="BtnSystemSettingExp" MinWidth="140" Text="导出设置" Padding="13,0" Margin="0,0,20,0" />
                         <local:MyButton Grid.Column="1" x:Name="BtnSystemSettingImp" MinWidth="140" Text="导入设置" Padding="13,0" Margin="0,0,20,0" />
                     </Grid>
-                    <Grid Height="35" Grid.Row="6" Grid.ColumnSpan="5" Margin="0,12,0,0" x:Name="PanDonate">
+                    <Grid Height="35" Grid.Row="9" Grid.ColumnSpan="5" Margin="0,12,0,0" x:Name="PanDonate">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
