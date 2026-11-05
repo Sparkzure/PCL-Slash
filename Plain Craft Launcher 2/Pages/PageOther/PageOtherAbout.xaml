@@ -122,8 +122,8 @@
                     <TextBlock Margin="0,0,0,2" LineHeight="17" Text="Plain Craft Launcher Slash（PCL-Slash）是基于 Plain Craft Launcher 的独立分支，由 Lecyn 及贡献者开发。项目仓库为 sparkzure/PCL-Slash；分支相关问题请通过本项目的反馈入口提交。" TextWrapping="Wrap" />
                     <TextBlock Text="版权与许可" TextWrapping="Wrap" Margin="0,10,0,4" FontWeight="Bold" />
                     <TextBlock Margin="0,0,0,2" LineHeight="17" Text="原版 Plain Craft Launcher 的版权归其原著作权人所有；分支新增与修改部分的署名为 Lecyn 及相应贡献者。使用、修改或分发时，请遵守适用的上游许可及各第三方组件许可。第三方组件的版权与许可见下方“许可与版权声明”。" TextWrapping="Wrap" />
-                    <TextBlock Text="匿名统计与网络访问" TextWrapping="Wrap" Margin="0,10,0,4" FontWeight="Bold" />
-                    <TextBlock Margin="0,0,0,2" LineHeight="17" Text="当前版本未配置匿名统计上报地址，不发送此类遥测数据。账号登录、资源下载等功能仍会连接相应的第三方服务，相关数据处理受各服务提供方的规则约束。" TextWrapping="Wrap" />
+                    <TextBlock Text="网络访问" TextWrapping="Wrap" Margin="0,10,0,4" FontWeight="Bold" />
+                    <TextBlock Margin="0,0,0,2" LineHeight="17" Text="账号登录、资源下载、更新检查等功能会连接相应的第三方服务，相关数据处理受各服务提供方的规则约束。" TextWrapping="Wrap" />
                     <TextBlock Text="本地数据与隐私" TextWrapping="Wrap" Margin="0,10,0,4" FontWeight="Bold" />
                     <TextBlock Margin="0,0,0,2" LineHeight="17" Text="启动器会在本地保存账号登录信息、设置、缓存与运行日志，以支持相应功能。提交反馈或分享日志前，请先检查其中是否含有账号、文件路径等个人信息。" TextWrapping="Wrap" />
                     <TextBlock Text="非官方产品声明" TextWrapping="Wrap" Margin="0,10,0,4" FontWeight="Bold" />

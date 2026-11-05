@@ -3,11 +3,9 @@ Imports System.Security.Cryptography
 Public Class Settings
 
     Public Shared ReadOnly Entries As Dictionary(Of String, Setting) = (New List(Of Setting) From {
-        New Setting("Identify", "", Source:=Sources.Registry),
         New Setting("WindowHeight", 550),
         New Setting("WindowWidth", 900),
         New Setting("AprilYear", 0, Source:=Sources.Registry, Encrypted:=True),
-        New Setting("Potatoes", "", Source:=Sources.Registry, Encrypted:=True),
         New Setting("HintDownloadThread", False, Source:=Sources.Registry),
         New Setting("HintDownload", 0, Source:=Sources.Registry),
         New Setting("HintHide", False, Source:=Sources.Registry),
@@ -35,7 +33,6 @@ Public Class Settings
         New Setting("HintLauncherReleaseTag", ""),
         New Setting("SystemLauncherUpdateSource", 0),
         New Setting("SystemLauncherUpdateCustomSource", ""),
-        New Setting("SystemSystemTelemetry", True, Source:=Sources.Registry),
         New Setting("CacheDrops", "", Source:=Sources.Registry),
         New Setting("CacheConfig", 0, Source:=Sources.Registry),
         New Setting("CacheExportConfig", "", Source:=Sources.Registry),
@@ -243,7 +240,7 @@ Public Class Settings
             If Encrypted Then
                 Try
                     If Value Is Nothing Then Value = ""
-                    Value = DesEncrypt(Value, "PCL" & Identify)
+                    Value = DesEncrypt(Value, SettingsEncryptionKey)
                 Catch ex As Exception
                     Logger.Warn(ex, $"加密设置失败：{Key}")
                 End Try
@@ -307,7 +304,7 @@ Public Class Settings
         '正常读取
         Try
             Dim GotValue As String = Nothing '先用 String 储存，避免类型转换
-            Dim DefaultValue As String = If(Entry.Encrypted, DesEncrypt(Entry.DefaultValue, "PCL" & Identify), Entry.DefaultValue)
+            Dim DefaultValue As String = If(Entry.Encrypted, DesEncrypt(Entry.DefaultValue, SettingsEncryptionKey), Entry.DefaultValue)
             Select Case Entry.Source
                 Case Sources.Normal
                     GotValue = ReadIni("Setup", Key, DefaultValue)
@@ -325,7 +322,7 @@ Public Class Settings
                     GotValue = Entry.DefaultValue
                 Else
                     Try
-                        GotValue = DesDecrypt(GotValue, "PCL" & Identify)
+                        GotValue = DesDecrypt(GotValue, SettingsEncryptionKey)
                     Catch ex As Exception
                         Logger.Warn(ex, $"解密设置失败：{Key}")
                         GotValue = Entry.DefaultValue
@@ -417,6 +414,7 @@ Public Class Settings
 
 #Region "DES 加密"
 
+    Private Const SettingsEncryptionKey As String = BrandName
     Private Shared ReadOnly desInitialVector As Byte() = Encoding.UTF8.GetBytes("95168702")
 
     ''' <summary>

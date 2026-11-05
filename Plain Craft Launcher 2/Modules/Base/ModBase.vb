@@ -70,10 +70,6 @@ Public Module ModBase
     ''' </summary>
     Public ApplicationOpenTime As Date = Date.Now
     ''' <summary>
-    ''' 识别码。
-    ''' </summary>
-    Public Identify As String = GetIdentify()
-    ''' <summary>
     ''' 程序是否正在结束。
     ''' </summary>
     Public IsProgramEnding As Boolean = False

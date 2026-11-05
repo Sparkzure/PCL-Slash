@@ -13,9 +13,6 @@ Public Class PageOtherAbout
         ItemAboutPcl.Info = ItemAboutPcl.Info.Replace("%VERSION%", VersionDisplay).Replace("%VERSIONCODE%", VersionCode).Replace("%BRANCH%", CInt(BuildType))
     End Sub
 
-    Public Shared Sub CopyIdentify()
-        ClipboardSet(Identify)
-    End Sub
     Private Sub BtnAboutUpdate_Click(sender As Object, e As MouseButtonEventArgs) Handles BtnAboutUpdate.Click
         ShowLauncherUpdateDialog()
     End Sub

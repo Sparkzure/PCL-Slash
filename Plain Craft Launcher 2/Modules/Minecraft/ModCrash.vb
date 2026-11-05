@@ -2,9 +2,7 @@ Public Class CrashAnalyzer
 
     '构造函数
     Private TempFolder As String
-    Private TargetInstance As McInstance
-    Public Sub New(Optional TargetInstance As McInstance = Nothing)
-        Me.TargetInstance = TargetInstance
+    Public Sub New()
         '构建文件结构
         TempFolder = RequestTaskTempFolder()
         DirectoryUtils.Create(TempFolder & "Temp\")
@@ -917,11 +915,6 @@ NextStack:
                     Return
                 End Try
         End Select
-        '上报
-        If IsManualAnalyze Then Return
-        Telemetry("Minecraft 崩溃",
-                  "Version", If(TargetInstance Is Nothing, "null", TargetInstance.VersionDisplayName),
-                  "Detail", FilterUserName(Detail, "*"))
     End Sub
     ''' <summary>
     ''' 获取崩溃分析的结果描述。
