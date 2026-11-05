@@ -156,10 +156,10 @@ Public Class FormMain
             End If
             '启动加载器池
             Try
+                RunCountSub() '先显示预发布版本说明，避免加载器初始化失败时跳过提示
                 JavaInit() '延后到同意协议后再执行，避免在初次启动时进行进程操作
                 Thread.Sleep(100)
                 DlClientListMojangLoader.Start(1) 'PCL 会同时根据这里的加载结果决定是否使用官方源进行下载
-                RunCountSub()
                 LauncherReleaseLoader.Start()
                 RunInNewThread(AddressOf TryClearTaskTemp, "TryClearTaskTemp", ThreadPriority.BelowNormal)
             Catch ex As Exception
@@ -173,15 +173,20 @@ Public Class FormMain
 
         Logger.Info($"第三阶段加载用时：{GetTimeMs() - ApplicationStartTick} ms")
     End Sub
-    '根据打开次数触发的事件
+    '启动提示与根据打开次数触发的事件
     Private Sub RunCountSub()
         Settings.Set("SystemCount", Settings.Get(Of Integer)("SystemCount") + 1)
         If BuildType = BuildTypes.Snapshot Then
-            Select Case Settings.Get(Of Integer)("SystemCount")
-                Case 1
+            'Beta 与 Snapshot 共用 Snapshot 构建配置，按版本后缀区分，每次启动都显示说明。
+            Select Case GetLauncherUpdateChannel(VersionBaseName, False)
+                Case "snapshot"
                     MyMsgBox("欢迎使用 PCL-Slash 快照版！" & vbCrLf &
                              "快照版用于体验尚未进入正式版的新功能，可能存在尚未修复的问题。" & vbCrLf &
                              "欢迎通过关于页面中的问题反馈入口，告诉我们你遇到的问题。", "快照版使用说明")
+                Case "beta"
+                    MyMsgBox("欢迎使用 PCL-Slash Beta 测试版！" & vbCrLf &
+                             "Beta 版用于测试准备发布的功能与修复，可能仍存在兼容性或稳定性问题。" & vbCrLf &
+                             "欢迎通过关于页面中的问题反馈入口，告诉我们你遇到的问题。", "Beta 版使用说明")
             End Select
             If Settings.Get(Of Integer)("SystemCount") >= 99 Then
                 If ThemeUnlock(LauncherTheme.LoyalPink, False) Then
