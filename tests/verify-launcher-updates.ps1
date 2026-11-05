@@ -1,6 +1,10 @@
 ﻿param([string]$PreviewPath)
 $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent $PSScriptRoot
+$testRoot = Join-Path $repoRoot ('.tool\cache\launcher-update-tests-' + [Guid]::NewGuid().ToString('N'))
+[IO.Directory]::CreateDirectory($testRoot) | Out-Null
+$oldBase = [AppDomain]::CurrentDomain.BaseDirectory
+[AppDomain]::CurrentDomain.SetData('APPBASE', $testRoot + '\')
 $assembly = [Reflection.Assembly]::LoadFrom((Join-Path $repoRoot 'Plain Craft Launcher 2/bin/Plain Craft Launcher Slash.exe'))
 $application = [Activator]::CreateInstance($assembly.GetType('PCL.Application'), $true)
 try {
@@ -10,7 +14,7 @@ try {
     $compare = $module.GetMethod('CompareLauncherVersions', $flags)
     $select = $module.GetMethod('FindLatestLauncherRelease', $flags)
     $channel = $module.GetMethod('GetLauncherUpdateChannel', $flags)
-    $parse = $select.GetParameters()[0].ParameterType.GetMethod('Parse', [type[]]@([string]))
+    $parse = $module.GetMethod('ParseLauncherReleases', $flags)
     $cases = @(
         @('v2.14.1', '2.14.1.0', 0),
         @('v2.14.10', '2.14.9.0', 1),
@@ -65,6 +69,18 @@ try {
     foreach ($name in @('release', 'beta', 'snapshot', 'rc')) {
         if ($select.Invoke($null, @($stableRelease, $name))['tag_name'].ToString() -ne 'v2.14.5.0') { throw "Channel $name cannot receive a stable release" }
     }
+    $singleRelease = $parse.Invoke($null, @('{"tag_name":"v2.14.5.0","draft":false,"prerelease":false,"published_at":"2026-10-31T00:00:00Z"}'))
+    if ($singleRelease.Count -ne 1 -or $select.Invoke($null, @($singleRelease, 'release'))['tag_name'].ToString() -ne 'v2.14.5.0') { throw 'Single release response was not parsed correctly' }
+    foreach ($invalid in @('null', 'true', '123', '"invalid"')) {
+        $accepted = $false
+        try { $parse.Invoke($null, @($invalid)); $accepted = $true }
+        catch {
+            $cause = $_.Exception
+            while ($cause.InnerException) { $cause = $cause.InnerException }
+            if ($cause -isnot [ArgumentException]) { throw }
+        }
+        if ($accepted) { throw 'Invalid release response was accepted' }
+    }
     $onlySnapshot = $parse.Invoke($null, @('[{"tag_name":"v99.0.0-snapshot.1","draft":false,"prerelease":true,"published_at":"2026-10-31T00:00:00Z"}]'))
     $onlyBeta = $parse.Invoke($null, @('[{"tag_name":"v99.0.0-beta.1","draft":false,"prerelease":true,"published_at":"2026-10-31T00:00:00Z"}]'))
     if ($null -ne $select.Invoke($null, @($onlySnapshot, 'beta')) -or $null -ne $select.Invoke($null, @($onlyBeta, 'snapshot'))) { throw 'Beta and Snapshot are not isolated' }
@@ -79,10 +95,45 @@ try {
     if ($status.Invoke($null, @()) -ne $true) { throw 'Older release was reported as an update' }
     $entries = $assembly.GetType('PCL.Settings').GetField('Entries').GetValue($null)
     if (-not $entries['SystemLauncherUpdateNotify'].DefaultValue -or $entries.ContainsKey('SystemSystemUpdate')) { throw 'Update notification settings are incorrect' }
-    foreach ($removed in @('HintNotice', 'HintLauncherReleaseTag', 'SystemSystemActivity', 'SystemHighestSavedBetaVersionReg', 'SystemHighestBetaVersionReg', 'SystemHighestAlphaVersionReg')) {
+    foreach ($removed in @('HintNotice', 'SystemSystemActivity', 'SystemHighestSavedBetaVersionReg', 'SystemHighestBetaVersionReg', 'SystemHighestAlphaVersionReg')) {
         if ($entries.ContainsKey($removed)) { throw "Announcement state remains: $removed" }
     }
     if ($null -ne $assembly.GetType('PCL.FormMain').GetMethod('ShowUpdateLog', [Reflection.BindingFlags]'Instance, Public, NonPublic')) { throw 'Launcher changelog popup remains' }
+    if ($entries['SystemLauncherUpdateSource'].DefaultValue -ne 0 -or $entries['SystemLauncherUpdateCustomSource'].DefaultValue -ne '' -or $entries['HintLauncherReleaseTag'].DefaultValue -ne '') { throw 'Update source or notification defaults are incorrect' }
+    $url = $module.GetMethod('GetLauncherReleaseApiUrl', $flags)
+    $official = 'https://api.github.com/repos/sparkzure/PCL-Slash/releases'
+    $customUrl = 'https://exmple.com/repos/sparkzure/PCL-Slash/releases?per_page=100'
+    foreach ($case in @(
+        @('release', 0, '', ($official + '/latest')),
+        @('beta', 0, 'ignored', ($official + '?per_page=100')),
+        @('snapshot', 1, '', ('https://gh-proxy.com/' + $official + '?per_page=100')),
+        @('release', 2, " $customUrl ", $customUrl),
+        @('snapshot', 2, $customUrl, $customUrl),
+        @('rc', 2, 'http://localhost:8080/releases.json?channel=rc', 'http://localhost:8080/releases.json?channel=rc'),
+        @('beta', 2, ('https://exmple.com/' + $official + '?per_page=100'), ('https://exmple.com/' + $official + '?per_page=100')),
+        @('release', 2, ($official + '/latest'), ($official + '/latest'))
+    )) {
+        if ($url.Invoke($null, @($case[0], $case[1], $case[2])) -cne $case[3]) { throw 'Wrong GitHub update source URL' }
+    }
+    foreach ($invalid in @('', 'not-a-url', 'file:///C:/test', 'ftp://exmple.com/', 'https://user:password@exmple.com/', 'https://exmple.com/#fragment', 'https://exmple.com/releases with spaces', 'https://exmple.com/{url}')) {
+        $accepted = $false
+        try { $url.Invoke($null, @('release', 2, $invalid)); $accepted = $true }
+        catch {
+            $cause = $_.Exception
+            while ($cause.InnerException) { $cause = $cause.InnerException }
+            if ($cause -isnot [ArgumentException]) { throw }
+        }
+        if ($accepted) { throw 'Invalid update source was accepted' }
+    }
+    $shouldNotify = $module.GetMethod('ShouldNotifyLauncherRelease', $flags)
+    $entries['HintLauncherReleaseTag'].Set('', $null)
+    $entries['SystemLauncherUpdateNotify'].Set($true, $null)
+    if (-not $shouldNotify.Invoke($null, @('v99.0.0'))) { throw 'New release notification is missing' }
+    $entries['HintLauncherReleaseTag'].Set('v99.0.0', $null)
+    foreach ($tag in @('v99.0.0', 'v0.0.0', 'invalid')) {
+        if ($shouldNotify.Invoke($null, @($tag))) { throw 'Repeated, old or invalid release would show a popup' }
+    }
+    if (-not $shouldNotify.Invoke($null, @('v99.0.1'))) { throw 'A later release cannot notify after an earlier notification' }
     # Exercise actual release-result handling without contacting GitHub or opening a window.
     $main = $assembly.GetType('PCL.ModMain')
     $hints = $main.GetField('HintWaiting', $flags).GetValue($null)
@@ -103,6 +154,7 @@ try {
         if ($status.Invoke($null, @()) -ne $case[2]) { throw 'Release status was not preserved' }
     }
     $entries['SystemLauncherUpdateNotify'].Set($false, $null)
+    if ($shouldNotify.Invoke($null, @('v99.0.1'))) { throw 'Notifications were shown with update checking disabled' }
     $hintCount = $hints.Count
     $module.GetMethod('CheckLauncherReleases', $flags).Invoke($null, @())
     $hint = @($hints.ToArray())[-1]
@@ -110,6 +162,20 @@ try {
     $page = [Activator]::CreateInstance($assembly.GetType('PCL.PageSetupSystem'))
     if ($null -ne $page.FindName('ComboSystemUpdate') -or $null -eq $page.FindName('BtnSystemUpdate') -or $null -eq $page.FindName('CheckLauncherUpdateNotify')) { throw 'Manual update controls are missing or automatic update choices remain' }
     if ($null -ne $page.FindName('ComboSystemActivity') -or $page.FindName('CheckLauncherUpdateNotify').Text -cne '启动时检查新版') { throw 'Announcement UI remains or the check label is incorrect' }
+    $source = $page.FindName('ComboLauncherUpdateSource')
+    $customPanel = $page.FindName('PanLauncherUpdateCustomSource')
+    $custom = $page.FindName('TextLauncherUpdateCustomSource')
+    if ($null -eq $source -or $source.Items.Count -ne 3 -or $null -eq $custom) { throw 'Mirror source controls are missing' }
+    $page.Reload()
+    if ($source.SelectedIndex -ne 0 -or $customPanel.Visibility.ToString() -ne 'Collapsed') { throw 'Default source selection is incorrect' }
+    $source.SelectedIndex = 1
+    if ($customPanel.Visibility.ToString() -ne 'Collapsed') { throw 'Custom source field is visible for the preset mirror' }
+    $source.SelectedIndex = 2
+    $custom.Text = $customUrl
+    $page.Reload()
+    if ($source.SelectedIndex -ne 2 -or $custom.Text -cne $customUrl -or $customPanel.Visibility.ToString() -ne 'Visible') { throw 'Custom source selection or address did not persist' }
+    if ($custom.HintText -cne $customUrl) { throw 'Custom source hint must show a complete example URL' }
+    if ($custom.ValidateRules[0].Validate('file:///test') -eq '' -or $custom.ValidateRules[0].Validate($custom.Text) -ne '') { throw 'Custom update source input validation is incorrect' }
     if ($PreviewPath) {
         $card = $page.FindName('BtnSystemUpdate').Parent.Parent.Parent
         $card.Measure([Windows.Size]::new(760, [double]::PositiveInfinity))
@@ -126,7 +192,8 @@ try {
         if ($null -ne $assembly.GetType('PCL.ModSecret').GetMethod($old, $flags)) { throw "Legacy updater entry point remains: $old" }
     }
     if ($module.GetField('LauncherReleasesUrl').GetRawConstantValue() -ne 'https://github.com/sparkzure/PCL-Slash/releases') { throw 'Update URL is not the upstream releases page' }
-    Write-Output 'PASS: version ordering, release channels, status-only update hints, manual update UI and announcement removal.'
+    Write-Output 'PASS: release channels, new-version notification deduplication, mirror URLs and settings; changelog popup remains removed.'
 } finally {
     $application.Shutdown()
+    [AppDomain]::CurrentDomain.SetData('APPBASE', $oldBase)
 }

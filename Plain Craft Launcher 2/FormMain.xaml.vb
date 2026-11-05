@@ -156,17 +156,15 @@ Public Class FormMain
             End If
             '启动加载器池
             Try
+                RunCountSub() '先显示预发布版本说明，避免加载器初始化失败时跳过提示
                 JavaInit() '延后到同意协议后再执行，避免在初次启动时进行进程操作
                 Thread.Sleep(100)
                 DlClientListMojangLoader.Start(1) 'PCL 会同时根据这里的加载结果决定是否使用官方源进行下载
-                RunCountSub()
                 LauncherReleaseLoader.Start()
                 RunInNewThread(AddressOf TryClearTaskTemp, "TryClearTaskTemp", ThreadPriority.BelowNormal)
             Catch ex As Exception
                 Logger.Error(ex, "初始化加载池运行失败")
             End Try
-            '上报
-            Telemetry("启动")
             '开源版本提示
             If VersionBranchMain = "OpenSource" Then
                 MyMsgBox($"该版本中无法使用以下特性：{vbCrLf}- CurseForge API 调用：需要自行申请 API Key，然后添加到 ModSecret.vb 的开头{vbCrLf}- 正版登录：需要自行向微软申请 Client ID，然后添加到 ModSecret.vb 的开头{vbCrLf}- 更新与联网通知：避免滥用隐患{vbCrLf}- 百宝箱：开发早期往里面塞了些开发工具，整理起来太麻烦了……", "开源版本说明")
@@ -175,15 +173,20 @@ Public Class FormMain
 
         Logger.Info($"第三阶段加载用时：{GetTimeMs() - ApplicationStartTick} ms")
     End Sub
-    '根据打开次数触发的事件
+    '启动提示与根据打开次数触发的事件
     Private Sub RunCountSub()
         Settings.Set("SystemCount", Settings.Get(Of Integer)("SystemCount") + 1)
         If BuildType = BuildTypes.Snapshot Then
-            Select Case Settings.Get(Of Integer)("SystemCount")
-                Case 1
+            'Beta 与 Snapshot 共用 Snapshot 构建配置，按版本后缀区分，每次启动都显示说明。
+            Select Case GetLauncherUpdateChannel(VersionBaseName, False)
+                Case "snapshot"
                     MyMsgBox("欢迎使用 PCL-Slash 快照版！" & vbCrLf &
                              "快照版用于体验尚未进入正式版的新功能，可能存在尚未修复的问题。" & vbCrLf &
                              "欢迎通过关于页面中的问题反馈入口，告诉我们你遇到的问题。", "快照版使用说明")
+                Case "beta"
+                    MyMsgBox("欢迎使用 PCL-Slash Beta 测试版！" & vbCrLf &
+                             "Beta 版用于测试准备发布的功能与修复，可能仍存在兼容性或稳定性问题。" & vbCrLf &
+                             "欢迎通过关于页面中的问题反馈入口，告诉我们你遇到的问题。", "Beta 版使用说明")
             End Select
             If Settings.Get(Of Integer)("SystemCount") >= 99 Then
                 If ThemeUnlock(LauncherTheme.LoyalPink, False) Then
@@ -254,6 +257,11 @@ Public Class FormMain
     ''' </summary>
     ''' <param name="SendWarning">是否在还有下载任务未完成时发出警告。</param>
     Public Sub EndProgram(SendWarning As Boolean)
+        '2026-11-05 PCL-Slash 原创修改（GPL-3.0-only）：迁入写入设置期间禁止退出。
+        If Pcl2Migration.IsRunning Then
+            Hint("正在迁入 PCL2，请等待迁入完成后再关闭启动器。", HintType.Red)
+            Return
+        End If
         '强行结束下载任务？
         If HasDownloadingTask() Then
             If SendWarning AndAlso MyMsgBox("还有下载任务尚未完成，是否确定退出？", "提示", "确定", "取消") = 2 Then Return
@@ -333,7 +341,7 @@ Public Class FormMain
     ''' </summary>
     Public IsSizeSaveable As Boolean = False
     Private Sub FormMain_SizeChanged() Handles Me.SizeChanged, Me.Loaded
-        If IsSizeSaveable Then
+        If IsSizeSaveable AndAlso Not Pcl2Migration.IsRunning Then
             Settings.Set("WindowHeight", Height)
             Settings.Set("WindowWidth", Width)
         End If

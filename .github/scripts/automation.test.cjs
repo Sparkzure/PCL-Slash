@@ -77,20 +77,22 @@ test('release and snapshot ranges use reachable tags from required channels', t 
   assert.equal(commits.length, 3);
 });
 
-test('notes contain only PR titles, PR links and submitters', () => {
-  const notes = renderNotes({ repository: 'sparkzure/PCL-Slash', pulls: [
-    { number: 12, title: 'fix: 修复 [登录] <失败>', body: '不要收录 PR 正文', user: { login: 'lecyn' } },
-    { number: 13, title: 'feat: 新主题', user: null }
+test('notes contain categorized commit titles, commit links and authors without message bodies', () => {
+  const notes = renderNotes({ repository: 'sparkzure/PCL-Slash', commits: [
+    { sha: 'a'.repeat(40), commit: { message: 'fix: 修复 [登录] <失败>\n\n验证：不要收录正文。', author: { name: 'Lecyn' } }, author: { login: 'lecyn' } },
+    { sha: 'b'.repeat(40), commit: { message: 'feat: 新主题', author: { name: 'Unlinked Author', email: 'unlinked@example.invalid' } }, author: null }
   ] });
+  assert.match(notes, /## 新增功能/);
+  assert.match(notes, /## 问题修复/);
   assert.ok(notes.includes('fix: 修复 '));
   assert.ok(!notes.includes('<失败>'));
-  assert.ok(notes.includes('[#12](https://github.com/sparkzure/PCL-Slash/pull/12)'));
+  assert.ok(notes.includes(`[aaaaaaa](https://github.com/sparkzure/PCL-Slash/commit/${'a'.repeat(40)})`));
   assert.ok(notes.includes('by [@lecyn](https://github.com/lecyn)'));
-  assert.match(notes, /提出者账号已删除/);
-  const bot = renderNotes({ repository: 'sparkzure/PCL-Slash', pulls: [{ number: 14, title: 'chore: release', user: { login: 'pcl-slash-release-bot[bot]' } }] });
+  assert.ok(notes.includes('[Unlinked Author](https://github.com/sparkzure/PCL-Slash/commits?author=unlinked%40example.invalid)'));
+  const bot = renderNotes({ repository: 'sparkzure/PCL-Slash', commits: [{ sha: 'c'.repeat(40), commit: { message: 'chore: release' }, author: { login: 'pcl-slash-release-bot[bot]' } }] });
   assert.ok(bot.includes('(https://github.com/apps/pcl-slash-release-bot)'));
-  assert.doesNotMatch(notes, /不要收录|commit\/|BREAKING CHANGE|验证：/);
-  assert.match(renderNotes({ repository: 'sparkzure/PCL-Slash', pulls: [] }), /没有已合并的 PR/);
+  assert.doesNotMatch(notes, /不要收录|\/pull\/|BREAKING CHANGE|验证：/);
+  assert.match(renderNotes({ repository: 'sparkzure/PCL-Slash', commits: [] }), /没有可记录的提交/);
   assert.equal(draftBody(notes), notes);
   const full = notes.repeat(3000);
   assert.ok(draftBody(full).length < 100000);

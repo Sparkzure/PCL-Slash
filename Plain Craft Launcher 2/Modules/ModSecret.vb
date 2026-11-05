@@ -10,8 +10,6 @@ Friend Module ModSecret
     Public OAuthClientId As String = If(Environment.GetEnvironmentVariable("PCL_MS_CLIENT_ID"), "")
     'CurseForge API Key
     Public CurseForgeAPIKey As String = If(Environment.GetEnvironmentVariable("PCL_CURSEFORGE_API_KEY"), "")
-    '用于匿名数据收集的腾讯云日志服务上报 URL，形如 https://{region}.cls.tencentcs.com/track?topic_id={topic_id}
-    Public Const ClsBaseUrl As String = ""
 
 #Region "网络鉴权"
 
@@ -310,28 +308,6 @@ Friend Module ModSecret
             If ShowDoubleHint OrElse UnlockHint IsNot Nothing Then Hint(If(UnlockHint, "发现了新的隐藏主题！"), HintType.Green)
         End Sub)
         Return True
-    End Function
-
-#End Region
-
-#Region "赞助等级"
-
-    Public ReadOnly Property CurrentRank As DonationRank
-        Get
-            Return DonationRank.None
-        End Get
-    End Property
-
-    Public Sub InputPotatoCode(IsUpdating As Boolean)
-    End Sub
-    Friend Sub GeneratePotatoCode()
-    End Sub
-
-    ''' <summary>
-    ''' 获取设备识别码。
-    ''' </summary>
-    Friend Function GetIdentify() As String
-        Return "0000-0000-0000-0000"
     End Function
 
 #End Region

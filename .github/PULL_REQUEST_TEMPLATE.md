@@ -5,12 +5,12 @@ PR title / PR 标题:
 - Allowed types: `feat`, `fix`, `perf`, `refactor`, `docs`, `style`, `test`, `build`, `ci`, `chore`, `revert`
 - Scope is optional; the title must not exceed 100 characters.
 - For breaking changes, add `!`: `feat(login)!: change auth flow`
-- Release notes use the PR title and link to the PR and its author.
+- Release notes use commit titles, grouped by type, with links to each commit and its author.
 
 - 使用 Conventional Commits：`type(scope): 描述`。
 - scope 可省略；标题不超过 100 个字符。
 - 不兼容变更加 `!`，例如 `feat(login)!: 调整登录流程`。
-- 发行说明会使用 PR 标题，并链接至 PR 和提出者，请准确描述最终改动。
+- 发行说明使用 commit 标题，按类型分类并链接至 commit 和提交作者；PR 标题仍须准确描述最终改动。
 -->
 
 ## Summary / 摘要
@@ -24,10 +24,12 @@ Briefly describe what changed and why.
 - List user-visible behavior changes.
 - List important implementation changes.
 - Mention config, storage, API, or compatibility changes if any.
+- A PR may include multiple changes; list each change and its validation results.
 
 - 列出用户可感知的行为变化。
 - 列出重要实现变化。
 - 如涉及配置、存储、API 或兼容性变化，请明确说明。
+- 一个 PR 可以包含多项改动，请列出各项内容与验证结果。
 -->
 
 - [ ] This PR has breaking changes.
@@ -75,6 +77,8 @@ If not tested, explain why. Remove checks that do not apply.
       / 我已阅读 [贡献指南](https://github.com/Sparkzure/PCL-Slash/blob/main/CONTRIBUTING.md)。
 - [ ] I confirm this contribution follows the repository license and contribution policy.
       / 我确认此贡献符合仓库许可证和贡献规范。
+- [ ] I have the right to submit this contribution and agree to the project's GPL-3.0-only policy for all PCL-Slash-original code since its fork from PCL, as described in [LICENSING.md](https://github.com/Sparkzure/PCL-Slash/blob/main/LICENSING.md); I have identified upstream and third-party content and their licenses.
+      / 我有权提交本次贡献，并同意按 [LICENSING.md](https://github.com/Sparkzure/PCL-Slash/blob/main/LICENSING.md) 所述，对 PCL-Slash 自原版分支后的全部项目原创代码统一采用 GPL-3.0-only；已注明引入的上游和第三方内容及其许可。
 - [ ] I have formatted the changed code following the existing VB.NET, C#, XAML, or script style where applicable.
       / 我已按适用情况遵循现有 VB.NET、C#、XAML 或脚本风格格式化变更代码。
 - [ ] I have updated the relevant user or developer documentation where applicable.

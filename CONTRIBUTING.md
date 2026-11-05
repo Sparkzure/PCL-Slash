@@ -2,6 +2,14 @@
 
 项目上游为 [sparkzure/PCL-Slash](https://github.com/sparkzure/PCL-Slash)。开发者通过 Fork 与 Pull Request 提交改动，正式版本由上游仓库管理员发布。
 
+## 贡献许可
+
+PCL-Slash 自原版 PCL 分支以来新增的全部原创代码及对原有代码所作的全部原创修改，统一采用 **GPL-3.0-only**，涵盖已有及今后所有贡献者的项目原创代码，不以作者身份作为区别。完整许可见 [LICENSES/GPL-3.0-only.txt](LICENSES/GPL-3.0-only.txt)，分支基线、授权范围及分发边界见 [LICENSING.md](LICENSING.md)。提交原创代码贡献，即表示你确认有权提交并同意按项目统一的 GPL-3.0-only 许可提供；贡献者保留著作权，不要求转让版权。涉及其他权利人代码的重新许可，仍须取得必要授权。
+
+完全属于上述范围的新代码文件，应标注版权人及 `SPDX-License-Identifier: GPL-3.0-only`。修改包含 PCL 或第三方代码的文件时，保留原有声明，并说明原创修改的范围与日期，不能将整个混合文件直接重新标为 GPLv3。引用、移植或复制的内容应注明来源及原许可，图片、字体等非代码素材也应分别核对授权。
+
+根目录 `LICENCE` 保留上游许可说明。加入 GPLv3 声明不代表整个启动器已经具备 GPLv3 分发授权；发布组合作品前，必须解决上游及第三方许可的兼容性并满足对应源码等义务。构建包附带 `README.md`、`LICENCE`、`LICENSING.md` 和 `LICENSES` 目录，许可文件随包提供不代替对分发条件的核查。
+
 ## 提交信息
 
 采用 [Conventional Commits](https://www.conventionalcommits.org/zh-hans/v1.0.0/) 格式：
@@ -28,12 +36,12 @@ type(scope): 简明描述
 
 ## Pull Request 流程
 
-1. 从上游 `main` 同步最新代码，通过 Fork 提交 PR；一次 PR 聚焦一个可独立审查的改动，未完成时先标为 Draft。
+1. 从上游 `main` 同步最新代码，通过 Fork 提交 PR。一个 PR 可以包含多项功能、修复或其他改动，请在描述中清楚列出各项内容与验证结果；未完成时先标为 Draft。
 2. 按本仓库的 [PR 模板](.github/PULL_REQUEST_TEMPLATE.md) 说明改动原因、行为变化、关联 Issue、验证结果和兼容性。模板已从 OpenList 引入并适配本项目，保留双语摘要、测试、检查清单和完整 AI 使用声明。实质 AI 辅助内容按模板注明工具、范围、人工验证及 `Co-Authored-By` 归属信息。
 3. PR 标题使用上述 Conventional Commits 格式。标题不合规时自动留言并使 `PR title check` 失败；修改标题后更新同一条评论，避免重复留言。scope 沿用本项目规则，可省略。
 4. 所有 PR 均运行 Build 的自动化测试和 Debug、Snapshot、Release 三种配置构建；`Commit message check` 检查标题与基线之后新增的 commit。标题反馈工作流仅运行目标分支上的可信脚本，不执行 PR 代码；Fork 构建不注入凭据。
 5. 由维护者审查并决定合并。建议将 `PR title check`、`Commit message check`、`Automation tests` 和三种 Build 检查设为必需项，并要求至少一次人工审查；这些保护规则需仓库管理员在 GitHub 设置中启用，工作流不会自动更改仓库设置。
-6. 合并后的 PR 标题会进入对应版本发行说明，PR 正文中的测试报告不会复制到发行说明。发布仍须管理员编辑草稿后手动完成。
+6. 发行说明从版本范围内的 commit 标题生成，按提交类型分类，并链接到 commit 和提交作者；PR 标题与正文不再作为日志来源。发布仍须管理员编辑草稿后手动完成。
 
 模板和标题反馈均由本仓库的 [PR 模板](.github/PULL_REQUEST_TEMPLATE.md) 与 [标题反馈工作流](.github/workflows/pr-feedback.yml) 提供。
 
@@ -47,7 +55,7 @@ type(scope): 简明描述
 node --test .github/scripts/*.test.cjs
 ```
 
-PR 不注入构建凭据；上游仓库的分支与标签构建可使用 `CLIENT_ID` 和 `CURSEFORGE_API_KEY` 两个仓库 Secret。草稿创建与附件上传使用内置 `GITHUB_TOKEN`，仅草稿任务申请 `contents: write` 以及读取 PR 元数据的 `pull-requests: read`；标题反馈单独申请 `pull-requests: write`，用于管理提示评论。
+PR 不注入构建凭据；上游仓库的分支与标签构建可使用 `CLIENT_ID` 和 `CURSEFORGE_API_KEY` 两个仓库 Secret。提交日志读取、草稿创建与附件上传使用内置 `GITHUB_TOKEN`，仅草稿任务申请 `contents: write`；标题反馈单独申请 `pull-requests: write`，用于管理提示评论。
 
 ## 主题配置
 
@@ -82,7 +90,7 @@ PR 不注入构建凭据；上游仓库的分支与标签构建可使用 `CLIENT
 2. 如需手动发布，先维护递增的 `VersionCode` 并合并，再在管理员的上游仓库克隆中创建并推送标签，例如 `git tag v2.14.1.0`，再执行 `git push origin v2.14.1.0`。
 3. 流水线检查自动化脚本、按标签选择 Snapshot 或 Release 构建，并生成 ZIP 和 SHA-256 校验文件。任何构建失败都不会创建草稿。
 4. 将对应通道的压缩包、校验文件和完整 `CHANGELOG.md` 附加到 GitHub Release **草稿**。不会将 Release 编译的程序误作快照版上传，也不会将 Snapshot 程序上传到正式版草稿。
-5. 草稿与 `CHANGELOG.md` 只列出已合并 PR 的完整标题、PR 链接和提出者链接，不收录 commit 信息或 PR 正文。同一个 PR 只出现一次，支持 merge、squash 和 rebase 合并。正式版以上一个可达正式版标签为起点；Snapshot 以上一个可达版本标签（包括 Snapshot、Beta、正式版等）为起点；Beta 以上一个可达 Beta 标签为起点，即使中间有正式版也不会截断。范围不包含起点、包含当前标签。没有同类起点时，从当前标签可达的全部历史中收集 PR。直接提交、未合并 PR 和范围外 PR 不进入说明；没有 PR 时明确提示。较长的记录以附件完整保留。
+5. 草稿与 `CHANGELOG.md` 从 commit 生成，包含完整提交标题、短 SHA（链接至完整 commit）及提交作者链接，不收录提交正文、验证报告或 PR 元数据。按 Conventional Commits 类型分为新增功能、问题修复、性能优化、代码重构、文档、代码风格、测试、构建、持续集成、维护和回退；旧格式或未知类型归入“其他”。标题带 `!` 或正文含 `BREAKING CHANGE:` / `BREAKING-CHANGE:` 的提交单列为“破坏性变更”，每个 SHA 仅出现一次。同一分类内按版本范围中的提交顺序排列，空分类不显示。普通合并提交跳过，其分支上的实际提交正常收录；直接提交、squash 和 rebase 后的提交均收录。作者已关联 GitHub 时链接到其个人或 Bot 页面；未关联账号时显示 Git 作者姓名，并链接到按其邮箱或姓名筛选的仓库提交记录。正式版以上一个可达正式版标签为起点；Snapshot 以上一个可达版本标签（包括 Snapshot、Beta、正式版等）为起点；Beta 以上一个可达 Beta 标签为起点，即使中间有正式版也不会截断。范围不包含起点、包含当前标签，并始终排除历史基线 `5ef81e490ae46b1100d61e33d0183094c7a80ca8` 本身及其全部祖先（包括基线前已合并的分支提交）。没有同类起点时，只收录当前标签可达、且不属于基线及其祖先的非合并提交。基线及更早的版本不会生成旧记录。没有可记录的提交时明确提示。提交元数据分页获取，并与本地 Git 范围逐一校验；无法读取基线、API 获取失败或缺少提交时停止生成，避免日志被截断。较长的记录以附件完整保留。
 6. 仓库管理员在 Releases 中修改标题、说明、附件及预发布标记，核对完成后自行点击 **Publish release**。流水线始终只创建草稿，不自动正式发布。
 
 同一标签重跑时，仅替换同名构建附件，保留管理员已修改的标题和正文；已发布的版本不再修改。正常分支构建、PR 与手动 Build 任务均不会创建 Release 草稿。需要重新生成正文时，可从附件 `CHANGELOG.md` 中复制所需内容。
@@ -140,9 +148,11 @@ PR 合并后，Version Bot 使用默认分支上的可信脚本校验：PR 必�
 
 ## 启动器更新通知
 
-Version Bot 负责源码中的版本信息和内部编号；独立的手动标签构建仍不会自动递增编号。客户端直接读取上游 GitHub Releases：正式版读取最新正式发布，预发布构建按自身版本标签区分通知通道，`snapshot` 只检查 Snapshot，`beta` 只检查 Beta，`rc` 只检查 RC；各预发布通道都可收到后续正式版通知。预发布通道检查最近 100 个发布，未带后缀的本地 Snapshot / Debug 构建使用 Snapshot 通知通道。Beta 和 Snapshot 仍使用相同的 Snapshot 编译配置，但不会互相通知。草稿及不符合项目版本格式的标签不参与更新判断，三段和四段版本统一比较，同通道的预发布序号按数值排序。
+Version Bot 负责源码中的版本信息和内部编号；独立的手动标签构建仍不会自动递增编号。客户端通过所选更新检查源读取上游 GitHub Releases：正式版读取最新正式发布，预发布构建按自身版本标签区分通知通道，`snapshot` 只检查 Snapshot，`beta` 只检查 Beta，`rc` 只检查 RC；各预发布通道都可收到后续正式版通知。预发布通道检查最近 100 个发布，未带后缀的本地 Snapshot / Debug 构建使用 Snapshot 通知通道。Beta 和 Snapshot 仍使用相同的 Snapshot 编译配置，但不会互相通知。草稿及不符合项目版本格式的标签不参与更新判断，三段和四段版本统一比较，同通道的预发布序号按数值排序。
 
-启动时在后台检查新版，获取中、已是最新版、发现新版或获取失败等结果仅通过左下角提示显示，可在“设置 → 其他 → 启动器”关闭“启动时检查新版”。已移除升级后的更新内容窗口、发现新版时的自动弹窗、公告设置及其状态记录。网络失败、API 限流或没有有效发布时，不会将当前版本误判为最新版，也不阻断启动。“查看更新”及其他更新入口统一显示手动更新说明，提供“前往 Releases”和“取消”两个按钮。用户下载新版后退出启动器，自行替换 EXE；保留 PCL 与游戏文件夹。程序不自动下载、替换 EXE，也不为更新而重启或处理 `--update` 参数。
+启动时在后台检查新版，获取中、已是最新版、发现新版或获取失败等结果通过左下角提示显示，发现新版时另外弹窗通知，同一版本仅通知一次，记录在 `HintLauncherReleaseTag` 中。可在“设置 → 其他 → 启动器”关闭“启动时检查新版”。升级后的更新日志窗口、公告设置及其状态记录继续移除。网络失败、API 限流或没有有效发布时，不会将当前版本误判为最新版，也不阻断启动。“查看更新”及其他更新入口统一显示手动更新说明，提供“前往 Releases”和“取消”两个按钮。新版通知仅展示版本号及手动更新步骤，不展示更新日志。用户下载新版后退出启动器，自行替换 EXE；保留 PCL 与游戏文件夹。程序不自动下载、替换 EXE，也不为更新而重启或处理 `--update` 参数。
+
+`SystemLauncherUpdateSource` 控制检查源：`0` 为 GitHub 官方（默认），`1` 为 GH-Proxy 镜像，`2` 为自定义源。自定义地址保存在 `SystemLauncherUpdateCustomSource`，仅在选择自定义时显示输入框。填写完整链接，例如 `https://exmple.com/repos/sparkzure/PCL-Slash/releases?per_page=100`；前缀代理可填写 `https://exmple.com/https://api.github.com/repos/sparkzure/PCL-Slash/releases?per_page=100`。程序直接请求填写的地址，保留路径和查询参数。地址须为有效 HTTP / HTTPS URL，不能包含用户名、密码、片段或占位符；返回数据须为 GitHub Releases 格式的发布对象或发布列表，并按当前通知通道筛选。预发布通道应使用发布列表链接，以便检查同通道版本。检查请求仅使用所选源，错误通过左下角提示及日志报告。
 
 客户端更新通知回归检查（先通过指定 `build.cmd` 构建）：
 

@@ -346,3 +346,8 @@ MaskFiles/
 # Project-local toolchain (.NET SDK, reference assemblies, build scripts)
 # Recreate with: pwsh -File .tool\setup.ps1
 .tool/
+
+# Keep the registry cleanup script alongside the launcher build output.
+!/Plain Craft Launcher 2/bin/
+/Plain Craft Launcher 2/bin/*
+!/Plain Craft Launcher 2/bin/清理PCL-Slash注册表.bat

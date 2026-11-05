@@ -8,6 +8,7 @@ on:
       - 'PCLCS/**'
       - 'MeloongCore'
       - '.github/**'
+      - 'tests/**'
   pull_request:
   workflow_dispatch:
 
@@ -71,6 +72,10 @@ jobs:
         env:
           CONFIGURATION: ${{ matrix.configuration }}
         run: msbuild 'Plain Craft Launcher 2/Plain Craft Launcher 2.vbproj' -p:Configuration=$env:CONFIGURATION
+      # 2026-11-05 PCL-Slash original migration verification (GPL-3.0-only).
+      - name: Verify PCL2 migration
+        shell: powershell
+        run: ./tests/verify-pcl2-migration.ps1
       - name: Package and checksum
         shell: pwsh
         env:
@@ -82,7 +87,7 @@ jobs:
           New-Item -ItemType Directory -Path dist -Force | Out-Null
           $version = if ($env:GITHUB_REF_TYPE -eq 'tag') { $env:GITHUB_REF_NAME } else { $env:GITHUB_SHA.Substring(0, 7) }
           $archive = "dist/PCL-Slash-$version-$env:CONFIGURATION-windows.zip"
-          Compress-Archive -LiteralPath $exe, 'README.md' -DestinationPath $archive
+          Compress-Archive -LiteralPath $exe, 'README.md', 'LICENCE', 'LICENSING.md', 'LICENSES' -DestinationPath $archive
           $hash = (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant()
           $checksum = "$hash  $([IO.Path]::GetFileName($archive))"
           [IO.File]::WriteAllText("$archive.sha256", $checksum + "`n", [Text.UTF8Encoding]::new($false))
@@ -99,7 +104,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      pull-requests: read
     env:
       RELEASE_TAG: ${{ github.ref_name }}
     steps:
@@ -114,7 +118,7 @@ jobs:
         with:
           name: PCL-Slash-${{ needs.automation-tests.outputs.configuration }}
           path: release-assets
-      - name: Generate notes from merged PR titles
+      - name: Generate categorized notes from commits
         uses: actions/github-script@v9
         with:
           script: |

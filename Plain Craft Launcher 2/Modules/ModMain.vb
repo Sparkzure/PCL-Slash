@@ -283,7 +283,8 @@ EndHint:
     ''' <param name="Button1">显示的第一个按钮，默认为“确定”。</param>
     ''' <param name="Button2">显示的第二个按钮，默认为“取消”。</param>
     ''' <param name="IsWarn">是否为警告弹窗，若为 True，弹窗配色和背景会变为红色。</param>
-    Public Function MyMsgBoxInput(Title As String, Optional Text As String = Nothing, Optional DefaultInput As String = Nothing, Optional ValidateRules As Collection(Of Validate) = Nothing, Optional HintText As String = "", Optional Button1 As String = "确定", Optional Button2 As String = "取消", Optional IsWarn As Boolean = False) As String
+    ''' <param name="LogResult">是否记录输入内容。2026-11-05 PCL-Slash 原创：允许迁入解密信息不写入日志（GPL-3.0-only）。</param>
+    Public Function MyMsgBoxInput(Title As String, Optional Text As String = Nothing, Optional DefaultInput As String = Nothing, Optional ValidateRules As Collection(Of Validate) = Nothing, Optional HintText As String = "", Optional Button1 As String = "确定", Optional Button2 As String = "取消", Optional IsWarn As Boolean = False, Optional LogResult As Boolean = True) As String
         '将弹窗列入队列
         Dim Converter As New MyMsgBoxConverter With {.Text = If(Text, ""), .HintText = If(HintText, ""), .Type = MyMsgBoxType.Input, .ValidateRules = If(ValidateRules, New Collection(Of Validate)), .Button1 = Button1, .Button2 = Button2, .Content = DefaultInput, .IsWarn = IsWarn, .Title = Title}
         WaitingMyMsgBox.Enqueue(Converter)
@@ -296,7 +297,7 @@ EndHint:
         Finally
             ComponentDispatcher.PopModal()
         End Try
-        Logger.Info($"输入弹框返回：{If(Converter.Result, "null")}")
+        Logger.Info($"输入弹框返回：{If(LogResult, If(Converter.Result, "null"), "（内容不记录）")}")
         Return Converter.Result
     End Function
     ''' <summary>
@@ -831,7 +832,6 @@ NextFile:
         Text = Text.Replace("{pcl_version_branch}", Replacer(BuildTypeDisplay))
         Text = Text.Replace("{pcl_build_type}", Replacer(BuildType.ToString))
         Text = Text.Replace("{pcl_branch}", Replacer(VersionBranchMain))
-        Text = Text.Replace("{identify}", Replacer(Identify))
         Text = Text.Replace("{path}", Replacer(Paths.Base))
         Text = Text.Replace("{path_with_name}", Replacer(PathExe))
         Text = Text.Replace("{path_temp}", Replacer(PathTemp))
@@ -954,7 +954,7 @@ NextFile:
 
 #End Region
 
-#Region "反馈与遥测"
+#Region "反馈"
 
     '反馈
     Public Sub Feedback(Optional ShowMsgbox As Boolean = True, Optional ForceOpenLog As Boolean = False)
@@ -976,26 +976,6 @@ NextFile:
             "DPI：" & DPI & "（" & Math.Round(DPI / 96, 2) * 100 & "%）" & vbCrLf &
             "MC 文件夹：" & If(McFolderSelected, "Nothing") & vbCrLf &
             "文件位置：" & Paths.Base)
-    End Sub
-
-    '遥测
-    Public Sub Telemetry([Event] As String, ParamArray Datas As String())
-        If BuildType = BuildTypes.Debug Then Return '开发版不上传遥测
-        If Not Settings.Get(Of Boolean)("SystemSystemTelemetry") Then Return '用户关闭了遥测
-        If Not ClsBaseUrl.StartsWithF("http") Then Return '开源版没有设置遥测地址
-        RunInNewThread(
-        Sub()
-            Try
-                Logger.Info($"匿名数据上报：{[Event]}")
-                Dim Url As String = $"{ClsBaseUrl}&Event={StringUtils.UrlEscape([Event])}"
-                For i = 0 To Datas.Length - 1 Step 2
-                    Url &= "&" & StringUtils.UrlEscape(Datas(i)) & "=" & StringUtils.UrlEscape(Datas(i + 1).ReplaceLineEndings(vbLf, mergeMultiple:=True))
-                Next
-                NetRequestByClient(Url, MakeLog:=False)
-            Catch ex As Exception
-                Logger.Warn(ex, "匿名数据上报失败")
-            End Try
-        End Sub, "Telemetry", ThreadPriority.Lowest)
     End Sub
 
 #End Region
