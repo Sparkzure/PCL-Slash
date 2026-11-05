@@ -36,7 +36,7 @@ type(scope): 简明描述
 
 ## Pull Request 流程
 
-1. 从上游 `main` 同步最新代码，通过 Fork 提交 PR；一次 PR 聚焦一个可独立审查的改动，未完成时先标为 Draft。
+1. 从上游 `main` 同步最新代码，通过 Fork 提交 PR。一个 PR 可以包含多项功能、修复或其他改动，请在描述中清楚列出各项内容与验证结果；未完成时先标为 Draft。
 2. 按本仓库的 [PR 模板](.github/PULL_REQUEST_TEMPLATE.md) 说明改动原因、行为变化、关联 Issue、验证结果和兼容性。模板已从 OpenList 引入并适配本项目，保留双语摘要、测试、检查清单和完整 AI 使用声明。实质 AI 辅助内容按模板注明工具、范围、人工验证及 `Co-Authored-By` 归属信息。
 3. PR 标题使用上述 Conventional Commits 格式。标题不合规时自动留言并使 `PR title check` 失败；修改标题后更新同一条评论，避免重复留言。scope 沿用本项目规则，可省略。
 4. 所有 PR 均运行 Build 的自动化测试和 Debug、Snapshot、Release 三种配置构建；`Commit message check` 检查标题与基线之后新增的 commit。标题反馈工作流仅运行目标分支上的可信脚本，不执行 PR 代码；Fork 构建不注入凭据。

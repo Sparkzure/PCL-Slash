@@ -24,10 +24,12 @@ Briefly describe what changed and why.
 - List user-visible behavior changes.
 - List important implementation changes.
 - Mention config, storage, API, or compatibility changes if any.
+- A PR may include multiple changes; list each change and its validation results.
 
 - 列出用户可感知的行为变化。
 - 列出重要实现变化。
 - 如涉及配置、存储、API 或兼容性变化，请明确说明。
+- 一个 PR 可以包含多项改动，请列出各项内容与验证结果。
 -->
 
 - [ ] This PR has breaking changes.
