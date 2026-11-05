@@ -82,7 +82,7 @@ jobs:
           New-Item -ItemType Directory -Path dist -Force | Out-Null
           $version = if ($env:GITHUB_REF_TYPE -eq 'tag') { $env:GITHUB_REF_NAME } else { $env:GITHUB_SHA.Substring(0, 7) }
           $archive = "dist/PCL-Slash-$version-$env:CONFIGURATION-windows.zip"
-          Compress-Archive -LiteralPath $exe, 'README.md' -DestinationPath $archive
+          Compress-Archive -LiteralPath $exe, 'README.md', 'LICENCE', 'LICENSING.md', 'LICENSES' -DestinationPath $archive
           $hash = (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant()
           $checksum = "$hash  $([IO.Path]::GetFileName($archive))"
           [IO.File]::WriteAllText("$archive.sha256", $checksum + "`n", [Text.UTF8Encoding]::new($false))

@@ -2,6 +2,14 @@
 
 项目上游为 [sparkzure/PCL-Slash](https://github.com/sparkzure/PCL-Slash)。开发者通过 Fork 与 Pull Request 提交改动，正式版本由上游仓库管理员发布。
 
+## 贡献许可
+
+PCL-Slash 自原版 PCL 分支以来新增的全部原创代码及对原有代码所作的全部原创修改，统一采用 **GPL-3.0-only**，涵盖已有及今后所有贡献者的项目原创代码，不以作者身份作为区别。完整许可见 [LICENSES/GPL-3.0-only.txt](LICENSES/GPL-3.0-only.txt)，分支基线、授权范围及分发边界见 [LICENSING.md](LICENSING.md)。提交原创代码贡献，即表示你确认有权提交并同意按项目统一的 GPL-3.0-only 许可提供；贡献者保留著作权，不要求转让版权。涉及其他权利人代码的重新许可，仍须取得必要授权。
+
+完全属于上述范围的新代码文件，应标注版权人及 `SPDX-License-Identifier: GPL-3.0-only`。修改包含 PCL 或第三方代码的文件时，保留原有声明，并说明原创修改的范围与日期，不能将整个混合文件直接重新标为 GPLv3。引用、移植或复制的内容应注明来源及原许可，图片、字体等非代码素材也应分别核对授权。
+
+根目录 `LICENCE` 保留上游许可说明。加入 GPLv3 声明不代表整个启动器已经具备 GPLv3 分发授权；发布组合作品前，必须解决上游及第三方许可的兼容性并满足对应源码等义务。构建包附带 `README.md`、`LICENCE`、`LICENSING.md` 和 `LICENSES` 目录，许可文件随包提供不代替对分发条件的核查。
+
 ## 提交信息
 
 采用 [Conventional Commits](https://www.conventionalcommits.org/zh-hans/v1.0.0/) 格式：

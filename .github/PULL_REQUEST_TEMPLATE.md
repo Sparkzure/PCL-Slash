@@ -75,6 +75,8 @@ If not tested, explain why. Remove checks that do not apply.
       / 我已阅读 [贡献指南](https://github.com/Sparkzure/PCL-Slash/blob/main/CONTRIBUTING.md)。
 - [ ] I confirm this contribution follows the repository license and contribution policy.
       / 我确认此贡献符合仓库许可证和贡献规范。
+- [ ] I have the right to submit this contribution and agree to the project's GPL-3.0-only policy for all PCL-Slash-original code since its fork from PCL, as described in [LICENSING.md](https://github.com/Sparkzure/PCL-Slash/blob/main/LICENSING.md); I have identified upstream and third-party content and their licenses.
+      / 我有权提交本次贡献，并同意按 [LICENSING.md](https://github.com/Sparkzure/PCL-Slash/blob/main/LICENSING.md) 所述，对 PCL-Slash 自原版分支后的全部项目原创代码统一采用 GPL-3.0-only；已注明引入的上游和第三方内容及其许可。
 - [ ] I have formatted the changed code following the existing VB.NET, C#, XAML, or script style where applicable.
       / 我已按适用情况遵循现有 VB.NET、C#、XAML 或脚本风格格式化变更代码。
 - [ ] I have updated the relevant user or developer documentation where applicable.
