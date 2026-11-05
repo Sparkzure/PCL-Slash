@@ -156,6 +156,8 @@
                         </Grid.ColumnDefinitions>
                         <local:MyButton Grid.Column="0" x:Name="BtnSystemSettingExp" MinWidth="140" Text="导出设置" Padding="13,0" Margin="0,0,20,0" />
                         <local:MyButton Grid.Column="1" x:Name="BtnSystemSettingImp" MinWidth="140" Text="导入设置" Padding="13,0" Margin="0,0,20,0" />
+                        <!-- 2026-11-05 PCL-Slash 原创：显式 PCL2 迁入入口（GPL-3.0-only）。 -->
+                        <local:MyButton Grid.Column="2" x:Name="BtnSystemPcl2Migration" MinWidth="140" Text="PCL2 迁入" Padding="13,0" ToolTip="只读复制 PCL2 的设置与游戏实例到 PCL-Slash。迁入前请关闭 PCL2，并确保两个启动器位于独立目录且空间充足。" />
                     </Grid>
                 </Grid>
             </local:MyCard>

@@ -8,6 +8,7 @@ on:
       - 'PCLCS/**'
       - 'MeloongCore'
       - '.github/**'
+      - 'tests/**'
   pull_request:
   workflow_dispatch:
 
@@ -71,6 +72,10 @@ jobs:
         env:
           CONFIGURATION: ${{ matrix.configuration }}
         run: msbuild 'Plain Craft Launcher 2/Plain Craft Launcher 2.vbproj' -p:Configuration=$env:CONFIGURATION
+      # 2026-11-05 PCL-Slash original migration verification (GPL-3.0-only).
+      - name: Verify PCL2 migration
+        shell: powershell
+        run: ./tests/verify-pcl2-migration.ps1
       - name: Package and checksum
         shell: pwsh
         env:

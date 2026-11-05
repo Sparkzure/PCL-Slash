@@ -257,6 +257,11 @@ Public Class FormMain
     ''' </summary>
     ''' <param name="SendWarning">是否在还有下载任务未完成时发出警告。</param>
     Public Sub EndProgram(SendWarning As Boolean)
+        '2026-11-05 PCL-Slash 原创修改（GPL-3.0-only）：迁入写入设置期间禁止退出。
+        If Pcl2Migration.IsRunning Then
+            Hint("正在迁入 PCL2，请等待迁入完成后再关闭启动器。", HintType.Red)
+            Return
+        End If
         '强行结束下载任务？
         If HasDownloadingTask() Then
             If SendWarning AndAlso MyMsgBox("还有下载任务尚未完成，是否确定退出？", "提示", "确定", "取消") = 2 Then Return
@@ -336,7 +341,7 @@ Public Class FormMain
     ''' </summary>
     Public IsSizeSaveable As Boolean = False
     Private Sub FormMain_SizeChanged() Handles Me.SizeChanged, Me.Loaded
-        If IsSizeSaveable Then
+        If IsSizeSaveable AndAlso Not Pcl2Migration.IsRunning Then
             Settings.Set("WindowHeight", Height)
             Settings.Set("WindowWidth", Width)
         End If

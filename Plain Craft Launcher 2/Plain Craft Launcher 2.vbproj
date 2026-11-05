@@ -229,6 +229,8 @@
     </Compile>
     <Compile Include="Modules\ModEvent.vb" />
     <Compile Include="Modules\ModLauncherUpdate.vb" />
+    <!-- 2026-11-05 PCL-Slash 原创：包含 GPL-3.0-only 的显式迁入实现。 -->
+    <Compile Include="Modules\Pcl2Migration.vb" />
     <Compile Include="Controls\MyExtraButton.xaml.vb">
       <DependentUpon>MyExtraButton.xaml</DependentUpon>
     </Compile>
