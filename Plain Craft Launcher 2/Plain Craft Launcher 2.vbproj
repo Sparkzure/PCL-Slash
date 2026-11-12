@@ -229,6 +229,7 @@
       <DependentUpon>MyLocalModItem.xaml</DependentUpon>
     </Compile>
     <Compile Include="Modules\ModEvent.vb" />
+    <Compile Include="Modules\ModLauncherUpdate.vb" />
     <Compile Include="Modules\ModDownloadMirror.vb" />
     <Compile Include="Controls\MyExtraButton.xaml.vb">
       <DependentUpon>MyExtraButton.xaml</DependentUpon>

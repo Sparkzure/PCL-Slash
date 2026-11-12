@@ -116,9 +116,9 @@ Public Class PageOtherLeft
         e.Handled = True
     End Sub
     Public Shared Sub TryFeedback()
-        If False.Equals(PageSetupSystem.IsLauncherNewest) Then
-            If MyMsgBox($"你的 PCL 不是最新版，因此无法提交反馈。{vbCrLf}请在更新后，确认该问题在最新版中依然存在，然后再提交反馈。", "无法提交反馈", "更新", "取消") = 1 Then
-                UpdateCheckByButton()
+        If False.Equals(PageSetupLauncher.IsLauncherNewest) Then
+            If MyMsgBox($"你的 PCL-Slash 不是最新版，因此无法提交反馈。{vbCrLf}请在更新后，确认该问题在最新版中依然存在，然后再提交反馈。", "无法提交反馈", "更新", "取消") = 1 Then
+                ShowLauncherUpdateDialog()
             End If
             Return
         End If

@@ -140,6 +140,22 @@ PR 合并后，Version Bot 使用默认分支上的可信脚本校验：PR 必�
 - 如果等待合并期间有人修改了版本字段，合并校验会拒绝旧编号；请在合并前关闭过期 PR，使用新的版本号重新创建。若已经合并且校验失败，需要管理员修正或撤销这次版本变更后恢复流程。
 - 已有标签指向同一合并提交时重跑不做修改；指向其他提交时拒绝覆盖。上个版本合并后尚未成功打标签时，Bot 阻止创建下一个版本 PR，应先恢复上个版本的打标签任务。
 
+## 启动器更新通知
+
+Version Bot 负责源码中的版本信息和内部编号；独立的手动标签构建仍不会自动递增编号。客户端通过所选更新检查源读取上游 GitHub Releases：正式版读取最新正式发布，预发布构建按自身版本标签区分通知通道，`snapshot` 只检查 Snapshot，`beta` 只检查 Beta，`rc` 只检查 RC；各预发布通道都可收到后续正式版通知。预发布通道检查最近 100 个发布，未带后缀的本地 Snapshot / Debug 构建使用 Snapshot 通知通道。Beta 和 Snapshot 仍使用相同的 Snapshot 编译配置，但不会互相通知。草稿及不符合项目版本格式的标签不参与更新判断，三段和四段版本统一比较，同通道的预发布序号按数值排序。
+
+启动时在后台检查新版，获取中、已是最新版、发现新版或获取失败等结果通过左下角提示显示，发现新版时另外弹窗通知，同一版本仅通知一次，记录在 `HintLauncherReleaseTag` 中。可在“设置 → 其他 → 启动器”关闭“启动时检查新版”。升级后的更新日志窗口、公告设置及其状态记录继续移除。网络失败、API 限流或没有有效发布时，不会将当前版本误判为最新版，也不阻断启动。“查看更新”及其他更新入口统一显示手动更新说明，提供“前往 Releases”和“取消”两个按钮。新版通知仅展示版本号及手动更新步骤，不展示更新日志。用户下载新版后退出启动器，自行替换 EXE；保留 PCL 与游戏文件夹。程序不自动下载、替换 EXE，也不为更新而重启或处理 `--update` 参数。
+
+`SystemLauncherUpdateSource` 控制检查源：`0` 为 GitHub 官方（默认），`1` 为 GH-Proxy 镜像，`2` 为自定义源。自定义地址保存在 `SystemLauncherUpdateCustomSource`，仅在选择自定义时显示输入框。填写完整链接，例如 `https://exmple.com/repos/sparkzure/PCL-Slash/releases?per_page=100`；前缀代理可填写 `https://exmple.com/https://api.github.com/repos/sparkzure/PCL-Slash/releases?per_page=100`。程序直接请求填写的地址，保留路径和查询参数。地址须为有效 HTTP / HTTPS URL，不能包含用户名、密码、片段或占位符；返回数据须为 GitHub Releases 格式的发布对象或发布列表，并按当前通知通道筛选。预发布通道应使用发布列表链接，以便检查同通道版本。检查请求仅使用所选源，错误通过左下角提示及日志报告。
+
+客户端更新通知回归检查（先通过指定 `build.cmd` 构建）：
+
+```text
+powershell.exe -NoProfile -STA -ExecutionPolicy Bypass -File tests/verify-launcher-updates.ps1
+```
+
+如果 Bot 使用默认 `GITHUB_TOKEN` 推送标签，通常不会再次触发标签构建流程。需要使用 GitHub App 令牌，或显式派发工作流，并保持草稿由管理员发布的步骤。参见 [GitHub 的工作流触发规则](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow)。
+
 ## 内置联机功能移除
 
 本分支不再包含联机页面、联机设置、邀请码事件、剪贴板自动加入、EasyTier 模块下载与启动、云端联机配置及相应资源。自定义事件中的 `加入房间`、页面 `Link` 和子页面 `SetupLink` / `LinkMain` 已删除；其余事件和页面的数字编号保持不变，导航按控件的 `Tag` 匹配。
