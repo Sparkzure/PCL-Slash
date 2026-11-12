@@ -1,5 +1,3 @@
-Imports System.Net.Sockets
-
 Public Module ModNet
 
 #Region "网络请求"
@@ -1602,10 +1600,6 @@ FinishExCatch:
                     Dim Detail As String = File.Sources.Select(Function(s) $"{If(s.Ex Is Nothing, "无错误信息。", s.Ex.GetDisplay(False))}（{s.Url}）").Join(vbCrLf)
                     [Error] = New Exception("文件下载失败：" & File.LocalPath & vbCrLf &
                                             "各下载源的错误如下：" & vbCrLf & Detail, [Error])
-                    '上报
-                    Telemetry("文件下载失败",
-                              "FileName", File.LocalName,
-                              "Exception", Detail)
                     Exit For
                 Next
                 '在设置 Error 对象后再更改为失败，避免 WaitForExit 无法捕获错误
@@ -1847,45 +1841,6 @@ FinishExCatch:
         Return LoaderTaskbar.Any(
         Function(Task) Task.Show AndAlso Task.State = LoadState.Loading AndAlso
                        (Not IgnoreCustomDownload OrElse Not Task.Name.ToString.Contains("自定义下载")))
-    End Function
-
-#End Region
-
-#Region "端口"
-
-    ''' <summary>
-    ''' 随机获取单个可用的端口。
-    ''' </summary>
-    Public Function FindFreePort() As Integer
-        Dim Listener As New TcpListener(IPAddress.Loopback, 0)
-        Listener.Start()
-        Dim port As Integer = CType(Listener.LocalEndpoint, IPEndPoint).Port
-        Listener.Stop()
-        Return port
-    End Function
-
-    ''' <summary>
-    ''' 获取当前已被占用的端口列表。
-    ''' </summary>
-    Public Function GetUsedPorts() As List(Of Integer)
-        Dim IPProperties = NetworkInformation.IPGlobalProperties.GetIPGlobalProperties()
-        Dim UsedPorts As New List(Of Integer)
-        UsedPorts.AddRange(IPProperties.GetActiveTcpListeners().Select(Function(ep) ep.Port))
-        UsedPorts.AddRange(IPProperties.GetActiveUdpListeners().Select(Function(ep) ep.Port))
-        UsedPorts.AddRange(IPProperties.GetActiveTcpConnections().Select(Function(conn) conn.LocalEndPoint.Port))
-        Return UsedPorts.Distinct().ToList()
-    End Function
-
-    ''' <summary>
-    ''' 寻找数个连续编号的可用端口。
-    ''' </summary>
-    Public Function FindFreePorts(ConsecutiveCount As Integer, ParamArray ExtraBlackLists As Integer()) As List(Of Integer)
-        Dim UsedPorts = GetUsedPorts().Concat(ExtraBlackLists)
-        For port = 12000 + RandomInteger(0, 1000) To 65000 - ConsecutiveCount
-            Dim Range = Enumerable.Range(port, ConsecutiveCount)
-            If Not Range.Any(Function(p) UsedPorts.Contains(p)) Then Return Range.ToList
-        Next
-        Throw New Exception("未能找到可用的端口！")
     End Function
 
 #End Region

@@ -365,7 +365,7 @@ Public Module ModWatcher
                 Try
                     Thread.Sleep(2000)
                     WatcherLog("崩溃分析开始")
-                    Dim Analyzer As New CrashAnalyzer(Instance)
+                    Dim Analyzer As New CrashAnalyzer
                     Analyzer.Collect(Instance.PathIndie, LatestLog.ToList)
                     Analyzer.Prepare()
                     Analyzer.Analyze()

@@ -109,21 +109,6 @@ Public Class PageOtherLeft
 
 #End Region
 
-    '强制刷新
-    Public Sub Refresh(sender As Object, e As EventArgs) '由边栏按钮匿名调用
-        Select Case Val(sender.Tag)
-            Case FormMain.PageSubType.OtherHelp
-                RefreshHelp()
-                ItemHelp.Checked = True
-        End Select
-        Hint("正在刷新……", Log:=False)
-    End Sub
-    Public Shared Sub RefreshHelp()
-        Settings.Set("SystemHelpVersion", 0) '强制重新解压文件
-        FrmOtherHelp.PageLoaderRestart()
-        FrmOtherHelp.SearchBox.Text = ""
-    End Sub
-
     '打开网页
     Private Sub TryFeedback(sender As Object, e As RouteEventArgs) Handles ItemFeedback.Changed
         If Not ItemFeedback.Checked Then Return
