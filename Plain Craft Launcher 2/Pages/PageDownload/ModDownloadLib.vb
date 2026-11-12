@@ -2108,6 +2108,9 @@ Retry:
             FileUtils.GetInfo(Path.Combine(TargetFolder, File.RelativePath)).LastWriteTimeUtc, File.Component)).ToList()
         Configs.McInstallManifest.Set(New McInstallManifest(NewManifest.SchemaVersion, NewManifest.Components, NewManifest.LastModifiedUtc, ManagedFiles), Instance.Config)
         Instance.Config.Save()
+        '仅在组件安装提交成功后解除备份实例的待安装状态。
+        Dim Pending = Instance.PathVersion & LauncherInstanceArchive.PendingFile
+        If File.Exists(Pending) Then File.Delete(Pending)
     End Sub
 
     ''' <summary>

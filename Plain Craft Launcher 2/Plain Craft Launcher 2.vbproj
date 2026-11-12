@@ -231,6 +231,10 @@
     <Compile Include="Modules\ModEvent.vb" />
     <Compile Include="Modules\ModLauncherUpdate.vb" />
     <Compile Include="Modules\ModDownloadMirror.vb" />
+    <!-- 显式迁入实现。 -->
+    <Compile Include="Modules\Pcl2Migration.vb" />
+    <Compile Include="Modules\LauncherSettingsArchive.vb" />
+    <Compile Include="Modules\LauncherInstanceArchive.vb" />
     <Compile Include="Controls\MyExtraButton.xaml.vb">
       <DependentUpon>MyExtraButton.xaml</DependentUpon>
     </Compile>
@@ -374,6 +378,9 @@
     </Compile>
     <Compile Include="Pages\PageSetup\PageSetupDownload.xaml.vb">
       <DependentUpon>PageSetupDownload.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\PageSetup\PageSetupLauncher.xaml.vb">
+      <DependentUpon>PageSetupLauncher.xaml</DependentUpon>
     </Compile>
     <Compile Include="Pages\PageSetup\PageSetupSystem.xaml.vb">
       <DependentUpon>PageSetupSystem.xaml</DependentUpon>
@@ -615,6 +622,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Pages\PageSetup\PageSetupDownload.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Pages\PageSetup\PageSetupLauncher.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>

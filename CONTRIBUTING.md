@@ -69,6 +69,24 @@ PR 不注入构建凭据；上游仓库的分支与标签构建可使用 `CLIENT
 
 执行 `powershell.exe -NoProfile -STA -ExecutionPolicy Bypass -File tests/verify-themes.ps1` 验证配色、语义化配置的读写、解锁规则、旧数据拒绝和纹理切换。
 
+## 便携配置与设置备份
+
+启动器数据保存在 EXE 所在目录，普通配置分别使用 `PCL/Setup.ini` 和 `PCL/Portable.json`。首次创建本地配置时只读导入旧注册表中的普通设置，不改写原记录；Windows 显卡偏好、字体修复等系统功能仍保留其必要的系统配置操作。
+
+登录凭据和关联账号缓存使用 Windows DPAPI `CurrentUser` 加密，并绑定具体配置字段。旧 DES 登录缓存不迁移，无法解密时保留原密文并要求重新登录。复制启动器文件夹到其他 Windows 用户后，账号通常需要重新登录。
+
+在“设置 → 启动器 → 启动器”中使用“导出设置”和“导入设置”保存或恢复一个 ZIP 压缩包。操作前弹窗说明支持范围：
+
+- 包含普通全局设置、自定义主页变量、`PCL/Logo.png`、`PCL/Custom.xaml`、`PCL/CustomSkin.png`、`PCL/Pictures` 和 `PCL/Musics`，以及已注册或本地发现的游戏目录中的实例。
+- 实例采用 Modrinth 整合包的清单和 `overrides` 布局，保留 Mod、配置、脚本、材质、光影及普通实例设置；不打包 Minecraft 本体、`libraries`、`assets`、Java、存档、日志或缓存。导出不依赖在线查询 Mod 下载地址，Mod 文件直接保存在整合包内。
+- 不包含所有标记为加密的设置（包括账号、令牌和主题解锁记录）、Java 路径、Java 扫描列表及原游戏目录路径。旧配置包中的 Java 与游戏路径也会忽略，保留本机 Java 选择。自定义主页、变量及启动参数可能包含个人信息或执行操作，仅导入可信来源的备份。
+- 导入覆盖包内对应的普通设置和同名启动器资源，不删除其他资源，保留本机账号及其他加密设置。实例恢复到新的 `PCL/Instances/<会话>/versions` 目录并注册为游戏目录，不覆盖原实例，重名实例自动区分。写入失败时回滚已覆盖文件。
+- 成功后关闭启动器，重新打开生效。原版运行资源在启动时联网补全；Mod Loader 实例首次点击启动会复用正常组件安装流程，完成后再次点击启动，避免缺失 Forge/NeoForge 安装器产物。独立 OptiFine 实例需要原安装清单；作为 Mod 安装的 OptiFine 随 Mod 文件保留。
+
+配置包使用版本为 `2`、格式标识为 `PCL-Slash.Settings` 的 `settings.json`，启动器资源位于 `assets/`，实例包位于 `instances/*.mrpack`。仍可读取版本 `1` 的配置包。实例包通过附加的 `pcl-slash.instance.json` 保存自包含版本元数据及经过过滤的普通实例设置，不复制原始 `PCL/config.json` 或 Java 选择。导入、导出均按显式支持范围过滤，嵌套实例包同样校验路径与大小。展开总大小上限为 2 GB，最多 10000 个 ZIP 条目；临时文件和回滚备份保存在 EXE 旁的 `PCL/Temp` 内，正常完成或取消后清理。
+
+构建后执行 `powershell.exe -NoProfile -STA -ExecutionPolicy Bypass -File tests/verify-settings-archive.ps1`，验证设置和资源往返、加密配置排除及保留、自定义变量、失败回滚、非法路径、异常包和临时文件清理。便携存储与 DPAPI 使用 `tests/verify-portable-settings.ps1` 检查。
+
 ## 标签与草稿发布
 
 管理员将版本标签推送至 **sparkzure/PCL-Slash** 后，流水线自动运行。非 `v` 开头的标签不会启动发布流程；不符合版本格式的 `v` 标签会被检查拒绝。

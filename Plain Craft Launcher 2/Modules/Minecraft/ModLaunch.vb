@@ -61,6 +61,19 @@ Public Module ModLaunch
             Hint($"版本 {McInstanceSelected.Name} 正在被修改，请稍后再启动！", HintType.Red)
             Return False
         End If
+        '备份恢复的 Mod Loader 首次启动时重新安装运行组件。
+        If McInstanceSelected IsNot Nothing Then
+            Try
+                Dim Request = LauncherInstanceArchive.PendingInstall(McInstanceSelected)
+                If Request IsNot Nothing Then
+                    If McModificationStart(Request, McInstanceSelected) Then Hint("正在为导入的整合包安装游戏运行组件，完成后请再次点击启动。", HintType.Blue)
+                    Return False
+                End If
+            Catch ex As Exception
+                Logger.Error(ex, "安装导入实例的运行组件失败", LogBehavior.Alert)
+                Return False
+            End Try
+        End If
         FrmMain.AprilGiveup()
         '禁止进入版本选择页面（否则就可以在启动中切换 McInstanceSelected 了）
         FrmMain.PageStack = FrmMain.PageStack.Where(Function(p) p.Page <> FormMain.PageType.InstanceSelect).ToList
