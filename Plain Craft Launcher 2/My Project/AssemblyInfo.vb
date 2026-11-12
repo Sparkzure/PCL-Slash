@@ -8,12 +8,12 @@ Imports System.Runtime.InteropServices
 
 '查看程序集特性的值
 
-<Assembly: AssemblyTitle("Plain Craft Launcher 启动器")>
+<Assembly: AssemblyTitle(ModBase.BrandFullName & " 启动器")>
 <Assembly: AssemblyDescription("Minecraft 启动器")>
 <Assembly: AssemblyCompany("")>
-<Assembly: AssemblyProduct("Plain Craft Launcher")>
+<Assembly: AssemblyProduct(ModBase.BrandFullName)>
 <Assembly: AssemblyCopyright("Copyright © 成都瓜皮龙科技有限公司")>
-<Assembly: AssemblyConfiguration("PCL2 Config Mark")>
+<Assembly: AssemblyConfiguration("PCL-Slash Config Mark")>
 <Assembly: ComVisible(False)>
 
 '若要开始生成可本地化的应用程序，请设置
@@ -51,6 +51,8 @@ Imports System.Runtime.InteropServices
 ' 可以指定所有值，也可以使用以下所示的 "*" 预置版本号和修订号
 ' 方法是按如下所示使用“*”
 
-<Assembly: AssemblyVersion("2.14.0.0")>
-<Assembly: AssemblyFileVersion("2.14.0.0")>
+<Assembly: AssemblyVersion("2.14.1.1")>
+<Assembly: AssemblyFileVersion("2.14.1.1")>
 <Assembly: NeutralResourcesLanguage("")>
+
+<Assembly: AssemblyInformationalVersion("2.14.1.1-snapshot.5")>

@@ -96,7 +96,7 @@ Public Module ModDownloadLib
             Else
                 NewItem.Info = Entry("lore").ToString
             End If
-            If Entry("url").ToString.Contains("pcl") Then NewItem.Info = "[PCL 特供下载] " & NewItem.Info
+            If Entry("url").ToString.Contains("pcl") Then NewItem.Info = "[PCL-Slash 特供下载] " & NewItem.Info
             AddHandler NewItem.Click, OnClick
             '建立菜单
             If IsSaveOnly Then
@@ -1778,7 +1778,7 @@ Retry:
         Dim LoaderList As New List(Of LoaderBase)
         Dim ManagedFileSources As New Dictionary(Of String, String)
         '添加忽略标识
-        LoaderList.Add(New LoaderTask(Of Integer, Integer)("添加忽略标识", Sub() FileUtils.Write(VersionFolder & ".pclignore", "用于临时地在 PCL 的版本列表中屏蔽此版本。")) With {.Show = False})
+        LoaderList.Add(New LoaderTask(Of Integer, Integer)("添加忽略标识", Sub() FileUtils.Write(VersionFolder & ".pclignore", "用于临时地在 PCL-Slash 的版本列表中屏蔽此版本。")) With {.Show = False})
         'Fabric API
         If Request.Components.FabricApiVersion IsNot Nothing Then
             Dim DownloadFile = Request.FabricApi.ToNetFile(ModsTempFolder, ResourceVersion.DownloadReason.Dependency, Request.Components.MinecraftVersion, ModLoaders.Fabric)
@@ -2108,6 +2108,9 @@ Retry:
             FileUtils.GetInfo(Path.Combine(TargetFolder, File.RelativePath)).LastWriteTimeUtc, File.Component)).ToList()
         Configs.McInstallManifest.Set(New McInstallManifest(NewManifest.SchemaVersion, NewManifest.Components, NewManifest.LastModifiedUtc, ManagedFiles), Instance.Config)
         Instance.Config.Save()
+        '仅在组件安装提交成功后解除备份实例的待安装状态。
+        Dim Pending = Instance.PathVersion & LauncherInstanceArchive.PendingFile
+        If File.Exists(Pending) Then File.Delete(Pending)
     End Sub
 
     ''' <summary>

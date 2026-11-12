@@ -210,11 +210,12 @@ Public Module ModMusic
     ''' <summary>
     ''' 开始播放音乐。
     ''' </summary>
-    Private Sub MusicStartPlay(Address As String, Optional IsFirstLoad As Boolean = False)
+    Private Sub MusicStartPlay(Address As String, Optional IsFirstLoad As Boolean = False, Optional StartPaused As Boolean = False)
+        If MusicImportSuspended Then Return
         If Address Is Nothing Then Return
         Logger.Info($"播放开始：{Address}")
         MusicCurrent = Address
-        RunInNewThread(Sub() MusicLoop(IsFirstLoad), "Music", ThreadPriority.BelowNormal)
+        RunInNewThread(Sub() MusicLoop(IsFirstLoad, StartPaused), "Music", ThreadPriority.BelowNormal)
     End Sub
 
     '播放与暂停
@@ -271,10 +272,36 @@ Public Module ModMusic
     ''' </summary>
     Private MusicCurrent As String = ""
 
+    '配置导入前释放音乐文件句柄。
+    Private ReadOnly MusicImportGate As New Object
+    Private MusicImportSuspended As Boolean
+    Private MusicActiveReaders As Integer
+    Public Sub MusicSuspendForSettingsImport()
+        SyncLock MusicImportGate
+            MusicImportSuspended = True
+            MusicNAudio = Nothing
+        End SyncLock
+        Dim Wait = Stopwatch.StartNew()
+        While Threading.Interlocked.CompareExchange(MusicActiveReaders, 0, 0) > 0
+            If Wait.ElapsedMilliseconds > 5000 Then Throw New IOException("背景音乐仍在释放文件，请稍后重试导入。")
+            Thread.Sleep(25)
+        End While
+    End Sub
+    Public Sub MusicResumeAfterSettingsImport(WasPaused As Boolean)
+        SyncLock MusicImportGate
+            MusicImportSuspended = False
+        End SyncLock
+        If MusicAllList.Any() AndAlso Not String.IsNullOrEmpty(MusicCurrent) Then MusicStartPlay(MusicCurrent, StartPaused:=WasPaused)
+    End Sub
+
     ''' <summary>
     ''' 在 MusicUuid 不变的前提下，持续播放某地址的音乐，且在播放结束后随机播放下一曲。
     ''' </summary>
-    Private Sub MusicLoop(Optional IsFirstLoad As Boolean = False)
+    Private Sub MusicLoop(Optional IsFirstLoad As Boolean = False, Optional StartPaused As Boolean = False)
+        SyncLock MusicImportGate
+            If MusicImportSuspended Then Return
+            Threading.Interlocked.Increment(MusicActiveReaders)
+        End SyncLock
         Dim CurrentWave As WaveOutEvent = Nothing
         Dim Reader As WaveStream = Nothing
         Try
@@ -291,11 +318,11 @@ Public Module ModMusic
             CurrentWave.Init(Reader)
             CurrentWave.Play()
             '第一次打开的暂停
-            If IsFirstLoad AndAlso Not Settings.Get(Of Boolean)("UiMusicAuto") Then CurrentWave.Pause()
+            If StartPaused OrElse (IsFirstLoad AndAlso Not Settings.Get(Of Boolean)("UiMusicAuto")) Then CurrentWave.Pause()
             MusicRefreshUI()
             '停止条件：播放完毕或变化
             Dim PreviousVolume = 0
-            While CurrentWave.Equals(MusicNAudio) AndAlso Not CurrentWave.PlaybackState = PlaybackState.Stopped
+            While Not MusicImportSuspended AndAlso CurrentWave.Equals(MusicNAudio) AndAlso Not CurrentWave.PlaybackState = PlaybackState.Stopped
                 If Settings.Get(Of Integer)("UiMusicVolume") <> PreviousVolume Then
                     '更新音量
                     PreviousVolume = Settings.Get(Of Integer)("UiMusicVolume")
@@ -317,12 +344,12 @@ Public Module ModMusic
                 Thread.Sleep(1000000000)
             End If
             If TypeOf ex Is NAudio.MmException AndAlso (ex.Message.Contains("NoDriver") OrElse ex.Message.Contains("BadDeviceId")) Then
-                Hint("由于音频设备变更，音乐播放功能在重启 PCL 后才能恢复！", HintType.Red)
+                Hint("由于音频设备变更，音乐播放功能在重启 PCL-Slash 后才能恢复！", HintType.Red)
                 Thread.Sleep(1000000000)
             End If
             If Not ({"wav", "mp3", "flac"}.Contains(PathUtils.GetExtension(MusicCurrent))) OrElse
                 ex.Message.Contains("0xC00D36C4") Then '#5096：不支持给定的 URL 的字节流类型。 (异常来自 HRESULT:0xC00D36C4)
-                Hint("播放音乐失败（" & PathUtils.GetLastPart(MusicCurrent) & "）：PCL 可能不支持此音乐格式，请将格式转换为 .wav、.mp3 或 .flac 后再试", HintType.Red)
+                Hint("播放音乐失败（" & PathUtils.GetLastPart(MusicCurrent) & "）：PCL-Slash 可能不支持此音乐格式，请将格式转换为 .wav、.mp3 或 .flac 后再试", HintType.Red)
             Else
                 Logger.Error(ex, $"播放音乐失败（{PathUtils.GetLastPart(MusicCurrent)}）", LogBehavior.Toast)
             End If
@@ -338,9 +365,13 @@ Public Module ModMusic
                 MusicStartPlay(DequeueNextMusicAddress(), IsFirstLoad)
             End If
         Finally
-            If CurrentWave IsNot Nothing Then CurrentWave.Dispose()
-            If Reader IsNot Nothing Then Reader.Dispose()
-            MusicRefreshUI()
+            Try
+                If CurrentWave IsNot Nothing Then CurrentWave.Dispose()
+                If Reader IsNot Nothing Then Reader.Dispose()
+                MusicRefreshUI()
+            Finally
+                Threading.Interlocked.Decrement(MusicActiveReaders)
+            End Try
         End Try
     End Sub
 

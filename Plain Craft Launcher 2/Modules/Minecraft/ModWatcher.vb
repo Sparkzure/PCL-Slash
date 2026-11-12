@@ -270,7 +270,7 @@ Public Module ModWatcher
                     MinecraftWindow = TryGetMinecraftWindow()
                 Catch ex As ComponentModel.Win32Exception
                     '拒绝访问（#1062）
-                    Logger.Error(ex, "由于反作弊或安全软件拦截，PCL 无法操作游戏窗口", LogBehavior.Toast)
+                    Logger.Error(ex, "由于反作弊或安全软件拦截，PCL-Slash 无法操作游戏窗口", LogBehavior.Toast)
                     IsWindowFinished = True
                 End Try
                 If MinecraftWindow Is Nothing Then Return
@@ -365,7 +365,7 @@ Public Module ModWatcher
                 Try
                     Thread.Sleep(2000)
                     WatcherLog("崩溃分析开始")
-                    Dim Analyzer As New CrashAnalyzer(Instance)
+                    Dim Analyzer As New CrashAnalyzer
                     Analyzer.Collect(Instance.PathIndie, LatestLog.ToList)
                     Analyzer.Prepare()
                     Analyzer.Analyze()

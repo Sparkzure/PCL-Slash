@@ -66,11 +66,12 @@ Public Class PageLoginLegacy
         HintChinese.Visibility = If(ComboName.Text.RegexCheck("^[0-9A-Za-z_]*$"), Visibility.Collapsed, Visibility.Visible)
         RunInUi(Sub() PanMain.InvalidateMeasure(), True) '由于 WPF 的 Bug，它不一定会自动更新 HintChinese 的大小（#6627）
     End Sub
+    '离线头像入口跟随皮肤设置移至游戏功能页。
     Private Sub Skin_Click() Handles Skin.Click
-        If (Settings.Get(Of Boolean)("UiHiddenPageSetup") OrElse Settings.Get(Of Boolean)("UiHiddenSetupLaunch")) AndAlso Not PageSetupUI.HiddenForceShow Then
-            Hint("启动设置已被禁用！", HintType.Red)
+        If (Settings.Get(Of Boolean)("UiHiddenPageSetup") OrElse Settings.Get(Of Boolean)("UiHiddenSetupGame")) AndAlso Not PageSetupUI.HiddenForceShow Then
+            Hint("游戏功能设置已被禁用！", HintType.Red)
         Else
-            FrmMain.PageChange(FormMain.PageType.Setup, FormMain.PageSubType.SetupLaunch) '切换到皮肤设置页面
+            FrmMain.PageChange(FormMain.PageType.Setup, FormMain.PageSubType.SetupGame) '切换到皮肤设置页面
         End If
     End Sub
 

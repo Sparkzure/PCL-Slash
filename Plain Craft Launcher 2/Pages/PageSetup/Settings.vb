@@ -1,15 +1,13 @@
 Imports System.Security.Cryptography
+'新增独立的镜像预设和自定义地址设置。
 
 Public Class Settings
 
     Public Shared ReadOnly Entries As Dictionary(Of String, Setting) = (New List(Of Setting) From {
-        New Setting("Identify", "", Source:=Sources.Registry),
         New Setting("WindowHeight", 550),
         New Setting("WindowWidth", 900),
         New Setting("AprilYear", 0, Source:=Sources.Registry, Encrypted:=True),
-        New Setting("Potatoes", "", Source:=Sources.Registry, Encrypted:=True),
         New Setting("HintDownloadThread", False, Source:=Sources.Registry),
-        New Setting("HintNotice", 0, Source:=Sources.Registry),
         New Setting("HintDownload", 0, Source:=Sources.Registry),
         New Setting("HintHide", False, Source:=Sources.Registry),
         New Setting("HintHandInstall", False, Source:=Sources.Registry),
@@ -26,18 +24,15 @@ Public Class Settings
         New Setting("SystemCount", 0, Source:=Sources.Registry, Encrypted:=True),
         New Setting("SystemLaunchCount", 0, Source:=Sources.Registry, Encrypted:=True),
         New Setting("SystemLastVersionReg", 0, Source:=Sources.Registry, Encrypted:=True),
-        New Setting("SystemHighestSavedBetaVersionReg", 0, Source:=Sources.Registry, Encrypted:=True),
-        New Setting("SystemHighestBetaVersionReg", 0, Source:=Sources.Registry, Encrypted:=True),
-        New Setting("SystemHighestAlphaVersionReg", 0, Source:=Sources.Registry, Encrypted:=True),
-        New Setting("SystemHelpVersion", 0, Source:=Sources.Registry),
         New Setting("SystemDebugMode", False, Source:=Sources.Registry, OnChanged:=Sub() Logger.Instance.MinLevel = If(ModeDebug, LogLevel.Trace, LogLevel.Info)),
         New Setting("SystemDebugAnim", 9, Source:=Sources.Registry),
         New Setting("SystemDebugDelay", False, Source:=Sources.Registry),
         New Setting("SystemDebugSkipCopy", False, Source:=Sources.Registry),
         New Setting("SystemSystemCache", "", Source:=Sources.Registry),
-        New Setting("SystemSystemUpdate", 0),
-        New Setting("SystemSystemActivity", 0),
-        New Setting("SystemSystemTelemetry", True, Source:=Sources.Registry),
+        New Setting("SystemLauncherUpdateNotify", True),
+        New Setting("HintLauncherReleaseTag", ""),
+        New Setting("SystemLauncherUpdateSource", 0),
+        New Setting("SystemLauncherUpdateCustomSource", ""),
         New Setting("CacheDrops", "", Source:=Sources.Registry),
         New Setting("CacheConfig", 0, Source:=Sources.Registry),
         New Setting("CacheExportConfig", "", Source:=Sources.Registry),
@@ -83,12 +78,12 @@ Public Class Settings
         New Setting("LoginType", McLoginType.Legacy, Source:=Sources.Registry),
         New Setting("LoginPageType", 0),
         New Setting("LaunchSkinID", "", Source:=Sources.Registry, OnChanged:=Sub() PageLaunchLeft.SkinLegacy.Start()),
-        New Setting("LaunchSkinType", 0, Source:=Sources.Registry, OnChanged:=AddressOf PageSetupLaunch.UpdateSkinType),
+        New Setting("LaunchSkinType", 0, Source:=Sources.Registry, OnChanged:=AddressOf PageSetupGame.UpdateSkinType),
         New Setting("LaunchSkinSlim", False, Source:=Sources.Registry),
         New Setting("LaunchFolderSelect", ""),
         New Setting("LaunchFolders", "", Source:=Sources.Registry),
         New Setting("LaunchArgumentTitle", ""),
-        New Setting("LaunchArgumentInfo", "PCL"),
+        New Setting("LaunchArgumentInfo", BrandName),
         New Setting("LaunchArgumentJavaSelect", "", Source:=Sources.Registry),
         New Setting("LaunchArgumentJavaAll", "[]", Source:=Sources.Registry),
         New Setting("LaunchArgumentIndie", 0),
@@ -109,15 +104,15 @@ Public Class Settings
         New Setting("LaunchAdvanceGC", 4),
         New Setting("LaunchRamType", 0, OnChanged:=AddressOf PageSetupLaunch.UpdateRamType),
         New Setting("LaunchRamCustom", 15),
-        New Setting("LinkLastAutoJoinInviteCode", "", Source:=Sources.Registry),
-        New Setting("LinkLatencyMode", 0, Source:=Sources.Registry),
-        New Setting("LinkCustomPeer", ""),
-        New Setting("LinkEasyTierVersion", -1, Source:=Sources.Registry),
         New Setting("ToolHelpChinese", True, Source:=Sources.Registry),
         New Setting("ToolDownloadThread", 63, Source:=Sources.Registry),
         New Setting("ToolDownloadSpeed", 42, Source:=Sources.Registry, OnChanged:=AddressOf ModNet.UpdateNetTaskSpeedLimitHigh),
         New Setting("ToolDownloadSource", 1, Source:=Sources.Registry),
         New Setting("ToolDownloadVersion", 1, Source:=Sources.Registry),
+        New Setting("ToolDownloadMinecraftMirror", 0),
+        New Setting("ToolDownloadMinecraftMirrorCustom", ""),
+        New Setting("ToolDownloadCommunityMirror", 0),
+        New Setting("ToolDownloadCommunityMirrorCustom", ""),
         New Setting("ToolDownloadTranslate", 0, Source:=Sources.Registry),
         New Setting("ToolDownloadTranslateV2", 1, Source:=Sources.Registry),
         New Setting("ToolDownloadCert", False, Source:=Sources.Registry, OnChanged:=AddressOf ModNet.ShouldValidateSslCertificateOnLogin),
@@ -128,16 +123,15 @@ Public Class Settings
         New Setting("ToolUpdateReleaseLast", "", Source:=Sources.Registry),
         New Setting("ToolUpdateSnapshotLast", "", Source:=Sources.Registry),
         New Setting("UiLauncherTransparent", 600, OnChanged:=Sub(Value As Integer) If FrmMain IsNot Nothing Then FrmMain.Opacity = Value / 1000 + 0.4), '避免与 PCL1 设置冲突（UiLauncherOpacity）
-        New Setting("UiLauncherHue", 180),
-        New Setting("UiLauncherSat", 80),
-        New Setting("UiLauncherDelta", 90),
-        New Setting("UiLauncherLight", 20),
-        New Setting("UiLauncherTheme", 0, OnChanged:=AddressOf ThemeRefresh),
-        New Setting("UiLauncherThemeHide", "0|1|2|3|4", Source:=Sources.Registry, Encrypted:=True),
-        New Setting("UiLauncherThemeHide2", "0|1|2|3|4", Source:=Sources.Registry, Encrypted:=True),
+        New Setting("UiThemeCustomHue", 180),
+        New Setting("UiThemeCustomSaturation", 80),
+        New Setting("UiThemeCustomGradient", 90),
+        New Setting("UiThemeCustomLightness", 20),
+        New Setting("UiThemeSelected", DefaultThemeKey, OnChanged:=AddressOf ThemeRefresh),
+        New Setting("UiThemeUnlocked", "[]", Source:=Sources.Registry, Encrypted:=True),
         New Setting("UiLauncherLogo", True),
         New Setting("UiLauncherEmail", False),
-        New Setting("UiBackgroundColorful", True, OnChanged:=Sub() ThemeRefresh()), '不传入参数
+        New Setting("UiThemeColorfulBackground", True, OnChanged:=Sub() ThemeRefresh()), '不传入参数
         New Setting("UiBackgroundOpacity", 1000, OnChanged:=AddressOf FormMain.UpdateBackgroundAndTitleBar),
         New Setting("UiBackgroundBlur", 0, OnChanged:=AddressOf FormMain.UpdateBackgroundAndTitleBar),
         New Setting("UiBackgroundSuit", 0, OnChanged:=AddressOf FormMain.UpdateBackgroundAndTitleBar),
@@ -153,7 +147,6 @@ Public Class Settings
         New Setting("UiMusicRandom", True),
         New Setting("UiMusicAuto", True),
         New Setting("UiHiddenPageDownload", False, OnChanged:=AddressOf PageSetupUI.HiddenRefresh),
-        New Setting("UiHiddenPageLink", False, OnChanged:=AddressOf PageSetupUI.HiddenRefresh),
         New Setting("UiHiddenPageSetup", False, OnChanged:=AddressOf PageSetupUI.HiddenRefresh),
         New Setting("UiHiddenPageOther", False, OnChanged:=AddressOf PageSetupUI.HiddenRefresh),
         New Setting("UiHiddenFunctionSelect", False, OnChanged:=AddressOf PageSetupUI.HiddenRefresh),
@@ -162,11 +155,13 @@ Public Class Settings
         New Setting("UiHiddenFunctionHidden", False, OnChanged:=AddressOf PageSetupUI.HiddenRefresh),
         New Setting("UiHiddenSetupLaunch", False, OnChanged:=AddressOf PageSetupUI.HiddenRefresh),
         New Setting("UiHiddenSetupUi", False, OnChanged:=AddressOf PageSetupUI.HiddenRefresh),
-        New Setting("UiHiddenSetupLink", False, OnChanged:=AddressOf PageSetupUI.HiddenRefresh),
+        New Setting("UiHiddenSetupGame", False, OnChanged:=AddressOf PageSetupUI.HiddenRefresh),
+        New Setting("UiHiddenSetupDownload", False, OnChanged:=AddressOf PageSetupUI.HiddenRefresh),
+        New Setting("UiHiddenSetupLauncher", False, OnChanged:=AddressOf PageSetupUI.HiddenRefresh),
         New Setting("UiHiddenSetupSystem", False, OnChanged:=AddressOf PageSetupUI.HiddenRefresh),
-        New Setting("UiHiddenOtherHelp", False, OnChanged:=AddressOf PageSetupUI.HiddenRefresh),
         New Setting("UiHiddenOtherFeedback", False, OnChanged:=AddressOf PageSetupUI.HiddenRefresh),
         New Setting("UiHiddenOtherVote", False, OnChanged:=AddressOf PageSetupUI.HiddenRefresh),
+        New Setting("UiHiddenOtherCredits", False, OnChanged:=AddressOf PageSetupUI.HiddenRefresh),
         New Setting("UiHiddenOtherAbout", False, OnChanged:=AddressOf PageSetupUI.HiddenRefresh),
         New Setting("UiHiddenOtherTest", False, OnChanged:=AddressOf PageSetupUI.HiddenRefresh),
         New Setting("VersionAdvanceJvm", "", Source:=Sources.Instance),
@@ -207,6 +202,15 @@ Public Class Settings
         Public Encrypted As Boolean
         Public DefaultValue As Object
         Public Source As Sources
+        ''' <summary>登录凭据及关联账号缓存绑定当前 Windows 用户，其他便携设置不绑定用户。</summary>
+        Public ReadOnly Property UsesDpapi As Boolean
+            Get
+                Return Encrypted AndAlso (Key.StartsWith("Login", StringComparison.Ordinal) OrElse
+                    Key.StartsWith("CacheMs", StringComparison.Ordinal) OrElse
+                    Key.StartsWith("CacheNide", StringComparison.Ordinal) OrElse
+                    Key.StartsWith("CacheAuth", StringComparison.Ordinal))
+            End Get
+        End Property
         ''' <summary>
         ''' 当设置项的值实际被改变时触发，参数为新值。
         ''' </summary>
@@ -244,27 +248,25 @@ Public Class Settings
         End Sub
 
         ''' <summary>
-        ''' 立即将当前的 Value 写入对应的注册表或文件。
+        ''' 立即将当前的 Value 写入对应的本地文件。
         ''' </summary>
         Public Sub Save(Optional Instance As McInstance = Nothing)
             Dim Value As String = GetCache(Instance)
             Logger.Trace($"保存设置：{Key} {If(Encrypted, "", "= " & Value)}{If(Instance Is Nothing, "", $"（实例：{Instance?.PathVersion}）")}")
             If Encrypted Then
-                Try
-                    If Value Is Nothing Then Value = ""
-                    Value = DesEncrypt(Value, "PCL" & Identify)
-                Catch ex As Exception
-                    Logger.Warn(ex, $"加密设置失败：{Key}")
-                End Try
+                If Value Is Nothing Then Value = ""
+                '加密失败必须停止保存，禁止回退为明文或旧算法。
+                Value = If(UsesDpapi, ProtectLogin(Key, Value), DesEncrypt(Value, SettingsEncryptionKey))
             End If
             Select Case Source
                 Case Sources.Normal
                     WriteIni("Setup", Key, Value)
                 Case Sources.Registry
                     Try
-                        RegistryUtils.Write($"HKEY_CURRENT_USER\Software\{RegFolder}", Key, Value)
+                        PortableSettings.SetValue(Key, Value)
                     Catch ex As Exception
-                        Logger.Warn(ex, $"写入注册表失败（{Key} → {Value}）", LogBehavior.Toast)
+                        Logger.Warn(ex, $"写入本地设置失败（{Key}）", LogBehavior.Toast)
+                        Throw
                     End Try
                 Case Sources.Instance
                     If Instance Is Nothing Then Throw New Exception($"保存版本独立设置 {Key} 时未提供目标版本")
@@ -280,10 +282,12 @@ Public Class Settings
     Public Shared Sub [Set](Key As String, Value As Object, Optional Instance As McInstance = Nothing)
         Dim Entry As Setting = Nothing
         If Not Entries.TryGetValue(Key, Entry) Then Throw New KeyNotFoundException("未找到设置项：" & Key)
+        Dim PreviousValue As Object = Nothing
         Try
             '判断是否一致
             Value = CTypeDynamic(Value, Entry.Type)
             If Entry.GetCache(Instance) Is Nothing Then [Get](Key, Instance)
+            PreviousValue = Entry.GetCache(Instance)
             If Entry.GetCache(Instance) = Value Then Return
             '设置新值
             Entry.Set(Value, Instance)
@@ -291,7 +295,8 @@ Public Class Settings
             '触发改变事件（必须在保存之后，以保证 VersionServerLogin 之类的在事件中读取到的是最新的值）
             If Entry.OnChanged IsNot Nothing Then Entry.OnChanged.Invoke(Value)
         Catch ex As Exception
-            Logger.Error(ex, $"设置设置项时出错（{Key}, {Value}）")
+            If PreviousValue IsNot Nothing Then Entry.Set(PreviousValue, Instance)
+            Logger.Error(ex, $"设置设置项时出错（{Key}{If(Entry.Encrypted, "", ", " & CStr(Value))}）")
         End Try
     End Sub
     ''' <summary>
@@ -313,25 +318,15 @@ Public Class Settings
         If Not Entries.TryGetValue(Key, Entry) Then Throw New KeyNotFoundException("未找到设置项：" & Key)
         Dim Value = Entry.GetCache(Instance)
         If Value IsNot Nothing Then Return Value
-        '对部分设置强制赋值
-        Static ForcedSettings As New Dictionary(Of String, Object) From {
-            {"UiHiddenPageLink", True},
-            {"UiHiddenSetupLink", True}
-        }
-        Dim ForcedSetting As Object = Nothing
-        If ForcedSettings.TryGetValue(Key, ForcedSetting) Then
-            Entry.Set(ForcedSetting, Instance)
-            Return ForcedSetting
-        End If
         '正常读取
         Try
             Dim GotValue As String = Nothing '先用 String 储存，避免类型转换
-            Dim DefaultValue As String = If(Entry.Encrypted, DesEncrypt(Entry.DefaultValue, "PCL" & Identify), Entry.DefaultValue)
+            Dim DefaultValue As String = If(Entry.UsesDpapi, Nothing, If(Entry.Encrypted, DesEncrypt(Entry.DefaultValue, SettingsEncryptionKey), Entry.DefaultValue))
             Select Case Entry.Source
                 Case Sources.Normal
                     GotValue = ReadIni("Setup", Key, DefaultValue)
                 Case Sources.Registry
-                    GotValue = RegistryUtils.TryRead($"HKEY_CURRENT_USER\Software\{RegFolder}", Key, DefaultValue)
+                    GotValue = PortableSettings.ReadValue(Key, DefaultValue)
                 Case Sources.Instance
                     If Instance Is Nothing Then
                         Throw New Exception($"读取版本设置 {Key} 时未提供目标版本")
@@ -344,12 +339,17 @@ Public Class Settings
                     GotValue = Entry.DefaultValue
                 Else
                     Try
-                        GotValue = DesDecrypt(GotValue, "PCL" & Identify)
+                        If Entry.UsesDpapi Then
+                            GotValue = UnprotectLogin(Key, GotValue)
+                        Else
+                            GotValue = DesDecrypt(GotValue, SettingsEncryptionKey)
+                        End If
                     Catch ex As Exception
-                        Logger.Warn(ex, $"解密设置失败：{Key}")
+                        Logger.Warn(ex, $"解密设置失败：{Key}{If(Entry.UsesDpapi, "；请在当前 Windows 用户下重新登录", "")}")
                         GotValue = Entry.DefaultValue
                         Entry.Set(Entry.DefaultValue, Instance)
-                        Entry.Save(Instance)
+                        '保留无法解密的 DPAPI 数据，不覆盖其他用户的缓存，也不尝试 DES 降级。
+                        If Not Entry.UsesDpapi Then Entry.Save(Instance)
                     End Try
                 End If
             End If
@@ -391,9 +391,9 @@ Public Class Settings
                     DeleteIniKey("Setup", Key)
                 Case Sources.Registry
                     Try
-                        RegistryUtils.Delete($"HKEY_CURRENT_USER\Software\{RegFolder}", Key)
+                        PortableSettings.RemoveValue(Key)
                     Catch ex As Exception
-                        Logger.Warn(ex, $"删除注册表失败（{Key}）", LogBehavior.Toast)
+                        Logger.Warn(ex, $"删除本地设置失败（{Key}）", LogBehavior.Toast)
                     End Try
                 Case Sources.Instance
                     If Instance Is Nothing Then Throw New Exception($"重置版本设置 {Key} 时未提供目标版本")
@@ -423,9 +423,9 @@ Public Class Settings
                 Return HasIniKey("Setup", Key)
             Case Sources.Registry
                 Try
-                    Return RegistryUtils.Has($"HKEY_CURRENT_USER\Software\{RegFolder}", Key)
+                    Return PortableSettings.HasValue(Key)
                 Catch ex As Exception
-                    Logger.Warn(ex, $"判断注册表 {Key} 是否存在时出错")
+                    Logger.Warn(ex, $"判断本地设置 {Key} 是否存在时出错")
                     Return False
                 End Try
             Case Else 'Source.Instance
@@ -434,8 +434,28 @@ Public Class Settings
         End Select
     End Function
 
-#Region "DES 加密"
+#Region "登录凭据保护及旧格式兼容"
 
+    Private Const LoginProtectionPrefix As String = "dpapi:v1:"
+
+    Private Shared Function LoginEntropy(Key As String) As Byte()
+        Return Encoding.UTF8.GetBytes(BrandName & ":login:v1:" & Key)
+    End Function
+
+    Private Shared Function ProtectLogin(Key As String, Value As String) As String
+        Return LoginProtectionPrefix & Convert.ToBase64String(ProtectedData.Protect(
+            Encoding.UTF8.GetBytes(Value), LoginEntropy(Key), DataProtectionScope.CurrentUser))
+    End Function
+
+    Private Shared Function UnprotectLogin(Key As String, Value As String) As String
+        If Not Value.StartsWith(LoginProtectionPrefix, StringComparison.Ordinal) Then
+            Throw New CryptographicException("旧登录缓存不再支持，请重新登录。")
+        End If
+        Return Encoding.UTF8.GetString(ProtectedData.Unprotect(
+            Convert.FromBase64String(Value.Substring(LoginProtectionPrefix.Length)), LoginEntropy(Key), DataProtectionScope.CurrentUser))
+    End Function
+
+    Private Const SettingsEncryptionKey As String = BrandName
     Private Shared ReadOnly desInitialVector As Byte() = Encoding.UTF8.GetBytes("95168702")
 
     ''' <summary>
@@ -476,4 +496,86 @@ Public Class Settings
 
 #End Region
 
+End Class
+
+''' <summary>启动器本地设置。Registry 来源仅保留为旧格式分类，不再写注册表。</summary>
+Public NotInheritable Class PortableSettings
+    Private Shared ReadOnly Gate As New Object
+    '导入事务与普通写入互斥，保留同时刷新的账号缓存。
+    Friend Shared Sub RunExclusive(Action As Action)
+        SyncLock Gate
+            Action()
+        End SyncLock
+    End Sub
+    Private Shared Initialized As Boolean
+    Public Shared ReadOnly Property FilePath As String
+        Get
+            Return Paths.Base & "PCL\Portable.json"
+        End Get
+    End Property
+
+    '只在首次创建本地设置文件时读取旧注册表；不修改或删除旧数据。
+    Private Shared Sub EnsureInitialized()
+        If Initialized Then Return
+        If Not File.Exists(FilePath) Then
+            Dim Values As New Dictionary(Of String, String)(StringComparer.OrdinalIgnoreCase)
+            Using Legacy = Microsoft.Win32.Registry.CurrentUser.OpenSubKey($"Software\{RegFolder}", False)
+                If Legacy IsNot Nothing Then
+                    For Each Name In Legacy.GetValueNames()
+                        Dim Entry As Settings.Setting = Nothing
+                        If Settings.Entries.TryGetValue(Name, Entry) AndAlso Entry.UsesDpapi Then Continue For
+                        If Name = "CacheMsV2Migrated" Then Continue For
+                        Values(Name) = Convert.ToString(Legacy.GetValue(Name, "", Microsoft.Win32.RegistryValueOptions.DoNotExpandEnvironmentNames), Globalization.CultureInfo.InvariantCulture)
+                    Next
+                End If
+            End Using
+            FileUtils.WriteAtomic(FilePath, Newtonsoft.Json.JsonConvert.SerializeObject(Values, Newtonsoft.Json.Formatting.Indented))
+        End If
+        Initialized = True
+    End Sub
+
+    Public Shared Function ReadAll(Optional TargetFile As String = Nothing) As Dictionary(Of String, String)
+        SyncLock Gate
+            If TargetFile Is Nothing Then
+                EnsureInitialized()
+                TargetFile = FilePath
+            End If
+            Dim Result As New Dictionary(Of String, String)(StringComparer.OrdinalIgnoreCase)
+            If File.Exists(TargetFile) Then
+                Dim Stored = Newtonsoft.Json.JsonConvert.DeserializeObject(Of Dictionary(Of String, String))(File.ReadAllText(TargetFile, Encoding.UTF8))
+                If Stored IsNot Nothing Then
+                    For Each Pair In Stored
+                        Result(Pair.Key) = Pair.Value
+                    Next
+                End If
+            End If
+            Return Result
+        End SyncLock
+    End Function
+
+    Public Shared Sub Merge(Values As Dictionary(Of String, String), Optional TargetFile As String = Nothing)
+        SyncLock Gate
+            Dim Current = ReadAll(TargetFile)
+            For Each Pair In Values
+                Current(Pair.Key) = Pair.Value
+            Next
+            FileUtils.WriteAtomic(If(TargetFile, FilePath), Newtonsoft.Json.JsonConvert.SerializeObject(Current, Newtonsoft.Json.Formatting.Indented))
+        End SyncLock
+    End Sub
+    Public Shared Function ReadValue(Key As String, Optional DefaultValue As String = "") As String
+        Return ReadAll().GetOrDefault(Key, DefaultValue)
+    End Function
+    Public Shared Function HasValue(Key As String) As Boolean
+        Return ReadAll().ContainsKey(Key)
+    End Function
+    Public Shared Sub SetValue(Key As String, Value As String)
+        Merge(New Dictionary(Of String, String) From {{Key, Value}})
+    End Sub
+    Public Shared Sub RemoveValue(Key As String)
+        SyncLock Gate
+            Dim Current = ReadAll()
+            Current.Remove(Key)
+            FileUtils.WriteAtomic(FilePath, Newtonsoft.Json.JsonConvert.SerializeObject(Current, Newtonsoft.Json.Formatting.Indented))
+        End SyncLock
+    End Sub
 End Class

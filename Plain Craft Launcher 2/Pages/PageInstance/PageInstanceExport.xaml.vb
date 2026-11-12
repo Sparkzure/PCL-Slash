@@ -23,8 +23,6 @@ Public Class PageInstanceExport
     Private Sub PageInstanceExport_Loaded() Handles Me.Loaded
         AniControlEnabled += 1
         If Not PathUtils.IsSame(CurrentInstance, PageInstanceLeft.Instance.PathVersion) Then RefreshAll() '切换到了另一个版本，重置页面
-        CustomEventService.SetEventData(BtnAdvancedHelp,
-            If(BuildType = BuildTypes.Release, "指南/整合包制作 - Public.json", "指南/整合包制作 - Snapshot.json"))
         AniControlEnabled -= 1
     End Sub
     Public Sub RefreshAll() Implements IRefreshable.Refresh
@@ -336,7 +334,7 @@ Public Class PageInstanceExport
             ConfigLines.Add("# 是否打包正式版 PCL，以便没有启动器的玩家安装整合包。")
             ConfigLines.Add("IncludeLauncher:" & CheckOptionsPcl.Checked)
             ConfigLines.Add("")
-            ConfigLines.Add("# 是否打包 PCL 个性化内容，例如功能隐藏设置、主页、背景音乐和图片等。")
+            ConfigLines.Add("# 是否打包 PCL-Slash 个性化内容，例如功能隐藏设置、主页、背景音乐和图片等。")
             ConfigLines.Add("IncludeLauncherCustom:" & CheckOptionsPclCustom.Checked)
             ConfigLines.Add("")
             ConfigLines.Add("# 是否将 Mod、资源包、光影包的文件直接放入整合包中，这样在导入时就无需联网下载它们。")
@@ -473,18 +471,6 @@ Public Class PageInstanceExport
         '构造步骤加载器
         Dim Loaders As New List(Of LoaderBase)
 
-#Region "准备 PCL 文件"
-
-        If BuildType <> BuildTypes.Release AndAlso IncludePCL Then
-            Loaders.Add(New LoaderTask(Of Integer, Integer)("下载 PCL 正式版",
-            Sub(Loader As LoaderTask(Of Integer, Integer))
-                DownloadLatestPCL(Loader)
-                FileUtils.Copy(PathTemp & "Latest.exe", CacheFolder & "Plain Craft Launcher.exe")
-            End Sub) With {.ProgressWeight = 0.5, .Block = False})
-        End If
-
-#End Region
-
 #Region "复制文件"
 
         Loaders.Add(New LoaderTask(Of Integer, List(Of LocalResourceFile))("复制导出内容",
@@ -565,8 +551,8 @@ Public Class PageInstanceExport
             '复制 PCL 版本设置
             If DirectoryUtils.Exists(TargetInstance.PathVersion & "PCL\") Then DirectoryUtils.Copy(TargetInstance.PathVersion & "PCL\", OverridesFolder & "PCL\")
             WriteIni(OverridesFolder & "PCL\Setup.ini", "IsStar", False)
-            '复制 PCL 本体（正式版）
-            If BuildType = BuildTypes.Release AndAlso IncludePCL Then FileUtils.Copy(PathExe, CacheFolder & "Plain Craft Launcher.exe")
+            '复制当前 PCL-Slash 程序（所有构建类型）
+            If IncludePCL Then FileUtils.Copy(PathExe, CacheFolder & LauncherFileName)
             '复制 PCL 个性化内容
             If IncludePCLCustom Then
                 If DirectoryUtils.Exists(Paths.Base & "PCL\Pictures\") Then DirectoryUtils.Copy(Paths.Base & "PCL\Pictures\", CacheFolder & "PCL\Pictures\")
