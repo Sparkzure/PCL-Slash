@@ -1714,9 +1714,9 @@ NextInstance:
         If Instance Is Nothing Then Instance = McInstanceSelected
         Dim Result As String = PathUtils.AddSlashSuffix(PathUtils.ToShortPath(Instance.PathVersion)) & Instance.Name & "-natives\"
         If Not (IsGBKEncoding OrElse Result.IsAsciiOnly()) Then
-            Result = Paths.AppData & ".minecraft\bin\natives\"
+            Result = Paths.Base & "PCL\natives\"
             If Not Result.IsAsciiOnly() Then
-                Result = OsDrive & "ProgramData\PCL\natives\"
+                Throw New IOException("当前游戏需要不含特殊字符的路径，请将启动器放到英文路径后重试。")
             End If
         End If
         DirectoryUtils.Create(Result) '提前创建，这样 DirectoryUtils.Shorten 才有结果（否则在长路径下首次启动 Forge 会崩溃）
@@ -1876,9 +1876,10 @@ NextInstance:
 
         '离线皮肤资源包
         Try
+            '保留 PCL2 Skin.zip 文件名，以兼容已有 options.txt 与整合包过滤规则。
             Dim ZipFileAddress As String = McInstanceSelected.PathIndie & "resourcepacks\PCL2 Skin.zip"
             Dim NewTypeSetup As Boolean = McInstanceSelected.Version.Vanilla.Major >= 13 OrElse McInstanceSelected.Version.Vanilla.Major < 6
-            If McLoginLoader.Input.Type = McLoginType.Legacy AndAlso Settings.Get(Of Integer)("LaunchSkinType") = 4 AndAlso FileUtils.Exists(Paths.AppDataThenName & "CustomSkin.png") Then
+            If McLoginLoader.Input.Type = McLoginType.Legacy AndAlso Settings.Get(Of Integer)("LaunchSkinType") = 4 AndAlso FileUtils.Exists(Paths.BaseThenName & "CustomSkin.png") Then
                 Dim MetaFileAddress As String = PathTemp & "pack.mcmeta"
                 Dim PackPicAddress As String = PathTemp & "pack.png"
                 If McInstanceSelected.Version.Vanilla.Major < 6 Then
@@ -1914,8 +1915,8 @@ NextInstance:
                 '准备文件
                 Dim Bit As New MyBitmap(PathImage & "Heads/Logo.png")
                 Bit.Save(PackPicAddress)
-                FileUtils.Write(MetaFileAddress, "{""pack"":{""pack_format"":" & PackVersion & ",""description"":""PCL 自定义离线皮肤资源包""}}")
-                Dim Skin As New MyBitmap(Paths.AppDataThenName & "CustomSkin.png")
+                FileUtils.Write(MetaFileAddress, "{""pack"":{""pack_format"":" & PackVersion & ",""description"":""PCL-Slash 自定义离线皮肤资源包""}}")
+                Dim Skin As New MyBitmap(Paths.BaseThenName & "CustomSkin.png")
                 If (McInstanceSelected.Version.Vanilla.Major = 6 OrElse McInstanceSelected.Version.Vanilla.Major = 7) AndAlso Skin.Pic.Height = 64 Then
                     McLaunchLog("该 Minecraft 版本不支持双层皮肤，已进行裁剪")
                     Skin = Skin.Clip(0, 0, 64, 32)

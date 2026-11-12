@@ -203,6 +203,15 @@ Public Class Settings
         Public Encrypted As Boolean
         Public DefaultValue As Object
         Public Source As Sources
+        ''' <summary>登录凭据及关联账号缓存绑定当前 Windows 用户，其他便携设置不绑定用户。</summary>
+        Public ReadOnly Property UsesDpapi As Boolean
+            Get
+                Return Encrypted AndAlso (Key.StartsWith("Login", StringComparison.Ordinal) OrElse
+                    Key.StartsWith("CacheMs", StringComparison.Ordinal) OrElse
+                    Key.StartsWith("CacheNide", StringComparison.Ordinal) OrElse
+                    Key.StartsWith("CacheAuth", StringComparison.Ordinal))
+            End Get
+        End Property
         ''' <summary>
         ''' 当设置项的值实际被改变时触发，参数为新值。
         ''' </summary>
@@ -240,27 +249,25 @@ Public Class Settings
         End Sub
 
         ''' <summary>
-        ''' 立即将当前的 Value 写入对应的注册表或文件。
+        ''' 立即将当前的 Value 写入对应的本地文件。
         ''' </summary>
         Public Sub Save(Optional Instance As McInstance = Nothing)
             Dim Value As String = GetCache(Instance)
             Logger.Trace($"保存设置：{Key} {If(Encrypted, "", "= " & Value)}{If(Instance Is Nothing, "", $"（实例：{Instance?.PathVersion}）")}")
             If Encrypted Then
-                Try
-                    If Value Is Nothing Then Value = ""
-                    Value = DesEncrypt(Value, "PCL" & Identify)
-                Catch ex As Exception
-                    Logger.Warn(ex, $"加密设置失败：{Key}")
-                End Try
+                If Value Is Nothing Then Value = ""
+                '加密失败必须停止保存，禁止回退为明文或旧算法。
+                Value = If(UsesDpapi, ProtectLogin(Key, Value), DesEncrypt(Value, SettingsEncryptionKey))
             End If
             Select Case Source
                 Case Sources.Normal
                     WriteIni("Setup", Key, Value)
                 Case Sources.Registry
                     Try
-                        RegistryUtils.Write($"HKEY_CURRENT_USER\Software\{RegFolder}", Key, Value)
+                        PortableSettings.SetValue(Key, Value)
                     Catch ex As Exception
-                        Logger.Warn(ex, $"写入注册表失败（{Key} → {Value}）", LogBehavior.Toast)
+                        Logger.Warn(ex, $"写入本地设置失败（{Key}）", LogBehavior.Toast)
+                        Throw
                     End Try
                 Case Sources.Instance
                     If Instance Is Nothing Then Throw New Exception($"保存版本独立设置 {Key} 时未提供目标版本")
@@ -276,10 +283,12 @@ Public Class Settings
     Public Shared Sub [Set](Key As String, Value As Object, Optional Instance As McInstance = Nothing)
         Dim Entry As Setting = Nothing
         If Not Entries.TryGetValue(Key, Entry) Then Throw New KeyNotFoundException("未找到设置项：" & Key)
+        Dim PreviousValue As Object = Nothing
         Try
             '判断是否一致
             Value = CTypeDynamic(Value, Entry.Type)
             If Entry.GetCache(Instance) Is Nothing Then [Get](Key, Instance)
+            PreviousValue = Entry.GetCache(Instance)
             If Entry.GetCache(Instance) = Value Then Return
             '设置新值
             Entry.Set(Value, Instance)
@@ -287,7 +296,8 @@ Public Class Settings
             '触发改变事件（必须在保存之后，以保证 VersionServerLogin 之类的在事件中读取到的是最新的值）
             If Entry.OnChanged IsNot Nothing Then Entry.OnChanged.Invoke(Value)
         Catch ex As Exception
-            Logger.Error(ex, $"设置设置项时出错（{Key}, {Value}）")
+            If PreviousValue IsNot Nothing Then Entry.Set(PreviousValue, Instance)
+            Logger.Error(ex, $"设置设置项时出错（{Key}{If(Entry.Encrypted, "", ", " & CStr(Value))}）")
         End Try
     End Sub
     ''' <summary>
@@ -309,25 +319,15 @@ Public Class Settings
         If Not Entries.TryGetValue(Key, Entry) Then Throw New KeyNotFoundException("未找到设置项：" & Key)
         Dim Value = Entry.GetCache(Instance)
         If Value IsNot Nothing Then Return Value
-        '对部分设置强制赋值
-        Static ForcedSettings As New Dictionary(Of String, Object) From {
-            {"UiHiddenPageLink", True},
-            {"UiHiddenSetupLink", True}
-        }
-        Dim ForcedSetting As Object = Nothing
-        If ForcedSettings.TryGetValue(Key, ForcedSetting) Then
-            Entry.Set(ForcedSetting, Instance)
-            Return ForcedSetting
-        End If
         '正常读取
         Try
             Dim GotValue As String = Nothing '先用 String 储存，避免类型转换
-            Dim DefaultValue As String = If(Entry.Encrypted, DesEncrypt(Entry.DefaultValue, "PCL" & Identify), Entry.DefaultValue)
+            Dim DefaultValue As String = If(Entry.UsesDpapi, Nothing, If(Entry.Encrypted, DesEncrypt(Entry.DefaultValue, SettingsEncryptionKey), Entry.DefaultValue))
             Select Case Entry.Source
                 Case Sources.Normal
                     GotValue = ReadIni("Setup", Key, DefaultValue)
                 Case Sources.Registry
-                    GotValue = RegistryUtils.TryRead($"HKEY_CURRENT_USER\Software\{RegFolder}", Key, DefaultValue)
+                    GotValue = PortableSettings.ReadValue(Key, DefaultValue)
                 Case Sources.Instance
                     If Instance Is Nothing Then
                         Throw New Exception($"读取版本设置 {Key} 时未提供目标版本")
@@ -340,12 +340,17 @@ Public Class Settings
                     GotValue = Entry.DefaultValue
                 Else
                     Try
-                        GotValue = DesDecrypt(GotValue, "PCL" & Identify)
+                        If Entry.UsesDpapi Then
+                            GotValue = UnprotectLogin(Key, GotValue)
+                        Else
+                            GotValue = DesDecrypt(GotValue, SettingsEncryptionKey)
+                        End If
                     Catch ex As Exception
-                        Logger.Warn(ex, $"解密设置失败：{Key}")
+                        Logger.Warn(ex, $"解密设置失败：{Key}{If(Entry.UsesDpapi, "；请在当前 Windows 用户下重新登录", "")}")
                         GotValue = Entry.DefaultValue
                         Entry.Set(Entry.DefaultValue, Instance)
-                        Entry.Save(Instance)
+                        '保留无法解密的 DPAPI 数据，不覆盖其他用户的缓存，也不尝试 DES 降级。
+                        If Not Entry.UsesDpapi Then Entry.Save(Instance)
                     End Try
                 End If
             End If
@@ -387,9 +392,9 @@ Public Class Settings
                     DeleteIniKey("Setup", Key)
                 Case Sources.Registry
                     Try
-                        RegistryUtils.Delete($"HKEY_CURRENT_USER\Software\{RegFolder}", Key)
+                        PortableSettings.RemoveValue(Key)
                     Catch ex As Exception
-                        Logger.Warn(ex, $"删除注册表失败（{Key}）", LogBehavior.Toast)
+                        Logger.Warn(ex, $"删除本地设置失败（{Key}）", LogBehavior.Toast)
                     End Try
                 Case Sources.Instance
                     If Instance Is Nothing Then Throw New Exception($"重置版本设置 {Key} 时未提供目标版本")
@@ -419,9 +424,9 @@ Public Class Settings
                 Return HasIniKey("Setup", Key)
             Case Sources.Registry
                 Try
-                    Return RegistryUtils.Has($"HKEY_CURRENT_USER\Software\{RegFolder}", Key)
+                    Return PortableSettings.HasValue(Key)
                 Catch ex As Exception
-                    Logger.Warn(ex, $"判断注册表 {Key} 是否存在时出错")
+                    Logger.Warn(ex, $"判断本地设置 {Key} 是否存在时出错")
                     Return False
                 End Try
             Case Else 'Source.Instance
@@ -430,8 +435,28 @@ Public Class Settings
         End Select
     End Function
 
-#Region "DES 加密"
+#Region "登录凭据保护及旧格式兼容"
 
+    Private Const LoginProtectionPrefix As String = "dpapi:v1:"
+
+    Private Shared Function LoginEntropy(Key As String) As Byte()
+        Return Encoding.UTF8.GetBytes(BrandName & ":login:v1:" & Key)
+    End Function
+
+    Private Shared Function ProtectLogin(Key As String, Value As String) As String
+        Return LoginProtectionPrefix & Convert.ToBase64String(ProtectedData.Protect(
+            Encoding.UTF8.GetBytes(Value), LoginEntropy(Key), DataProtectionScope.CurrentUser))
+    End Function
+
+    Private Shared Function UnprotectLogin(Key As String, Value As String) As String
+        If Not Value.StartsWith(LoginProtectionPrefix, StringComparison.Ordinal) Then
+            Throw New CryptographicException("旧登录缓存不再支持，请重新登录。")
+        End If
+        Return Encoding.UTF8.GetString(ProtectedData.Unprotect(
+            Convert.FromBase64String(Value.Substring(LoginProtectionPrefix.Length)), LoginEntropy(Key), DataProtectionScope.CurrentUser))
+    End Function
+
+    Private Const SettingsEncryptionKey As String = BrandName
     Private Shared ReadOnly desInitialVector As Byte() = Encoding.UTF8.GetBytes("95168702")
 
     ''' <summary>
@@ -472,4 +497,86 @@ Public Class Settings
 
 #End Region
 
+End Class
+
+''' <summary>启动器本地设置。Registry 来源仅保留为旧格式分类，不再写注册表。</summary>
+Public NotInheritable Class PortableSettings
+    Private Shared ReadOnly Gate As New Object
+    '导入事务与普通写入互斥，保留同时刷新的账号缓存。
+    Friend Shared Sub RunExclusive(Action As Action)
+        SyncLock Gate
+            Action()
+        End SyncLock
+    End Sub
+    Private Shared Initialized As Boolean
+    Public Shared ReadOnly Property FilePath As String
+        Get
+            Return Paths.Base & "PCL\Portable.json"
+        End Get
+    End Property
+
+    '只在首次创建本地设置文件时读取旧注册表；不修改或删除旧数据。
+    Private Shared Sub EnsureInitialized()
+        If Initialized Then Return
+        If Not File.Exists(FilePath) Then
+            Dim Values As New Dictionary(Of String, String)(StringComparer.OrdinalIgnoreCase)
+            Using Legacy = Microsoft.Win32.Registry.CurrentUser.OpenSubKey($"Software\{RegFolder}", False)
+                If Legacy IsNot Nothing Then
+                    For Each Name In Legacy.GetValueNames()
+                        Dim Entry As Settings.Setting = Nothing
+                        If Settings.Entries.TryGetValue(Name, Entry) AndAlso Entry.UsesDpapi Then Continue For
+                        If Name = "CacheMsV2Migrated" Then Continue For
+                        Values(Name) = Convert.ToString(Legacy.GetValue(Name, "", Microsoft.Win32.RegistryValueOptions.DoNotExpandEnvironmentNames), Globalization.CultureInfo.InvariantCulture)
+                    Next
+                End If
+            End Using
+            FileUtils.WriteAtomic(FilePath, Newtonsoft.Json.JsonConvert.SerializeObject(Values, Newtonsoft.Json.Formatting.Indented))
+        End If
+        Initialized = True
+    End Sub
+
+    Public Shared Function ReadAll(Optional TargetFile As String = Nothing) As Dictionary(Of String, String)
+        SyncLock Gate
+            If TargetFile Is Nothing Then
+                EnsureInitialized()
+                TargetFile = FilePath
+            End If
+            Dim Result As New Dictionary(Of String, String)(StringComparer.OrdinalIgnoreCase)
+            If File.Exists(TargetFile) Then
+                Dim Stored = Newtonsoft.Json.JsonConvert.DeserializeObject(Of Dictionary(Of String, String))(File.ReadAllText(TargetFile, Encoding.UTF8))
+                If Stored IsNot Nothing Then
+                    For Each Pair In Stored
+                        Result(Pair.Key) = Pair.Value
+                    Next
+                End If
+            End If
+            Return Result
+        End SyncLock
+    End Function
+
+    Public Shared Sub Merge(Values As Dictionary(Of String, String), Optional TargetFile As String = Nothing)
+        SyncLock Gate
+            Dim Current = ReadAll(TargetFile)
+            For Each Pair In Values
+                Current(Pair.Key) = Pair.Value
+            Next
+            FileUtils.WriteAtomic(If(TargetFile, FilePath), Newtonsoft.Json.JsonConvert.SerializeObject(Current, Newtonsoft.Json.Formatting.Indented))
+        End SyncLock
+    End Sub
+    Public Shared Function ReadValue(Key As String, Optional DefaultValue As String = "") As String
+        Return ReadAll().GetOrDefault(Key, DefaultValue)
+    End Function
+    Public Shared Function HasValue(Key As String) As Boolean
+        Return ReadAll().ContainsKey(Key)
+    End Function
+    Public Shared Sub SetValue(Key As String, Value As String)
+        Merge(New Dictionary(Of String, String) From {{Key, Value}})
+    End Sub
+    Public Shared Sub RemoveValue(Key As String)
+        SyncLock Gate
+            Dim Current = ReadAll()
+            Current.Remove(Key)
+            FileUtils.WriteAtomic(FilePath, Newtonsoft.Json.JsonConvert.SerializeObject(Current, Newtonsoft.Json.Formatting.Indented))
+        End SyncLock
+    End Sub
 End Class

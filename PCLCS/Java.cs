@@ -135,7 +135,8 @@ public static class JavaUtils {
     /// </summary>
     internal static readonly Lazy<List<string>> CandidateFolders = new(() => {
         List<string> folders = [
-            Paths.AppData + @".minecraft\runtime\", // 这也是 PCL 下载 Java 的路径
+            Paths.Base + @"PCL\Java\", // 启动器自行下载的便携 Java
+            Paths.AppData + @".minecraft\runtime\", // 只读发现官启已有 Java
             Paths.AppData + @".hmcl\java\",
             Paths.AppData + @"ATLauncher\runtimes\minecraft\",
             Paths.AppData + @"ModrinthApp\meta\java_versions\",

@@ -52,11 +52,11 @@ Public Module ModBase
     ''' <summary>
     ''' 程序内嵌图片文件夹路径，以 / 结尾。
     ''' </summary>
-    Public PathImage As String = "pack://application:,,,/Plain Craft Launcher 2;component/Images/"
+    Public PathImage As String = "pack://application:,,,/Plain Craft Launcher Slash;component/Images/"
     ''' <summary>
     ''' 程序的缓存文件夹路径，以 \ 结尾。
     ''' </summary>
-    Public PathTemp As String = PathUtils.AddSlashSuffix(If(Settings.Get(Of String)("SystemSystemCache") = "", Path.GetTempPath() & "PCL\", Settings.Get(Of String)("SystemSystemCache")).Replace("/", "\"))
+    Public PathTemp As String = Paths.Base & "PCL\Temp\"
     ''' <summary>
     ''' 当前程序的语言。
     ''' </summary>
@@ -791,19 +791,11 @@ Public Module ModBase
     End Sub
 
     ''' <summary>
-    ''' 可用于临时存放文件的，不含任何特殊字符的文件夹路径，以“\”结尾。
+    ''' 可用于临时存放文件的本地文件夹路径，以“\”结尾。
     ''' </summary>
     Public PathPure As New Lazy(Of String)(
     Function()
-        If Paths.Base.IsAsciiOnly() Then
-            Return Paths.Base & "PCL\"
-        ElseIf Paths.AppDataThenName.IsAsciiOnly() Then
-            Return Paths.AppDataThenName
-        ElseIf PathTemp.IsAsciiOnly() Then
-            Return PathTemp
-        Else
-            Return OsDrive & "ProgramData\PCL\"
-        End If
+        Return PathUtils.AddSlashSuffix(PathUtils.ToShortPath(Paths.Base & "PCL\"))
     End Function)
 
     ''' <summary>

@@ -7,9 +7,27 @@ Public Class Application
     Private Sub Application_Startup(sender As Object, e As StartupEventArgs) Handles Me.Startup
         Try
             '核心初始化
+            '使用 EXE 旁的 PCL 数据目录；临时目录只修改当前进程及子进程。
+            Dim OriginalTempPath = Path.GetTempPath()
+            Dim PortableTemp = Path.Combine(AppContext.BaseDirectory, "PCL", "Temp")
+            Directory.CreateDirectory(PortableTemp)
+            Environment.SetEnvironmentVariable("TEMP", PortableTemp, EnvironmentVariableTarget.Process)
+            Environment.SetEnvironmentVariable("TMP", PortableTemp, EnvironmentVariableTarget.Process)
+            Environment.CurrentDirectory = AppContext.BaseDirectory
             MeloongCore.Main.Init("PCL")
+            ConfigProviders.Default = New JsonConfigProvider(Paths.BaseThenName & "config.json")
+            '只读导入旧版 Java 配置和皮肤一次；之后完全使用本地数据。
+            Dim ImportMarker = Paths.BaseThenName & "LegacyDataImported"
+            If Not File.Exists(ImportMarker) Then
+                For Each Name In {"config.json", "CustomSkin.png"}
+                    Dim LegacyFile = Path.Combine(Paths.AppData, "PCL", Name)
+                    Dim LocalFile = Paths.BaseThenName & Name
+                    If Not File.Exists(LocalFile) AndAlso File.Exists(LegacyFile) Then File.Copy(LegacyFile, LocalFile)
+                Next
+                File.WriteAllText(ImportMarker, "1", New UTF8Encoding(False))
+            End If
             MeloongCore.Wpf.Main.Init()
-            If Not (e.Args.Contains("--update") OrElse e.Args.Contains("--gpu") OrElse e.Args.Contains("--memory")) Then '若是通过命令行调用，则不检查单例、不轮换日志（#9137）
+            If Not (e.Args.Contains("--gpu") OrElse e.Args.Contains("--memory")) Then '若是通过命令行调用，则不检查单例、不轮换日志（#9137）
                 WaitingMutex(e)
                 Logger.Instance = New PclLogger With {.logFolder = Paths.BaseThenName, .MinLevel = If(ModeDebug, LogLevel.Trace, LogLevel.Info)}
             End If
@@ -72,29 +90,17 @@ Public Class Application
                 DirectoryUtils.Create(Paths.Base & "PCL\Musics\")
                 CheckPermissionWithException(Paths.Base & "PCL\")
             Catch ex As Exception
-                MsgBox($"PCL 没有对当前文件夹的权限（{Paths.Base}PCL\），请尝试：" & vbCrLf &
-                  "1. 将 PCL 移动到其他文件夹" & If(PathUtils.GetDiskName(Paths.Base) = "C"c, "，例如 C 盘和桌面以外的其他位置。", "。") & vbCrLf &
+                MsgBox($"PCL-Slash 没有对当前文件夹的权限（{Paths.Base}PCL\），请尝试：" & vbCrLf &
+                  "1. 将 PCL-Slash 移动到其他文件夹" & If(PathUtils.GetDiskName(Paths.Base) = "C"c, "，例如 C 盘和桌面以外的其他位置。", "。") & vbCrLf &
                   "2. 删除当前目录中的 PCL 文件夹，然后再试。" & vbCrLf &
-                  "3. 右键 PCL 选择属性，打开 兼容性 中的 以管理员身份运行此程序。",
+                  "3. 右键 PCL-Slash 选择属性，打开 兼容性 中的 以管理员身份运行此程序。",
                 MsgBoxStyle.Critical, "运行环境错误")
                 Environment.[Exit](ProcessReturnValues.Cancel)
             End Try
-RetryCacheCheck:
-            Try
-                DirectoryUtils.Create(PathTemp)
-                CheckPermissionWithException(PathTemp)
-            Catch ex As Exception
-                If PathUtils.IsSame(PathTemp, Path.GetTempPath() & "PCL\") Then
-                    MyMsgBox("PCL 无法访问缓存文件夹，可能导致程序出错或无法正常使用！" & vbCrLf & vbCrLf & "错误原因：" & ex.GetDisplay(True), "缓存文件夹不可用")
-                Else
-                    MyMsgBox("手动设置的缓存文件夹不可用，PCL 将使用默认缓存文件夹。" & vbCrLf & vbCrLf & "错误原因：" & ex.GetDisplay(True), "缓存文件夹不可用")
-                    Settings.Set("SystemSystemCache", "")
-                    PathTemp = Path.GetTempPath() & "PCL\"
-                    GoTo RetryCacheCheck
-                End If
-            End Try
+            DirectoryUtils.Create(PathTemp)
+            CheckPermissionWithException(PathTemp)
             DirectoryUtils.Create(PathTemp & "Cache\")
-            DirectoryUtils.Create(Paths.AppDataThenName)
+            DirectoryUtils.Create(Paths.BaseThenName)
             '设置 ToolTipService 默认值
             ToolTipService.InitialShowDelayProperty.OverrideMetadata(GetType(DependencyObject), New FrameworkPropertyMetadata(100))
             '设置网络配置默认值
@@ -113,21 +119,16 @@ RetryCacheCheck:
             End If
             '基础信息
             Logger.Info($"程序版本：{VersionDisplay} ({VersionCode}{If(CommitHash = "", "", $"，#{CommitHash}")})")
-            If BuildType = BuildTypes.Snapshot Then
-                Logger.Info($"识别码：{Identify}{If(ThemeCheckOne(9), "，已解锁反馈主题", "，未解锁反馈主题")}")
-            Else
-                Logger.Info($"识别码：{Identify}")
-            End If
             Logger.Info($"程序路径：{PathExe}")
             Logger.Info($"系统编码：{Encoding.Default.HeaderName} ({Encoding.Default.CodePage}, GBK={IsGBKEncoding})")
             Logger.Info($"管理员权限：{WindowsUtils.HasAdminRole()}")
             '检测异常环境
-            If Paths.Base.Contains(Path.GetTempPath()) OrElse Paths.Base.Contains("AppData\Local\Temp\") Then
-                MyMsgBox("请将 PCL 从压缩包中解压后再使用！" & vbCrLf & "如果不会解压，可以在网上寻找教程。", "需要解压！", "我知道了", IsWarn:=True, ForceWait:=True)
+            If Paths.Base.Contains(OriginalTempPath) OrElse Paths.Base.Contains("AppData\Local\Temp\") Then
+                MyMsgBox("请将 PCL-Slash 从压缩包中解压后再使用！" & vbCrLf & "如果不会解压，可以在网上寻找教程。", "需要解压！", "我知道了", IsWarn:=True, ForceWait:=True)
                 FormMain.EndProgramForce(ProcessReturnValues.Cancel)
             End If
             If Not Environment.Is64BitOperatingSystem Then
-                MyMsgBox("PCL 和新版 Minecraft 均不再支持 32 位系统，请重装为 64 位系统后再进行游戏！", "环境警告", "我知道了", IsWarn:=True, ForceWait:=True)
+                MyMsgBox("PCL-Slash 和新版 Minecraft 均不再支持 32 位系统，请重装为 64 位系统后再进行游戏！", "环境警告", "我知道了", IsWarn:=True, ForceWait:=True)
                 FormMain.EndProgramForce(ProcessReturnValues.Cancel)
             End If
             '计时

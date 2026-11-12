@@ -548,7 +548,7 @@ NoForcedJava:
         Dim Address As String = Target.Java("manifest")("url")
         Logger.Info($"准备下载 Java {Target.Java("version")("name")}（{Target.ComponentName}）：{Address}")
         Dim ListFileStr As String = NetRequestByLoader(DlSourceOrder({Address}, {Address.Replace("piston-meta.mojang.com", "bmclapi2.bangbang93.com")}), IsJson:=True)
-        Dim BaseDir As String = $"{Paths.AppData}.minecraft\runtime\{Target.ComponentName}\"
+        Dim BaseDir As String = $"{Paths.Base}PCL\Java\{Target.ComponentName}\"
         Dim FilesToDownload As New List(Of NetFile)
         For Each File As JProperty In CType(ListFileStr.DeserializeJson(), JObject)("files")
             If CType(File.Value, JObject)("downloads")?("raw") Is Nothing Then Continue For
