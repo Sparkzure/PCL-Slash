@@ -140,7 +140,7 @@ RetryCacheCheck:
                 FilePath = PathExe
             Catch
             End Try
-            MsgBox(ex.GetDisplay(True) & vbCrLf & "PCL 所在路径：" & If(String.IsNullOrEmpty(FilePath), "获取失败", FilePath), MsgBoxStyle.Critical, "PCL 初始化错误")
+            MsgBox(ex.GetDisplay(True) & vbCrLf & "PCL-Slash 所在路径：" & If(String.IsNullOrEmpty(FilePath), "获取失败", FilePath), MsgBoxStyle.Critical, "PCL-Slash 初始化错误")
             FormMain.EndProgramForce(ProcessReturnValues.Exception)
         End Try
     End Sub
@@ -152,9 +152,9 @@ RetryCacheCheck:
         If BuildType = BuildTypes.Debug Then Return
         Try
             Dim MutexCreatedNew As Boolean
-            PclMutex = New Mutex(True, "PCL_SingletonMutex", MutexCreatedNew)
+            PclMutex = New Mutex(True, SingletonMutexName, MutexCreatedNew)
             If MutexCreatedNew Then Return
-            Logger.Warn("已有一个 PCL 实例正在运行")
+            Logger.Warn("已有一个 PCL-Slash 实例正在运行")
             '等待已有的 PCL 退出
             If e.Args.Length > 0 AndAlso e.Args(0) = "--wait" Then
                 Try
@@ -164,8 +164,7 @@ RetryCacheCheck:
                 End Try
             End If
             '将已有的 PCL 窗口拖出来
-            Dim WindowHwnd As IntPtr = FindWindow(Nothing, "Plain Craft Launcher　")
-            If WindowHwnd = IntPtr.Zero Then WindowHwnd = FindWindow(Nothing, "Plain Craft Launcher 2　")
+            Dim WindowHwnd As IntPtr = FindWindow(Nothing, WindowTitle)
             If WindowHwnd <> IntPtr.Zero Then ShowWindowToTop(WindowHwnd)
             '播放提示音并退出
             Beep()

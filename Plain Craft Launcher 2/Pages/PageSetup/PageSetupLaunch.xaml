@@ -129,7 +129,7 @@
                         <local:MySlider Grid.Row="2" Grid.Column="1" IsEnabled="False" x:Name="SliderRamCustom" local:SettingService.Key="LaunchRamCustom" MaxValue="49" Value="13" />
                         <local:MyCheckBox local:SettingService.Key="LaunchArgumentRam"
                                           Grid.Row="4" Grid.ColumnSpan="3" Text="启动游戏前进行内存优化" Height="22" x:Name="CheckArgumentRam"
-                                          ToolTip="内存优化能将当前物理内存占用降低约 1/3，不仅限于 MC！&#xa;如果使用机械硬盘，这还可能会导致一小段时间的严重卡顿。&#xa;使用 --memory 参数启动 PCL 可以静默执行内存优化。" />
+                                          ToolTip="内存优化能将当前物理内存占用降低约 1/3，不仅限于 MC！&#xa;如果使用机械硬盘，这还可能会导致一小段时间的严重卡顿。&#xa;使用 --memory 参数启动 PCL-Slash 可以静默执行内存优化。" />
                         <!--<local:MyTextBox Grid.Row="2" Grid.Column="3" Width="100" VerticalAlignment="Center" Margin="30,0,0,0" Text="2048 MB" />-->
                     </Grid>
                     <Grid x:Name="PanRamDisplay" Margin="0,11,2,0" SnapsToDevicePixels="True" Grid.Row="1" Grid.ColumnSpan="2" Grid.Column="1">
@@ -279,13 +279,13 @@
                         <local:MyComboBoxItem Content="尽量使用 ZGC" ToolTip="在 Java 21+ 使用分代 ZGC，20~15 使用非分代的 ZGC，14- 使用 G1GC。&#xa;ZGC 的内存占用比 G1GC 更高，不过在回收内存时不会导致卡顿。&#xa;覆盖 “Java 虚拟机参数” 设置中的 GC 相关参数。" />
                         <local:MyComboBoxItem Content="尽量使用分代 ZGC" ToolTip="在 Java 21+ 使用分代 ZGC，20- 使用 G1GC。&#xa;ZGC 的内存占用比 G1GC 更高，不过在回收内存时不会导致卡顿。&#xa;覆盖 “Java 虚拟机参数” 设置中的 GC 相关参数。" />
                         <local:MyComboBoxItem Content="标准 G1GC" ToolTip="总是使用 G1GC，附带 Mojang 官方的优化参数。&#xa;G1GC 的内存占用比 ZGC 更低，但在回收内存时会导致突然的卡顿。&#xa;覆盖 “Java 虚拟机参数” 设置中的 GC 相关参数。" />
-                        <local:MyComboBoxItem Content="调优 G1GC" local:SettingService.Value="4" ToolTip="总是使用 G1GC，附带 PCL 调优过的优化参数。&#xa;G1GC 的内存占用比 ZGC 更低，但在回收内存时会导致突然的卡顿。&#xa;覆盖 “Java 虚拟机参数” 设置中的 GC 相关参数。" />
+                        <local:MyComboBoxItem Content="调优 G1GC" local:SettingService.Value="4" ToolTip="总是使用 G1GC，附带 PCL-Slash 调优过的优化参数。&#xa;G1GC 的内存占用比 ZGC 更低，但在回收内存时会导致突然的卡顿。&#xa;覆盖 “Java 虚拟机参数” 设置中的 GC 相关参数。" />
                         <local:MyComboBoxItem Content="不指定（可自定义）" local:SettingService.Value="3" ToolTip="不自动添加 GC 参数。&#xa;仅当选择此项时，你可以在 “Java 虚拟机参数” 设置中手动添加 GC 参数。" />
                     </local:MyComboBox>
                     <StackPanel Margin="0,12,0,4" Grid.Row="10" Grid.ColumnSpan="2" HorizontalAlignment="Left">
                         <local:MyCheckBox Height="28" Text="禁用 Java Launch Wrapper" local:SettingService.Key="LaunchAdvanceDisableJLW" ToolTip="是否使用 Java Launch Wrapper 修复 Java 18- 在中文路径下可能无法正常启动的问题。&#xa;详见：https://github.com/00ll00/java_launch_wrapper" />
                         <local:MyCheckBox Height="28" Text="禁用 LWJGL Unsafe Agent" local:SettingService.Key="LaunchAdvanceDisableLUA" ToolTip="是否使用 LWJGL Unsafe Agent 修复 LWJGL 3.4.1 的一个性能问题。&#xa;详见：https://github.com/HMCL-dev/lwjgl-unsafe-agent" />
-                        <local:MyCheckBox Height="28" Text="使用高性能显卡" local:SettingService.Key="LaunchAdvanceGraphicCard" ToolTip="自动在 Windows 设置 → 系统 → 屏幕 → 显示卡 中将 PCL 和 Java 改为使用高性能显卡。&#xa;如果同时有集成显卡和独立显卡，这能确保 MC 使用独立显卡进行渲染，以大幅提高帧率。" />
+                        <local:MyCheckBox Height="28" Text="使用高性能显卡" local:SettingService.Key="LaunchAdvanceGraphicCard" ToolTip="自动在 Windows 设置 → 系统 → 屏幕 → 显示卡 中将 PCL-Slash 和 Java 改为使用高性能显卡。&#xa;如果同时有集成显卡和独立显卡，这能确保 MC 使用独立显卡进行渲染，以大幅提高帧率。" />
                         <local:MyCheckBox Height="28" Text="在正版登录时验证 SSL 证书" local:SettingService.Key="ToolDownloadCert" ToolTip="开启验证可以提高安全性，但可能会导致正版登录失败（见 #3018）。&#xa;若登录因为 “未能为 SSL/TLS 安全通道建立信任关系” 失败，请考虑关闭此选项。" />
                     </StackPanel>
                     <local:MyHint Text="版本独立设置中还有更多高级选项可供调整。" Margin="0,5,0,10" Theme="Blue" Grid.Row="11" Grid.ColumnSpan="2"

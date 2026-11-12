@@ -333,8 +333,8 @@ Public Class FormMain
         PageRight = FrmLaunchRight
         FrmLaunchRight.PageState = MyPageRight.PageStates.ContentStay
         '模式提醒
-        If BuildType = BuildTypes.Debug Then Hint("[开发者模式] PCL 正以开发者模式运行，这可能会造成严重的性能下降，请务必立即向开发者反馈此问题！", HintType.Red)
-        If ModeDebug Then Hint("[调试模式] PCL 正以调试模式运行，这可能会导致性能下降，若无必要请不要开启！")
+        If BuildType = BuildTypes.Debug Then Hint("[开发者模式] PCL-Slash 正以开发者模式运行，这可能会造成严重的性能下降，请务必立即向开发者反馈此问题！", HintType.Red)
+        If ModeDebug Then Hint("[调试模式] PCL-Slash 正以调试模式运行，这可能会导致性能下降，若无必要请不要开启！")
         '尽早执行的加载池
         McFolderListLoader.Start(0) '为了让下载已存在文件检测可以正常运行，必须跑一次；为了让启动按钮尽快可用，需要尽早执行；为了与 PageLaunchLeft 联动，需要为 0 而不是 GetUuid
 
@@ -398,7 +398,7 @@ Public Class FormMain
             Sub()
                 PanBack.RenderTransform = Nothing
                 IsWindowLoadFinished = True
-                Logger.Info($"DPI：{DPI}，系统版本：{Environment.OSVersion.VersionString}，PCL 位置：{PathExe}")
+                Logger.Info($"DPI：{DPI}，系统版本：{Environment.OSVersion.VersionString}，PCL-Slash 位置：{PathExe}")
             End Sub, , True)
         }, "Form Show")
         'Timer 启动
@@ -747,8 +747,8 @@ Public Class FormMain
                     FrmSetupUI.PanLogoChange.Visibility = Visibility.Collapsed
                 End If
             Case 1 '默认
-                ShapeTitleLogo.Visibility = Visibility.Visible
-                LabTitleLogo.Visibility = Visibility.Collapsed
+                ShapeTitleLogo.Visibility = Visibility.Collapsed
+                LabTitleLogo.Visibility = Visibility.Visible
                 ImageTitleLogo.Visibility = Visibility.Collapsed
                 If Not IsNothing(FrmSetupUI) Then
                     FrmSetupUI.CheckLogoLeft.Visibility = Visibility.Collapsed
@@ -782,7 +782,7 @@ Public Class FormMain
         End Select
         FrmSetupUI?.CardLogo.TriggerForceResize()
         '标题栏文本
-        LabTitleLogo.Text = Settings.Get(Of String)("UiLogoText")
+        LabTitleLogo.Text = If(Settings.Get(Of Integer)("UiLogoType") = 1, BrandName, Settings.Get(Of String)("UiLogoText"))
         '标题栏文本是否居左
         PanTitleMain.ColumnDefinitions(0).Width = New GridLength(If(Settings.Get(Of Boolean)("UiLogoLeft") AndAlso Settings.Get(Of Integer)("UiLogoType") = 0, 0, 1), GridUnitType.Star)
     End Sub
@@ -1076,7 +1076,7 @@ Public Class FormMain
             End If
             'RAR 处理
             If Extension = "rar" Then
-                Hint("PCL 无法处理 rar 格式的压缩包，请在解压后重新压缩为 zip 格式再试！", HintType.Red)
+                Hint("PCL-Slash 无法处理 rar 格式的压缩包，请在解压后重新压缩为 zip 格式再试！", HintType.Red)
                 Return
             End If
             '错误报告分析
@@ -1092,7 +1092,7 @@ Public Class FormMain
                 Logger.Error(ex, "自主错误报告分析失败")
             End Try
             '未知操作
-            Hint("PCL 无法确定适合的操作……", HintType.Red)
+            Hint("PCL-Slash 无法确定适合的操作……", HintType.Red)
         End Sub, "文件拖拽")
     End Sub
 

@@ -3,9 +3,9 @@
 Friend Module ModSecret
 
     '标注 PCL 的不同分支，仅用于替换标记
-    Public Const VersionBranchMain As String = "OpenSource"
+    Public Const VersionBranchMain As String = "Slash"
     '在开源版的注册表与常规版的注册表隔离，以防数据冲突
-    Public Const RegFolder As String = "PCLDebug"
+    Public Const RegFolder As String = BrandName
     '用于微软登录的 ClientId
     Public OAuthClientId As String = If(Environment.GetEnvironmentVariable("PCL_MS_CLIENT_ID"), "")
     'CurseForge API Key
@@ -27,12 +27,12 @@ Friend Module ModSecret
             If Url.Contains("baidupcs.com") OrElse Url.Contains("baidu.com") Then
                 Req.Headers.Add("User-Agent", "LogStatistic")  '#4951
             ElseIf SimulateBrowserHeaders Then
-                Req.Headers.Add("User-Agent", $"PCL2/{VersionBaseName}.{CInt(BuildType)} Mozilla/5.0 AppleWebKit/537.36 Chrome/63.0.3239.132 Safari/537.36")
+                Req.Headers.Add("User-Agent", $"{BrandName}/{VersionBaseName}.{CInt(BuildType)} Mozilla/5.0 AppleWebKit/537.36 Chrome/63.0.3239.132 Safari/537.36")
             Else
-                Req.Headers.Add("User-Agent", $"PCL2/{VersionBaseName}.{CInt(BuildType)}")
+                Req.Headers.Add("User-Agent", $"{BrandName}/{VersionBaseName}.{CInt(BuildType)}")
             End If
         End If
-        If Not SimulateBrowserHeaders Then Req.Headers.Add("Referer", $"http://{VersionCode}.open.pcl2.server/")
+        If Not SimulateBrowserHeaders Then Req.Headers.Add("Referer", SourceRepository)
         If Url.Contains("api.curseforge.com") OrElse Url.Contains("forgecdn.net") Then Req.Headers.Add("x-api-key", CurseForgeAPIKey)
     End Sub
 

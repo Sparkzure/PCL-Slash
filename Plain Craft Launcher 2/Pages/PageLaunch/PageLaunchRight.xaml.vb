@@ -25,7 +25,7 @@ Public Class PageLaunchRight
                     RefreshReal()
                 End SyncLock
             Catch ex As Exception
-                Logger.Error(ex, "加载 PCL 主页自定义信息失败", If(ModeDebug, LogBehavior.Alert, LogBehavior.Toast))
+                Logger.Error(ex, "加载 PCL-Slash 主页自定义信息失败", If(ModeDebug, LogBehavior.Alert, LogBehavior.Toast))
             End Try
         End Sub)
     End Sub
@@ -94,7 +94,7 @@ Public Class PageLaunchRight
                         Logger.Info("主页预设：PCL GitHub 仪表盘")
                         Url = "https://ddf.pcl-community.top/Custom.xaml"
                     Case 13
-                        Logger.Info("主页预设：PCL 更新摘要")
+                        Logger.Info("主页预设：PCL-Slash 更新摘要")
                         Url = "https://raw.gitcode.com/ENC_Euphony/PCL-AI-Summary-HomePage/raw/master/Custom.xaml"
                     Case 14
                         Logger.Info("主页预设：今日新闻热点")
