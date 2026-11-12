@@ -1,54 +1,54 @@
-# Plain Craft Launcher Slash
+<p align="center">
+  <img src="Plain%20Craft%20Launcher%202/Images/icon.png" width="128" alt="PCL-Slash 应用图标" />
+</p>
 
-**PCL-Slash** 是基于 [Plain Craft Launcher](https://github.com/Meloong-Git/PCL) 的 Minecraft Java 版启动器，帮助你下载游戏、管理版本和整合包。
+<h1 align="center">Plain Craft Launcher Slash</h1>
 
-本项目沿用原版 PCL 的 [存储库合理使用指南](LICENCE)。
+<p align="center">第三方 PCL 分支 · Minecraft Java 版启动器</p>
 
-## 功能
+<p align="center">
+  <a href="https://github.com/Sparkzure/PCL-Slash/issues">
+    <img src="https://img.shields.io/github/issues/Sparkzure/PCL-Slash?style=flat-square&amp;logo=github&amp;label=Issues&amp;color=0969da" alt="Issues · 问题反馈" />
+  </a>
+  <a href="https://github.com/Sparkzure/PCL-Slash/pulls">
+    <img src="https://img.shields.io/github/issues-pr/Sparkzure/PCL-Slash?style=flat-square&amp;logo=github&amp;label=Pull%20Requests&amp;color=8250df" alt="Pull Requests · 参与贡献" />
+  </a>
+  <a href="https://qm.qq.com/q/feRfwrD1AI">
+    <img src="https://img.shields.io/badge/QQ-%E4%BA%A4%E6%B5%81%E7%BE%A4-12b7f5?style=flat-square&amp;logo=qq&amp;logoColor=white" alt="QQ 交流群" />
+  </a>
+</p>
 
-- **游戏管理**：下载、安装和启动 Minecraft，管理多个游戏版本。
-- **资源下载**：查找和下载 Mod、资源包等游戏内容。
-- **整合包管理**：导入整合包，也可以将自己的游戏配置导出分享。
-- **个性化界面**：默认使用天依蓝主题（#66CCFF），天依蓝与苍绿色分别配有洛天依、初音未来标题栏纹理；支持设置主页、背景图片和背景音乐，解锁 5 个隐藏主题后可使用自定义配色。
-- **问题排查**：查看启动日志，分析游戏崩溃原因。
+## 项目介绍
 
-主题设置已采用全新格式，启动时不会自动读取旧版主题配置。默认使用天依蓝；显式使用下述 PCL2 迁入功能时会转换主题选择、自定义配色参数和已有的主题解锁状态。
+**PCL-Slash** 是基于 [Plain Craft Launcher（PCL）](https://github.com/Meloong-Git/PCL) 的第三方修改版本，面向 Windows 用户，提供 Minecraft Java 版的下载与启动、游戏版本与整合包管理、Mod 等资源下载和界面个性化功能。
 
-## 开始使用
+本项目由 Lecyn 及贡献者维护，与原版 PCL 分开维护和发布。使用本分支遇到的问题，请通过上方的 Issues 或 QQ 群反馈。
 
-启动器采用便携存储：设置、登录缓存、日志、皮肤、下载的 Java 和临时文件均保存在 EXE 所在目录的 `PCL` 文件夹中。原注册表设置首次运行时只读导入 `PCL/Portable.json`，常规设置仍在 `PCL/Setup.ini`，核心配置在 `PCL/config.json`。旧注册表和旧用户目录数据不会被删除或修改。移动时请一并移动 EXE、`PCL` 和游戏目录。
+## 获取与反馈
 
-启动器自身不再向注册表保存配置；Windows 高性能显卡偏好、字体环境修复等系统配置功能仍保留。缓存目录固定为 `PCL/Temp`。请将启动器放在可写目录中，目录不可写时会报错，不会回退到系统临时目录。手动选择的外部游戏目录、下载/导出目标及自定义命令仍按用户指定的位置操作；游戏、Mod 与 Windows 自身产生的数据不受启动器便携存储的约束。
+前往 [Releases](https://github.com/Sparkzure/PCL-Slash/releases) 下载启动器。运行需要 Windows 和 .NET Framework 4.8；快照及测试版本可能存在尚未修复的问题。
 
-登录令牌、外置认证密码及关联账号缓存使用 Windows DPAPI 的 `CurrentUser` 范围保护，密文仍保存在 `PCL/Portable.json`，以 `dpapi:v1:` 标记。不导入旧注册表中的登录凭据，也不转换或读取旧版 DES 登录缓存，升级后需重新登录；其他普通设置与主题记录仍保留原有处理方式。换电脑或 Windows 用户后通常需要重新登录；无法解密的凭据仅在内存中视为未登录，保留原密文，重新登录后安全替换。加密失败不会保存明文。同一 Windows 用户权限下的恶意程序仍可能读取运行中的凭据。历史注册表和备份中的旧密文不会自动清理。
+反馈问题时，请提供启动器版本、复现步骤和相关日志，并先移除日志中的个人信息。希望参与开发、完善文档或提交修复，请阅读 [贡献指南](CONTRIBUTING.md)。
 
-运行环境：Windows，需要安装 .NET Framework 4.8。
+## 上游项目
 
-1. 在[版本发布页面](https://github.com/sparkzure/PCL-Slash/releases)查看可用版本与更新说明。
-2. 将下载的文件解压到你希望存放启动器的文件夹，运行 `Plain Craft Launcher Slash.exe`。
-3. 添加游戏账号，选择已有游戏目录或下载游戏版本，然后启动游戏。
+原版 [Plain Craft Launcher](https://github.com/Meloong-Git/PCL) 由龙腾猫跃及原项目贡献者开发，是 PCL-Slash 的基础。本分支的修改和发布由本项目维护者负责，不代表原版 PCL 官方。
 
-启动器会在后台检查新版，在左下角显示检查结果，发现新版时弹窗通知，同一版本仅通知一次。Beta 和 Snapshot 分别检查各自通道，也会检查后续正式版。更新时请前往 Releases 下载新版，退出启动器后替换 `Plain Craft Launcher Slash.exe`，并保留原有的 `PCL` 文件夹和游戏文件夹。可以在“设置 → 其他 → 启动器”中点击“查看更新”打开手动更新说明，或关闭“启动时检查新版”。启动器升级后不弹出更新日志。
-
-“更新检查源”可选择 GitHub 官方、GH-Proxy 镜像或自定义源。自定义源填写完整的更新检查链接，例如 `https://exmple.com/repos/sparkzure/PCL-Slash/releases?per_page=100`；前缀代理可填写 `https://exmple.com/https://api.github.com/repos/sparkzure/PCL-Slash/releases?per_page=100`。程序直接请求填写的地址，返回数据须为 GitHub Releases 格式的 JSON。
-
-本分支已移除内置联机功能，包括邀请码、联机模块下载和云端联机配置。
-
-## 从 PCL2 迁入
-
-在“设置 → 其他 → 启动器”中点击导出、导入设置旁的“PCL2 迁入”，选择包含 `PCL\Setup.ini` 的 PCL2 所在目录。开始前关闭 PCL2 及其游戏，两个启动器须放在独立且互不包含的目录，PCL-Slash 所在磁盘须有足够空间。迁入期间请保持 PCL2 关闭。
-
-迁入只读取 PCL2 的文件和注册表：先将相关设置复制到缓存，转换为 PCL-Slash 格式，再覆盖对应设置。游戏目录（包括已配置的外部目录、实例、存档、资源和依赖库）完整复制到 PCL-Slash 下的 `PCL2-Migrated` 独立目录，并改写目录引用，已有 PCL-Slash 实例与其他游戏目录保留。外观图片、音乐、本地主页随设置复制。旧主题编号和解锁记录转换为 PCL-Slash 的主题键，并与当前已有解锁状态合并；普通主题、已移除主题和重复记录不计入隐藏主题解锁数量，自定义配色仍需至少解锁五个隐藏主题。
-
-PCL2 原始设置副本、转换后的设置以及外观资源缓存固定保留在 **PCL-Slash 所在目录的 `PCL\Cache\PCL2Migration`** 中，不使用系统临时目录或下载缓存设置。迁入完成复制与转换后直接覆盖对应设置，不备份 PCL-Slash 的原有设置，也不自动恢复已覆盖的设置；覆盖阶段失败时会保留游戏副本，便于重新迁入。加密的主题记录会重新加密为 PCL-Slash 格式；若无法自动解密，窗口会提示填写原 PCL2 中显示的识别码，该输入不保存到配置、缓存或日志中。迁入结束后关闭并重新打开 PCL-Slash 生效。加密登录信息不迁入，需要重新登录；已删除的联机、识别码、匿名数据收集等功能不会恢复。迁入不接受符号链接或目录联接，请使用实际目录。
-
-## 问题反馈
-
-使用中遇到问题，欢迎到 [Issues](https://github.com/sparkzure/PCL-Slash/issues) 反馈。请附上启动器版本、复现步骤和相关日志；提交前请检查日志中是否包含个人信息。功能建议也可以在这里提出。
-
-## 致谢
-
-感谢原版 PCL 的开发者龙腾猫跃、HerobrineXia，以及所有贡献者和社区成员。PCL-Slash 在原项目的基础上开发，原作者署名与第三方组件许可可在启动器的“关于”页面查看。
-
-- [原版 Plain Craft Launcher](https://github.com/Meloong-Git/PCL)
 - [原版 PCL 下载](https://meloong.com/pcl)
+- [赞助原作者龙腾猫跃](https://meloong.com/afd/a/LTCat)
+
+## 鸣谢
+
+- **龙腾猫跃、HerobrineXia 与原版 PCL 的所有贡献者**：提供原项目及持续积累的功能与社区支持。
+- **[MeloongCore](https://github.com/Meloong-Git/MeloongCore)**：提供基础组件与公共能力。
+- **bangbang93、z0z0r4 与 MC 百科**：提供 BMCLAPI、MCIM 镜像及资源信息支持。
+- **EasyTier**：原版联机功能的历史贡献，本分支保留相关鸣谢。
+- **本项目的贡献者、资源作者和测试用户**：参与功能改进、问题反馈及文档完善。
+
+更多原版项目鸣谢可在启动器的“更多 → 鸣谢”中查看，第三方组件声明见“更多 → 关于”。
+
+## 法律信息
+
+本项目沿用原版 PCL 的 [《PCL 存储库合理使用指南》](LICENCE)，相关分发许可及说明以该文件和其指向的原文为准。原版 PCL 的版权归其原著作权人所有；第三方组件、图片、字体和商标保留各自的权利声明。
+
+PCL-Slash 是非 Minecraft 官方产品，未经 Mojang 或 Microsoft 批准，也不与其关联。Minecraft 及相关商标归各自权利人所有。
