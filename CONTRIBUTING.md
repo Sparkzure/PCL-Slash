@@ -51,6 +51,24 @@ node --test .github/scripts/*.test.cjs
 
 PR 不注入构建凭据；上游仓库的分支与标签构建可使用 `CLIENT_ID` 和 `CURSEFORGE_API_KEY` 两个仓库 Secret。提交日志读取、草稿创建与附件上传使用内置 `GITHUB_TOKEN`，仅草稿任务申请 `contents: write`；标题反馈单独申请 `pull-requests: write`，用于管理提示评论。
 
+## 主题配置
+
+主题在代码、界面绑定和持久化中均使用语义化字符串，例如 `tianyi-blue`、`geek-blue`，不使用数字编号。
+
+| 设置键 | 内容 |
+| --- | --- |
+| `UiThemeSelected` | 当前主题键，默认为 `tianyi-blue` |
+| `UiThemeUnlocked` | 已解锁隐藏主题的 JSON 字符串数组，默认为 `[]`；去重且仅接受有效隐藏主题键 |
+| `UiThemeCustomHue` | 自定义色调 |
+| `UiThemeCustomSaturation` | 自定义饱和度 |
+| `UiThemeCustomLightness` | 自定义亮度 |
+| `UiThemeCustomGradient` | 自定义标题栏色调渐变 |
+| `UiThemeColorfulBackground` | 是否使用主题彩色背景 |
+
+本次配置格式变更不提供旧主题设置、数字编号或解锁记录的兼容与迁移。新增主题需同步 `LauncherTheme`、个性化界面和主题检查；有装饰纹理时补充 `ThemeTitleTextureFiles` 与项目资源引用。
+
+执行 `powershell.exe -NoProfile -STA -ExecutionPolicy Bypass -File tests/verify-themes.ps1` 验证配色、语义化配置的读写、解锁规则、旧数据拒绝和纹理切换。
+
 ## 标签与草稿发布
 
 管理员将版本标签推送至 **sparkzure/PCL-Slash** 后，流水线自动运行。非 `v` 开头的标签不会启动发布流程；不符合版本格式的 `v` 标签会被检查拒绝。

@@ -305,7 +305,7 @@ Public Class FormMain
         End If
         '刷新主题
         ThemeCheckAll(False)
-        ThemeRefresh(Settings.Get(Of Integer)("UiLauncherTheme"))
+        ThemeRefresh(Settings.Get(Of String)("UiThemeSelected"))
         '注册拖拽事件（不能直接加 Handles，否则没用；#6340）
         [AddHandler](DragDrop.DragEnterEvent, New DragEventHandler(AddressOf HandleDrag), handledEventsToo:=True)
         [AddHandler](DragDrop.DragOverEvent, New DragEventHandler(AddressOf HandleDrag), handledEventsToo:=True)
