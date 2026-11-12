@@ -882,12 +882,13 @@ Public Class FormMain
         DownloadResourcePack = 5
         DownloadShader = 6
         SetupLaunch = 0
-        SetupLink = 1
         SetupUI = 2
         SetupSystem = 3
-        LinkMain = 0
-        OtherHelp = 0
+        SetupDownload = 4
+        SetupLauncher = 5
+        SetupGame = 6
         OtherAbout = 1
+        OtherCredits = 5
         OtherTest = 2
         InstanceOverall = 0
         InstanceSetup = 1
@@ -1019,7 +1020,7 @@ Public Class FormMain
                     CType(FrmDownloadLeft.PanItem.Children(SubType), MyListItem).SetChecked(True, True, Stack = PageCurrent)
                 Case PageType.Setup
                     If FrmSetupLeft Is Nothing Then FrmSetupLeft = New PageSetupLeft
-                    CType(FrmSetupLeft.PanItem.Children(SubType), MyListItem).SetChecked(True, True, Stack = PageCurrent)
+                    FrmSetupLeft.PanItem.Children.OfType(Of MyListItem)().First(Function(Item) CInt(Item.Tag) = CInt(SubType)).SetChecked(True, True, Stack = PageCurrent)
                 Case PageType.Other
                     If FrmOtherLeft Is Nothing Then FrmOtherLeft = New PageOtherLeft
                     CType(FrmOtherLeft.PanItem.Children(SubType), MyListItem).SetChecked(True, True, Stack = PageCurrent)

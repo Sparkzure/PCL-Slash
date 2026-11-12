@@ -360,6 +360,9 @@
     <Compile Include="Pages\PageLaunch\PageLaunchRight.xaml.vb">
       <DependentUpon>PageLaunchRight.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Pages\PageOther\PageOtherCredits.xaml.vb">
+      <DependentUpon>PageOtherCredits.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Pages\PageOther\PageOtherAbout.xaml.vb">
       <DependentUpon>PageOtherAbout.xaml</DependentUpon>
     </Compile>
@@ -378,6 +381,9 @@
     </Compile>
     <Compile Include="Pages\PageSetup\PageSetupDownload.xaml.vb">
       <DependentUpon>PageSetupDownload.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Pages\PageSetup\PageSetupGame.xaml.vb">
+      <DependentUpon>PageSetupGame.xaml</DependentUpon>
     </Compile>
     <Compile Include="Pages\PageSetup\PageSetupLauncher.xaml.vb">
       <DependentUpon>PageSetupLauncher.xaml</DependentUpon>
@@ -601,6 +607,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Pages\PageOther\PageOtherCredits.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Pages\PageOther\PageOtherAbout.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -622,6 +632,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Pages\PageSetup\PageSetupDownload.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Pages\PageSetup\PageSetupGame.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -751,6 +765,7 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\Heads\LTCat.jpg" />
+    <Resource Include="Images\Heads\Lecyn.jpg" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\Newtonsoft.Json.dll" />
@@ -901,9 +916,6 @@
     <None Include="Resources\System.Net.Http.Formatting.dll" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Images\Heads\EasyTier.png" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="Resources\lwjgl-unsafe-agent.jar" />
   </ItemGroup>
   <ItemGroup>
@@ -940,6 +952,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Resource Include="Images\Heads\EasyTier.png" />
     <Resource Include="Images\Heads\ChongQing.png" />
     <Resource Include="Images\Heads\HerobrineXia.png" />
 

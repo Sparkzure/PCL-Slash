@@ -443,37 +443,41 @@ Refresh:
             If FrmSetupLeft IsNot Nothing Then
                 FrmSetupLeft.ItemLaunch.Visibility = If(Not HiddenForceShow AndAlso Settings.Get(Of Boolean)("UiHiddenSetupLaunch"), Visibility.Collapsed, Visibility.Visible)
                 FrmSetupLeft.ItemUI.Visibility = If(Not HiddenForceShow AndAlso Settings.Get(Of Boolean)("UiHiddenSetupUi"), Visibility.Collapsed, Visibility.Visible)
-                FrmSetupLeft.ItemLink.Visibility = Visibility.Collapsed 'If(Not HiddenForceShow AndAlso Settings.Get(Of Boolean)("UiHiddenSetupLink"), Visibility.Collapsed, Visibility.Visible)
+                FrmSetupLeft.ItemGame.Visibility = If(Not HiddenForceShow AndAlso Settings.Get(Of Boolean)("UiHiddenSetupGame"), Visibility.Collapsed, Visibility.Visible)
+                FrmSetupLeft.ItemDownload.Visibility = If(Not HiddenForceShow AndAlso Settings.Get(Of Boolean)("UiHiddenSetupDownload"), Visibility.Collapsed, Visibility.Visible)
+                FrmSetupLeft.ItemLauncher.Visibility = If(Not HiddenForceShow AndAlso Settings.Get(Of Boolean)("UiHiddenSetupLauncher"), Visibility.Collapsed, Visibility.Visible)
                 FrmSetupLeft.ItemSystem.Visibility = If(Not HiddenForceShow AndAlso Settings.Get(Of Boolean)("UiHiddenSetupSystem"), Visibility.Collapsed, Visibility.Visible)
                 '隐藏左边选择卡
                 Dim AvaliableCount As Integer = 0
                 If Not Settings.Get(Of Boolean)("UiHiddenSetupLaunch") Then AvaliableCount += 1
                 If Not Settings.Get(Of Boolean)("UiHiddenSetupUi") Then AvaliableCount += 1
-                'If Not Settings.Get(Of Boolean)("UiHiddenSetupLink") Then AvaliableCount += 1
+                If Not Settings.Get(Of Boolean)("UiHiddenSetupGame") Then AvaliableCount += 1
+                If Not Settings.Get(Of Boolean)("UiHiddenSetupDownload") Then AvaliableCount += 1
+                If Not Settings.Get(Of Boolean)("UiHiddenSetupLauncher") Then AvaliableCount += 1
                 If Not Settings.Get(Of Boolean)("UiHiddenSetupSystem") Then AvaliableCount += 1
                 FrmSetupLeft.PanItem.Visibility = If(AvaliableCount < 2 AndAlso Not HiddenForceShow, Visibility.Collapsed, Visibility.Visible)
             End If
             '更多子页面
             Dim OtherAvaliableCount As Integer = 0
-            If Not Settings.Get(Of Boolean)("UiHiddenOtherHelp") Then OtherAvaliableCount += 1
+            If Not Settings.Get(Of Boolean)("UiHiddenOtherCredits") Then OtherAvaliableCount += 1
             If Not Settings.Get(Of Boolean)("UiHiddenOtherAbout") Then OtherAvaliableCount += 1
             If Not Settings.Get(Of Boolean)("UiHiddenOtherTest") Then OtherAvaliableCount += 1
             If Not Settings.Get(Of Boolean)("UiHiddenOtherFeedback") Then OtherAvaliableCount += 1
             If Not Settings.Get(Of Boolean)("UiHiddenOtherVote") Then OtherAvaliableCount += 1
             If FrmOtherLeft IsNot Nothing Then
-                FrmOtherLeft.ItemHelp.Visibility = If(Not HiddenForceShow AndAlso Settings.Get(Of Boolean)("UiHiddenOtherHelp"), Visibility.Collapsed, Visibility.Visible)
                 FrmOtherLeft.ItemFeedback.Visibility = If(Not HiddenForceShow AndAlso Settings.Get(Of Boolean)("UiHiddenOtherFeedback"), Visibility.Collapsed, Visibility.Visible)
                 FrmOtherLeft.ItemVote.Visibility = If(Not HiddenForceShow AndAlso Settings.Get(Of Boolean)("UiHiddenOtherVote"), Visibility.Collapsed, Visibility.Visible)
+                FrmOtherLeft.ItemCredits.Visibility = If(Not HiddenForceShow AndAlso Settings.Get(Of Boolean)("UiHiddenOtherCredits"), Visibility.Collapsed, Visibility.Visible)
                 FrmOtherLeft.ItemAbout.Visibility = If(Not HiddenForceShow AndAlso Settings.Get(Of Boolean)("UiHiddenOtherAbout"), Visibility.Collapsed, Visibility.Visible)
                 FrmOtherLeft.ItemTest.Visibility = If(Not HiddenForceShow AndAlso Settings.Get(Of Boolean)("UiHiddenOtherTest"), Visibility.Collapsed, Visibility.Visible)
                 '隐藏左边选择卡
                 FrmOtherLeft.PanItem.Visibility = If(OtherAvaliableCount < 2 AndAlso Not HiddenForceShow, Visibility.Collapsed, Visibility.Visible)
             End If
             If OtherAvaliableCount = 1 AndAlso Not HiddenForceShow Then
-                If Not Settings.Get(Of Boolean)("UiHiddenOtherHelp") Then
-                    FrmMain.BtnTitleSelect4.Text = "帮助"
-                ElseIf Not Settings.Get(Of Boolean)("UiHiddenOtherAbout") Then
+                If Not Settings.Get(Of Boolean)("UiHiddenOtherAbout") Then
                     FrmMain.BtnTitleSelect4.Text = "关于"
+                ElseIf Not Settings.Get(Of Boolean)("UiHiddenOtherCredits") Then
+                    FrmMain.BtnTitleSelect4.Text = "鸣谢"
                 Else
                     FrmMain.BtnTitleSelect4.Text = "百宝箱"
                 End If
@@ -497,22 +501,26 @@ Refresh:
         If CheckHiddenPageSetup.Checked Then
             '开启
             CheckHiddenSetupLaunch.Checked = True
+            CheckHiddenSetupGame.Checked = True
+            CheckHiddenSetupDownload.Checked = True
+            CheckHiddenSetupLauncher.Checked = True
             CheckHiddenSetupSystem.Checked = True
-            CheckHiddenSetupLink.Checked = True
             CheckHiddenSetupUI.Checked = True
         Else
             '关闭
-            If Settings.Get(Of Boolean)("UiHiddenSetupLaunch") AndAlso Settings.Get(Of Boolean)("UiHiddenSetupUi") AndAlso Settings.Get(Of Boolean)("UiHiddenSetupSystem") AndAlso Settings.Get(Of Boolean)("UiHiddenSetupLink") Then
+            If Settings.Get(Of Boolean)("UiHiddenSetupLaunch") AndAlso Settings.Get(Of Boolean)("UiHiddenSetupUi") AndAlso Settings.Get(Of Boolean)("UiHiddenSetupSystem") AndAlso Settings.Get(Of Boolean)("UiHiddenSetupDownload") AndAlso Settings.Get(Of Boolean)("UiHiddenSetupLauncher") AndAlso Settings.Get(Of Boolean)("UiHiddenSetupGame") Then
                 CheckHiddenSetupLaunch.Checked = False
+                CheckHiddenSetupGame.Checked = False
+                CheckHiddenSetupDownload.Checked = False
+                CheckHiddenSetupLauncher.Checked = False
                 CheckHiddenSetupSystem.Checked = False
-                CheckHiddenSetupLink.Checked = False
                 CheckHiddenSetupUI.Checked = False
             End If
         End If
     End Sub
-    Private Sub HiddenSetupSub() Handles CheckHiddenSetupLaunch.Change, CheckHiddenSetupSystem.Change, CheckHiddenSetupLink.Change, CheckHiddenSetupUI.Change
+    Private Sub HiddenSetupSub() Handles CheckHiddenSetupGame.Change, CheckHiddenSetupLaunch.Change, CheckHiddenSetupDownload.Change, CheckHiddenSetupLauncher.Change, CheckHiddenSetupSystem.Change, CheckHiddenSetupUI.Change
         '设置子页面
-        If Settings.Get(Of Boolean)("UiHiddenSetupLaunch") AndAlso Settings.Get(Of Boolean)("UiHiddenSetupUi") AndAlso Settings.Get(Of Boolean)("UiHiddenSetupSystem") AndAlso Settings.Get(Of Boolean)("UiHiddenSetupLink") Then
+        If Settings.Get(Of Boolean)("UiHiddenSetupLaunch") AndAlso Settings.Get(Of Boolean)("UiHiddenSetupUi") AndAlso Settings.Get(Of Boolean)("UiHiddenSetupSystem") AndAlso Settings.Get(Of Boolean)("UiHiddenSetupDownload") AndAlso Settings.Get(Of Boolean)("UiHiddenSetupLauncher") AndAlso Settings.Get(Of Boolean)("UiHiddenSetupGame") Then
             '已被全部隐藏
             CheckHiddenPageSetup.Checked = True
         Else
@@ -524,26 +532,26 @@ Refresh:
         '更多主页面
         If CheckHiddenPageOther.Checked Then
             '开启
+            CheckHiddenOtherCredits.Checked = True
             CheckHiddenOtherAbout.Checked = True
             CheckHiddenOtherTest.Checked = True
             CheckHiddenOtherFeedback.Checked = True
             CheckHiddenOtherVote.Checked = True
-            CheckHiddenOtherHelp.Checked = True
         Else
             '关闭
-            If Settings.Get(Of Boolean)("UiHiddenOtherHelp") AndAlso Settings.Get(Of Boolean)("UiHiddenOtherAbout") AndAlso Settings.Get(Of Boolean)("UiHiddenOtherTest") AndAlso
+            If Settings.Get(Of Boolean)("UiHiddenOtherAbout") AndAlso Settings.Get(Of Boolean)("UiHiddenOtherCredits") AndAlso Settings.Get(Of Boolean)("UiHiddenOtherTest") AndAlso
                 Settings.Get(Of Boolean)("UiHiddenOtherVote") AndAlso Settings.Get(Of Boolean)("UiHiddenOtherFeedback") Then
+                CheckHiddenOtherCredits.Checked = False
                 CheckHiddenOtherAbout.Checked = False
                 CheckHiddenOtherTest.Checked = False
                 CheckHiddenOtherFeedback.Checked = False
                 CheckHiddenOtherVote.Checked = False
-                CheckHiddenOtherHelp.Checked = False
             End If
         End If
     End Sub
-    Private Sub HiddenOtherSub(sender As Object, user As Boolean) Handles CheckHiddenOtherHelp.Change, CheckHiddenOtherAbout.Change, CheckHiddenOtherTest.Change
+    Private Sub HiddenOtherSub(sender As Object, user As Boolean) Handles CheckHiddenOtherCredits.Change, CheckHiddenOtherAbout.Change, CheckHiddenOtherTest.Change
         '更多子页面（有具体内容的）
-        If Settings.Get(Of Boolean)("UiHiddenOtherHelp") AndAlso Settings.Get(Of Boolean)("UiHiddenOtherAbout") AndAlso Settings.Get(Of Boolean)("UiHiddenOtherTest") Then
+        If Settings.Get(Of Boolean)("UiHiddenOtherAbout") AndAlso Settings.Get(Of Boolean)("UiHiddenOtherCredits") AndAlso Settings.Get(Of Boolean)("UiHiddenOtherTest") Then
             '已被全部隐藏
             CheckHiddenPageOther.Checked = True
         Else
@@ -552,7 +560,7 @@ Refresh:
         End If
         '修改无具体内容的项
         If Not user Then Return
-        If Settings.Get(Of Boolean)("UiHiddenOtherHelp") AndAlso Settings.Get(Of Boolean)("UiHiddenOtherAbout") AndAlso Settings.Get(Of Boolean)("UiHiddenOtherTest") Then
+        If Settings.Get(Of Boolean)("UiHiddenOtherAbout") AndAlso Settings.Get(Of Boolean)("UiHiddenOtherCredits") AndAlso Settings.Get(Of Boolean)("UiHiddenOtherTest") Then
             CheckHiddenOtherFeedback.Checked = True
             CheckHiddenOtherVote.Checked = True
         End If
@@ -560,11 +568,11 @@ Refresh:
     Private Sub HiddenOtherNet(sender As Object, user As Boolean) Handles CheckHiddenOtherFeedback.Change, CheckHiddenOtherVote.Change
         '更多子页面（无具体内容的）
         If Not user Then Return
-        If Settings.Get(Of Boolean)("UiHiddenOtherHelp") AndAlso Settings.Get(Of Boolean)("UiHiddenOtherAbout") AndAlso Settings.Get(Of Boolean)("UiHiddenOtherTest") AndAlso
+        If Settings.Get(Of Boolean)("UiHiddenOtherAbout") AndAlso Settings.Get(Of Boolean)("UiHiddenOtherCredits") AndAlso Settings.Get(Of Boolean)("UiHiddenOtherTest") AndAlso
             (Not Settings.Get(Of Boolean)("UiHiddenOtherFeedback") OrElse Not Settings.Get(Of Boolean)("UiHiddenOtherVote")) Then
+            CheckHiddenOtherCredits.Checked = False
             CheckHiddenOtherAbout.Checked = False
             CheckHiddenOtherTest.Checked = False
-            CheckHiddenOtherHelp.Checked = False
         End If
     End Sub
 

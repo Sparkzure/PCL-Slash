@@ -5,8 +5,8 @@ Public Class PageOtherLeft
     Private Sub PageOtherLeft_Loaded(sender As Object, e As RoutedEventArgs) Handles Me.Loaded
         '是否处于隐藏的子页面
         Dim IsHiddenPage As Boolean = False
-        If ItemHelp.Checked AndAlso Settings.Get(Of Boolean)("UiHiddenOtherHelp") Then IsHiddenPage = True
         If ItemAbout.Checked AndAlso Settings.Get(Of Boolean)("UiHiddenOtherAbout") Then IsHiddenPage = True
+        If ItemCredits.Checked AndAlso Settings.Get(Of Boolean)("UiHiddenOtherCredits") Then IsHiddenPage = True
         If ItemTest.Checked AndAlso Settings.Get(Of Boolean)("UiHiddenOtherTest") Then IsHiddenPage = True
         If PageSetupUI.HiddenForceShow Then IsHiddenPage = False
         '若页面错误，或尚未加载，则继续
@@ -16,10 +16,10 @@ Public Class PageOtherLeft
         PageSetupUI.HiddenRefresh()
         '选择第一个未被禁用的子页面
         If IsPageSwitched Then Return
-        If Not Settings.Get(Of Boolean)("UiHiddenOtherHelp") Then
-            ItemHelp.SetChecked(True, False, False)
-        ElseIf Not Settings.Get(Of Boolean)("UiHiddenOtherAbout") Then
+        If Not Settings.Get(Of Boolean)("UiHiddenOtherAbout") Then
             ItemAbout.SetChecked(True, False, False)
+        ElseIf Not Settings.Get(Of Boolean)("UiHiddenOtherCredits") Then
+            ItemCredits.SetChecked(True, False, False)
         Else
             ItemTest.SetChecked(True, False, False)
         End If
@@ -37,10 +37,10 @@ Public Class PageOtherLeft
     Public Sub New()
         InitializeComponent()
         '选择第一个未被禁用的子页面
-        If Not Settings.Get(Of Boolean)("UiHiddenOtherHelp") Then
-            PageID = FormMain.PageSubType.OtherHelp
-        ElseIf Not Settings.Get(Of Boolean)("UiHiddenOtherAbout") Then
+        If Not Settings.Get(Of Boolean)("UiHiddenOtherAbout") Then
             PageID = FormMain.PageSubType.OtherAbout
+        ElseIf Not Settings.Get(Of Boolean)("UiHiddenOtherCredits") Then
+            PageID = FormMain.PageSubType.OtherCredits
         Else
             PageID = FormMain.PageSubType.OtherTest
         End If
@@ -49,21 +49,21 @@ Public Class PageOtherLeft
     ''' <summary>
     ''' 勾选事件改变页面。
     ''' </summary>
-    Private Sub PageCheck(sender As FrameworkElement, e As RouteEventArgs) Handles ItemAbout.Check, ItemHelp.Check, ItemTest.Check
+    Private Sub PageCheck(sender As FrameworkElement, e As RouteEventArgs) Handles ItemCredits.Check, ItemAbout.Check, ItemTest.Check
         '尚未初始化控件属性时，sender.Tag 为 Nothing，会导致切换到页面 0
         '若使用 IsLoaded，则会导致模拟点击不被执行（模拟点击切换页面时，控件的 IsLoaded 为 False）
         If sender.Tag IsNot Nothing Then PageChange(Val(sender.Tag))
     End Sub
 
     Public Function PageGet(Optional ID As FormMain.PageSubType = -1)
-        If ID = -1 Then ID = PageID
+        If ID = -1 OrElse ID = FormMain.PageSubType.Default Then ID = PageID
         Select Case ID
-            Case FormMain.PageSubType.OtherHelp
-                If FrmOtherHelp Is Nothing Then FrmOtherHelp = New PageOtherHelp
-                Return FrmOtherHelp
             Case FormMain.PageSubType.OtherAbout
                 If FrmOtherAbout Is Nothing Then FrmOtherAbout = New PageOtherAbout
                 Return FrmOtherAbout
+            Case FormMain.PageSubType.OtherCredits
+                If FrmOtherCredits Is Nothing Then FrmOtherCredits = New PageOtherCredits
+                Return FrmOtherCredits
             Case FormMain.PageSubType.OtherTest
                 If FrmOtherTest Is Nothing Then FrmOtherTest = New PageOtherTest
                 Return FrmOtherTest

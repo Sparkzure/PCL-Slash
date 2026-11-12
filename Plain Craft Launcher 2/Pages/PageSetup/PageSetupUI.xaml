@@ -303,24 +303,27 @@
                         <Grid.RowDefinitions>
                             <RowDefinition Height="4" />
                             <RowDefinition Height="30" />
-                            <RowDefinition Height="30" />
+                            <RowDefinition Height="Auto" MinHeight="30" />
                             <RowDefinition Height="30" />
                             <RowDefinition Height="30" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
                         <TextBlock Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Left" Text="主页面" />
                         <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="1" Grid.Column="2" Text="下载" x:Name="CheckHiddenPageDownload" local:SettingService.Key="UiHiddenPageDownload" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="1" Grid.Column="3" Text="联机" x:Name="CheckHiddenPageLink" local:SettingService.Key="UiHiddenPageLink" IsEnabled="False" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="1" Grid.Column="4" Text="设置" x:Name="CheckHiddenPageSetup" local:SettingService.Key="UiHiddenPageSetup" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="1" Grid.Column="5" Text="更多" x:Name="CheckHiddenPageOther" local:SettingService.Key="UiHiddenPageOther" />
+                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="1" Grid.Column="3" Text="设置" x:Name="CheckHiddenPageSetup" local:SettingService.Key="UiHiddenPageSetup" />
+                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="1" Grid.Column="4" Text="更多" x:Name="CheckHiddenPageOther" local:SettingService.Key="UiHiddenPageOther" />
                         <TextBlock Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Left" Text="设置 子页面" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="2" Grid.Column="2" Text="启动" x:Name="CheckHiddenSetupLaunch" local:SettingService.Key="UiHiddenSetupLaunch" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="2" Grid.Column="3" Text="联机" x:Name="CheckHiddenSetupLink" local:SettingService.Key="UiHiddenSetupLink" IsEnabled="False" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="2" Grid.Column="4" Text="个性化" x:Name="CheckHiddenSetupUI" local:SettingService.Key="UiHiddenSetupUi" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="2" Grid.Column="5" Text="其他" x:Name="CheckHiddenSetupSystem" local:SettingService.Key="UiHiddenSetupSystem" />
+                        <WrapPanel Grid.Row="2" Grid.Column="2" Grid.ColumnSpan="5">
+                            <local:MyCheckBox Height="30" Margin="0,0,18,0" VerticalAlignment="Center" Text="启动" x:Name="CheckHiddenSetupLaunch" local:SettingService.Key="UiHiddenSetupLaunch" />
+                            <local:MyCheckBox Height="30" Margin="0,0,18,0" VerticalAlignment="Center" Text="游戏功能" x:Name="CheckHiddenSetupGame" local:SettingService.Key="UiHiddenSetupGame" />
+                            <local:MyCheckBox Height="30" Margin="0,0,18,0" VerticalAlignment="Center" Text="下载" x:Name="CheckHiddenSetupDownload" local:SettingService.Key="UiHiddenSetupDownload" />
+                            <local:MyCheckBox Height="30" Margin="0,0,18,0" VerticalAlignment="Center" Text="个性化" x:Name="CheckHiddenSetupUI" local:SettingService.Key="UiHiddenSetupUi" />
+                            <local:MyCheckBox Height="30" Margin="0,0,18,0" VerticalAlignment="Center" Text="启动器" x:Name="CheckHiddenSetupLauncher" local:SettingService.Key="UiHiddenSetupLauncher" />
+                            <local:MyCheckBox Height="30" Margin="0,0,18,0" VerticalAlignment="Center" Text="其他" x:Name="CheckHiddenSetupSystem" local:SettingService.Key="UiHiddenSetupSystem" />
+                        </WrapPanel>
                         <TextBlock Grid.Row="3" VerticalAlignment="Center" HorizontalAlignment="Left" Text="更多 子页面" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="3" Grid.Column="2" Text="帮助" x:Name="CheckHiddenOtherHelp" local:SettingService.Key="UiHiddenOtherHelp" />
-                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="3" Grid.Column="3" Text="关于与鸣谢" x:Name="CheckHiddenOtherAbout" local:SettingService.Key="UiHiddenOtherAbout" />
+                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="3" Grid.Column="2" Text="关于" x:Name="CheckHiddenOtherAbout" local:SettingService.Key="UiHiddenOtherAbout" />
+                        <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="3" Grid.Column="3" Text="鸣谢" x:Name="CheckHiddenOtherCredits" local:SettingService.Key="UiHiddenOtherCredits" />
                         <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="3" Grid.Column="4" Text="百宝箱" x:Name="CheckHiddenOtherTest" local:SettingService.Key="UiHiddenOtherTest" />
                         <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="3" Grid.Column="5" Text="反馈" x:Name="CheckHiddenOtherFeedback" local:SettingService.Key="UiHiddenOtherFeedback" />
                         <local:MyCheckBox Height="22" VerticalAlignment="Center" Grid.Row="3" Grid.Column="6" Text="新功能投票" x:Name="CheckHiddenOtherVote" local:SettingService.Key="UiHiddenOtherVote" />

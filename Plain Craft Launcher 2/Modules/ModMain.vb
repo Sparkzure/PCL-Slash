@@ -388,12 +388,14 @@ EndHint:
     Public FrmSetupLaunch As PageSetupLaunch
     Public FrmSetupUI As PageSetupUI
     Public FrmSetupSystem As PageSetupSystem
-    Public FrmSetupLink As PageSetupLink
+    Public FrmSetupDownload As PageSetupDownload
+    Public FrmSetupLauncher As PageSetupLauncher
+    Public FrmSetupGame As PageSetupGame
 
     '其他页面声明
     Public FrmOtherLeft As PageOtherLeft
-    Public FrmOtherHelp As PageOtherHelp
     Public FrmOtherAbout As PageOtherAbout
+    Public FrmOtherCredits As PageOtherCredits
     Public FrmOtherTest As PageOtherTest
 
     '登录页面声明
