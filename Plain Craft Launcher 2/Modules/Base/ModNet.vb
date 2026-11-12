@@ -9,6 +9,8 @@ Public Module ModNet
             Optional Content As Object = Nothing, Optional ContentType As String = Nothing, Optional Accept As String = "*/*",
             Optional Timeout As Integer = 25000, Optional Headers As String(,) = Nothing, Optional RequireJson As Boolean = False,
             Optional Encoding As Encoding = Nothing, Optional SimulateBrowserHeaders As Boolean = False, Optional MakeLog As Boolean = True) As String
+        '版本列表等请求使用所选镜像根地址。
+        Url = ResolveDownloadMirrorUrl(Url)
         If Method Is Nothing Then Method = HttpMethod.Get
         If MakeLog Then Logger.Info($"发起网络请求（{Method.Method}，{Url}），最大超时 {Timeout}")
         Try
@@ -168,6 +170,7 @@ RequestFinished:
     ''' 不建议用于下载大文件。
     ''' </summary>
     Public Sub NetDownloadByClient(Url As String, LocalPath As String, Optional SimulateBrowserHeaders As Boolean = False)
+        Url = ResolveDownloadMirrorUrl(Url)
         Logger.Info($"通过网络请求直接下载小文件：{Url} → {LocalPath}")
         Dim RetryCount As Integer = 0
 Retry:
@@ -787,7 +790,8 @@ Retry:
         Public Sub New(Urls As IEnumerable(Of String), LocalPath As String, Optional Checker As FileChecker = Nothing, Optional SimulateBrowserHeaders As Boolean = False)
             Dim Sources As New List(Of NetSource)
             Dim Count As Integer = 0
-            Urls = Urls.Distinct.ToArray
+            '安装器及游戏文件使用所选镜像根地址。
+            Urls = Urls.Select(AddressOf ResolveDownloadMirrorUrl).Distinct.ToArray
             For Each Source As String In Urls
                 Sources.Add(New NetSource With {.FailCount = 0, .Url = SecretCdnSign(Source.ReplaceLineEndings("").Trim), .Id = Count, .IsFailed = False, .Ex = Nothing})
                 Count += 1
@@ -848,7 +852,7 @@ StartSingleThreadDownload:
                     Dim Source As NetSource = GetSource()
                     If Source Is Nothing Then Return Nothing
                     Dim TargetUrl As String = Source.Url
-                    If TargetUrl.Contains("pcl2-server") OrElse TargetUrl.Contains("meloong.com") OrElse TargetUrl.Contains("bmclapi") OrElse TargetUrl.Contains("github.com") OrElse
+                    If TargetUrl.Contains("pcl2-server") OrElse TargetUrl.Contains("meloong.com") OrElse IsMinecraftDownloadMirror(TargetUrl) OrElse TargetUrl.Contains("github.com") OrElse
                        TargetUrl.Contains("optifine.net") OrElse TargetUrl.Contains("momot.rs") Then Return Nothing
                     '寻找最大碎片
                     'FUTURE: 下载引擎重做，计算下载源平均链接时间和线程下载速度，按最高时间节省来开启多线程
@@ -1078,7 +1082,7 @@ SourceBreak:
             If IsMergeFailure OrElse IsRangeNotSupported OrElse
                ex.Message.Contains("(502)") OrElse ex.Message.Contains("(404)") OrElse
                ex.Message.Contains("未能解析") OrElse ex.Message.Contains("无返回数据") OrElse ex.Message.Contains("空间不足") OrElse
-               ((ex.Message.Contains("(403)") OrElse ex.Message.Contains("(429)")) AndAlso Not Th.Source.Url.Contains("bmclapi")) OrElse 'BMCLAPI 的部分源在高频率请求下会返回 403/429，所以不应因此禁用下载源
+               ((ex.Message.Contains("(403)") OrElse ex.Message.Contains("(429)")) AndAlso Not IsMinecraftDownloadMirror(Th.Source.Url)) OrElse 'BMCLAPI 的部分源在高频率请求下会返回 403/429，所以不应因此禁用下载源
                (Th.Source.FailCount >= NetTaskThreadLimit.Clamp(5, 30) AndAlso DownloadDone < 1) OrElse Th.Source.FailCount > NetTaskThreadLimit + 2 Then
                 '当一个下载源有多个线程在下载时，只选择其中一个线程进行后续处理
                 Dim IsThisFail As Boolean = False
@@ -1735,7 +1739,7 @@ FinishExCatch:
                         For Each File As NetFile In WaitingFiles
                             If NetTaskThreadCount >= NetTaskThreadLimit Then Continue While '最大线程数检查
                             Dim NewThread = File.TryBeginThread()
-                            If NewThread IsNot Nothing AndAlso NewThread.Source.Url.Contains("bmclapi") Then Thread.Sleep(100) '减少 BMCLAPI 请求频率
+                            If NewThread IsNot Nothing AndAlso IsMinecraftDownloadMirror(NewThread.Source.Url) Then Thread.Sleep(100) '减少 BMCLAPI 请求频率
                         Next
                         '为进行中的文件追加线程
                         If Speed >= NetTaskSpeedLimitLow Then Continue While '下载速度足够，无需新增
@@ -1755,7 +1759,7 @@ FinishExCatch:
                             '新增线程
                             If PreparingCount > DownloadingCount Then Continue For '准备中的线程已多于下载中的线程，不再新增
                             Dim NewThread = File.TryBeginThread()
-                            If NewThread IsNot Nothing AndAlso NewThread.Source.Url.Contains("bmclapi") Then Thread.Sleep(100) '减少 BMCLAPI 请求频率
+                            If NewThread IsNot Nothing AndAlso IsMinecraftDownloadMirror(NewThread.Source.Url) Then Thread.Sleep(100) '减少 BMCLAPI 请求频率
                         Next
                     End While
                 Catch ex As Exception

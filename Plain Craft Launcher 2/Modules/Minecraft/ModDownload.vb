@@ -1225,6 +1225,8 @@ Public Module ModDownload
     ''' 下载文件（而非获取版本列表）的时候，根据是否优先使用官方源决定使用 Url 的顺序。
     ''' </summary>
     Public Function DlSourceOrder(OfficialUrls As IEnumerable(Of String), MirrorUrls As IEnumerable(Of String)) As IEnumerable(Of String)
+        '只替换镜像地址，保留既有优先级。
+        MirrorUrls = MirrorUrls.Select(AddressOf ResolveDownloadMirrorUrl)
         Return If(DlSourcePreferMojang, OfficialUrls.Union(MirrorUrls), MirrorUrls.Union(OfficialUrls))
     End Function
     ''' <summary>
@@ -1239,6 +1241,7 @@ Public Module ModDownload
     ''' 获取版本列表（而非下载文件）的时候，根据是否优先使用官方源决定使用 Url 的顺序。
     ''' </summary>
     Public Function DlVersionListOrder(OfficialUrls As IEnumerable(Of String), MirrorUrls As IEnumerable(Of String)) As IEnumerable(Of String)
+        MirrorUrls = MirrorUrls.Select(AddressOf ResolveDownloadMirrorUrl)
         Return If(DlVersionListPreferMojang, OfficialUrls.Union(MirrorUrls), MirrorUrls.Union(OfficialUrls))
     End Function
 
@@ -1270,7 +1273,7 @@ Public Module ModDownload
                     Replace("https://piston-data.mojang.com", "https://bmclapi2.bangbang93.com/libraries").
                     Replace("https://piston-meta.mojang.com", "https://bmclapi2.bangbang93.com/libraries").
                     Replace("https://libraries.minecraft.net", "https://bmclapi2.bangbang93.com/libraries")
-            }
+            }.Select(AddressOf ResolveDownloadMirrorUrl).Distinct()
         Else
             Return DlSourceOrder(
                 {Original},
@@ -1303,14 +1306,8 @@ Public Module ModDownload
 
     'Mod 下载源
     Public Function DlSourceModGet(Original As String) As String
-        Return Original.
-            Replace("api.modrinth.com", "mod.mcimirror.top/modrinth").
-            Replace("staging-api.modrinth.com", "mod.mcimirror.top/modrinth").
-            Replace("cdn.modrinth.com", "mod.mcimirror.top").
-            Replace("api.curseforge.com", "mod.mcimirror.top/curseforge").
-            Replace("edge.forgecdn.net", "mod.mcimirror.top").
-            Replace("mediafilez.forgecdn.net", "mod.mcimirror.top").
-            Replace("media.forgecdn.net", "mod.mcimirror.top")
+        '社区镜像支持预设与自定义，按主机名精确匹配。
+        Return GetCommunityMirrorUrl(Original)
     End Function
 
     'Loader 自动切换
