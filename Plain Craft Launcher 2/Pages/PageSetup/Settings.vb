@@ -28,7 +28,6 @@ Public Class Settings
         New Setting("SystemDebugAnim", 9, Source:=Sources.Registry),
         New Setting("SystemDebugDelay", False, Source:=Sources.Registry),
         New Setting("SystemDebugSkipCopy", False, Source:=Sources.Registry),
-        New Setting("SystemSystemCache", "", Source:=Sources.Registry),
         New Setting("SystemLauncherUpdateNotify", True),
         New Setting("HintLauncherReleaseTag", ""),
         New Setting("SystemLauncherUpdateSource", 0),
