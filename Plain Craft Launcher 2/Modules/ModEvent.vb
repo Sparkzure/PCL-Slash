@@ -280,7 +280,24 @@ Public Class CustomEvent
                             PageInstanceLeft.Instance = McInstanceSelected
                         End If
                         FrmMain.PageChange(TargetPage,
-                            If(Args.Length = 1, PageSubType.Default, EnumUtils.FromString(Of PageSubType)(Arg1)))
+                            If(Args.Length = 1, PageSubType.Default, EnumUtils.FromString(Of PageSubType)(Args(1))))
+                        '可用第三个参数指定页面中的控件，在加载完成后将其居中显示。
+                        If Args.Length > 2 Then
+                            Dim TargetRight = FrmMain.PageRight
+                            Dim TargetControl = TryCast(TargetRight.FindName(Args(2)), FrameworkElement)
+                            If TargetControl Is Nothing Then Return
+                            If TargetRight.IsLoaded Then
+                                RunInUi(Sub() ScrollToPageTarget(TargetRight, TargetControl), True)
+                            Else
+                                Dim LoadedHandler As RoutedEventHandler = Nothing
+                                LoadedHandler =
+                                    Sub(sender As Object, e As RoutedEventArgs)
+                                        RemoveHandler TargetRight.Loaded, LoadedHandler
+                                        RunInUi(Sub() ScrollToPageTarget(TargetRight, TargetControl), True)
+                                    End Sub
+                                AddHandler TargetRight.Loaded, LoadedHandler
+                            End If
+                        End If
                     End Sub)
 
                 Case EventType.导入整合包, EventType.安装整合包
@@ -332,6 +349,17 @@ Public Class CustomEvent
         Catch ex As Exception
             Logger.Error(ex, $"事件执行失败（{Type}, {Arg}）", LogBehavior.Alert)
         End Try
+    End Sub
+
+    Private Shared Sub ScrollToPageTarget(Page As MyPageRight, Target As FrameworkElement)
+        Page.UpdateLayout()
+        Dim Scroll = If(String.IsNullOrEmpty(Page.PanScroll), Nothing, TryCast(Page.FindName(Page.PanScroll), ScrollViewer))
+        If Scroll Is Nothing Then
+            Target.BringIntoView()
+            Return
+        End If
+        Dim TargetCenter = Target.TranslatePoint(New Point(0, Target.ActualHeight / 2), Scroll).Y
+        Scroll.ScrollToVerticalOffset(Scroll.VerticalOffset + TargetCenter - Scroll.ViewportHeight / 2)
     End Sub
 
     ''' <summary>
