@@ -18,8 +18,6 @@
                         <RowDefinition Height="9" />
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
-                        <RowDefinition Height="9" />
-                        <RowDefinition Height="28" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
                     <TextBlock VerticalAlignment="Center" HorizontalAlignment="Left" Text="启动器更新" Margin="0,0,25,0" />
@@ -44,14 +42,7 @@
                                          HintText="https://exmple.com/repos/sparkzure/PCL-Slash/releases?per_page=100"
                                          ToolTip="填写完整的更新检查链接，例如 https://exmple.com/repos/sparkzure/PCL-Slash/releases?per_page=100。&#xa;前缀代理示例：https://exmple.com/https://api.github.com/repos/sparkzure/PCL-Slash/releases?per_page=100。&#xa;链接须返回 GitHub Releases 格式的 JSON，所选源仅用于检查启动器更新。" />
                     </Grid>
-                    <TextBlock Grid.Row="5" VerticalAlignment="Center" HorizontalAlignment="Left" Text="缓存文件夹" Margin="0,0,25,0" />
-                    <local:MyTextBox x:Name="TextSystemCache" IsEnabled="False" Grid.Row="5" Grid.ColumnSpan="2" local:SettingService.Key="SystemSystemCache" Grid.Column="1" ToolTip="便携模式固定保存在启动器所在文件夹的 PCL\Temp 中。" HintText="PCL\Temp（便携模式）">
-                        <local:MyTextBox.ValidateRules>
-                            <local:ValidateNullable />
-                            <local:ValidateFolderPath UseMinecraftCharCheck="False" />
-                        </local:MyTextBox.ValidateRules>
-                    </local:MyTextBox>
-                    <Grid Height="35" Grid.Row="6" Grid.ColumnSpan="5" Margin="0,12,0,0">
+                    <Grid Height="35" Grid.Row="4" Grid.ColumnSpan="5" Margin="0,12,0,0">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />
                             <ColumnDefinition Width="Auto" SharedSizeGroup="Button" />

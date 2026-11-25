@@ -14,6 +14,47 @@ Public Class PageLaunchRight
 
 #Region "主页"
 
+    Private Const SlashQuickStartContent As String = "
+        <local:MyCard Title=""Slash快速上手"" Margin=""0,0,0,15"">
+            <StackPanel Margin=""25,40,25,20"">
+                <TextBlock Text=""欢迎使用 PCL-Slash"" FontSize=""18"" Foreground=""{DynamicResource ColorBrush1}"" TextWrapping=""Wrap"" Margin=""0,0,0,10"" />
+                <TextBlock Text=""基于原版 PCL 的第三方分支，独立维护与发布。启动、下载和版本选择沿用原版操作。"" TextWrapping=""Wrap"" />
+                <TextBlock Text=""如需关闭此预设，请前往 设置 → 个性化 → 主页，选择「空白」。"" TextWrapping=""Wrap"" Margin=""0,8,0,0"" />
+                <local:MyButton Text=""主页预设设置"" EventType=""切换页面"" EventData=""Setup|SetupUI|CardCustom"" Height=""32"" Padding=""15,0"" Margin=""0,12,0,0"" HorizontalAlignment=""Left"" />
+            </StackPanel>
+        </local:MyCard>
+        <local:MyCard Title=""1 · 迁入原版数据"" Margin=""0,0,0,15"">
+            <StackPanel Margin=""25,40,25,20"">
+                <TextBlock Text=""将两个启动器放在独立且互不包含的目录，关闭原版 PCL 及游戏，再到 设置 → 启动器 → PCL2 迁入。"" TextWrapping=""Wrap"" />
+                <TextBlock Text=""迁入会复制设置和游戏，保留原版数据，但会覆盖 Slash 对应设置。已有设置请先导出；完成后重开 Slash 并重新登录。"" TextWrapping=""Wrap"" Margin=""0,8,0,12"" />
+                <local:MyButton Text=""迁入与备份"" EventType=""切换页面"" EventData=""Setup|SetupLauncher"" Height=""32"" Padding=""15,0"" HorizontalAlignment=""Left"" ColorType=""Highlight"" />
+            </StackPanel>
+        </local:MyCard>
+        <local:MyCard Title=""2 · 常用设置"" Margin=""0,0,0,15"">
+            <StackPanel Margin=""25,40,25,12"">
+                <TextBlock Text=""启动：Java、内存与启动参数。游戏功能：离线皮肤和游戏更新提示。"" TextWrapping=""Wrap"" />
+                <TextBlock Text=""下载：镜像与下载策略。个性化：主题、背景、主页与功能隐藏。"" TextWrapping=""Wrap"" Margin=""0,8,0,0"" />
+                <TextBlock Text=""F12 可临时显示隐藏功能。"" TextWrapping=""Wrap"" Margin=""0,8,0,12"" />
+                <WrapPanel>
+                    <local:MyButton Text=""启动设置"" EventType=""切换页面"" EventData=""Setup|SetupLaunch"" Height=""32"" Padding=""15,0"" Margin=""0,0,10,8"" />
+                    <local:MyButton Text=""游戏功能"" EventType=""切换页面"" EventData=""Setup|SetupGame"" Height=""32"" Padding=""15,0"" Margin=""0,0,10,8"" />
+                    <local:MyButton Text=""下载设置"" EventType=""切换页面"" EventData=""Setup|SetupDownload"" Height=""32"" Padding=""15,0"" Margin=""0,0,10,8"" />
+                    <local:MyButton Text=""个性化"" EventType=""切换页面"" EventData=""Setup|SetupUI"" Height=""32"" Padding=""15,0"" Margin=""0,0,0,8"" />
+                </WrapPanel>
+            </StackPanel>
+        </local:MyCard>
+        <local:MyCard Title=""3 · 备份与更新"" Margin=""0,0,0,15"">
+            <StackPanel Margin=""25,40,25,12"">
+                <TextBlock Text=""设置 → 启动器 可导入、导出配置、外观资源与实例整合包。备份不含账号、Java 路径、游戏本体及运行资源，恢复后需联网补全。"" TextWrapping=""Wrap"" />
+                <TextBlock Text=""配置与缓存位于启动器旁的 PCL 文件夹。新版请按提示前往 Slash 发布页下载，手动更新。"" TextWrapping=""Wrap"" Margin=""0,8,0,12"" />
+                <WrapPanel>
+                    <local:MyButton Text=""查看更新"" EventType=""检查更新"" Height=""32"" Padding=""15,0"" Margin=""0,0,10,8"" />
+                    <local:MyButton Text=""关于 Slash"" EventType=""切换页面"" EventData=""Other|OtherAbout"" Height=""32"" Padding=""15,0"" Margin=""0,0,10,8"" />
+                    <local:MyButton Text=""问题反馈"" EventType=""打开网页"" EventData=""{x:Static local:ModBase.FeedbackUrl}"" Height=""32"" Padding=""15,0"" Margin=""0,0,0,8"" />
+                </WrapPanel>
+            </StackPanel>
+        </local:MyCard>"
+
     ''' <summary>
     ''' 刷新主页。
     ''' </summary>
@@ -41,95 +82,8 @@ Public Class PageLaunchRight
                 Url = Settings.Get(Of String)("UiCustomNet")
             Case 3
                 '预设
-                Select Case Settings.Get(Of Integer)("UiCustomPreset")
-                    Case 0
-                        Logger.Info("主页预设：你知道吗")
-                        Content = "
-                            <local:MyCard Title=""你知道吗？"" Margin=""0,0,0,15"">
-                                <TextBlock Margin=""25,38,23,15"" FontSize=""13.5"" IsHitTestVisible=""False"" Text=""{hint}"" TextWrapping=""Wrap"" Foreground=""{DynamicResource ColorBrush1}"" />
-                                <local:MyIconButton Height=""22"" Width=""22"" Margin=""9"" VerticalAlignment=""Top"" HorizontalAlignment=""Right"" 
-                                    EventType=""刷新主页"" EventData=""/""
-                                    Logo=""M512.0 838.3c-80.2 0-153.4-29.3-210.2-77.4l75.5-75.5c11.5-11.5 25.8-22.0 25.8-37.0a27.2 27.2 0 0 0-27.1-27.1H104.0c-27.1 0-27.1 23.9-27.1 27.1v271.9a27.1 27.1 0 0 0 27.1 27.1c15.0 0 27.8-16.6 42.5-31.2l77.9-77.9c76.6 67.7 177.1 108.9 287.4 108.9 221.7 0 404.5-166.0 431.2-380.6h-109.8c-25.9 154.2-159.7 271.9-321.3 271.9zM919.9 76.6c-15.0 0-27.8 16.6-42.5 31.3L799.5 185.8c-76.5-67.7-177.1-108.9-287.4-108.9-221.8 0-404.5 166.1-431.3 380.6H190.6c25.9-154.2 159.7-271.9 321.4-271.9 80.2 0 153.4 29.3 210.1 77.4l-75.5 75.5c-11.6 11.5-25.8 22.0-25.8 37.1a27.2 27.2 0 0 0 27.1 27.1h271.9c27.1 0 27.1-23.9 27.1-27.1V103.8a27.1 27.1 0 0 0-27.1-27.1z"" />
-                            </local:MyCard>"
-                    Case 1
-                        Logger.Info("主页预设：回声洞")
-                        Content = "
-                            <local:MyCard Title=""回声洞"" Margin=""0,0,0,15"">
-                                <TextBlock Margin=""25,38,23,15"" FontSize=""13.5"" IsHitTestVisible=""False"" Text=""{cave}"" TextWrapping=""Wrap"" Foreground=""{DynamicResource ColorBrush1}"" />
-                                <local:MyIconButton Height=""22"" Width=""22"" Margin=""9"" VerticalAlignment=""Top"" HorizontalAlignment=""Right"" 
-                                    EventType=""刷新主页"" EventData=""/""
-                                    Logo=""M512.0 838.3c-80.2 0-153.4-29.3-210.2-77.4l75.5-75.5c11.5-11.5 25.8-22.0 25.8-37.0a27.2 27.2 0 0 0-27.1-27.1H104.0c-27.1 0-27.1 23.9-27.1 27.1v271.9a27.1 27.1 0 0 0 27.1 27.1c15.0 0 27.8-16.6 42.5-31.2l77.9-77.9c76.6 67.7 177.1 108.9 287.4 108.9 221.7 0 404.5-166.0 431.2-380.6h-109.8c-25.9 154.2-159.7 271.9-321.3 271.9zM919.9 76.6c-15.0 0-27.8 16.6-42.5 31.3L799.5 185.8c-76.5-67.7-177.1-108.9-287.4-108.9-221.8 0-404.5 166.1-431.3 380.6H190.6c25.9-154.2 159.7-271.9 321.4-271.9 80.2 0 153.4 29.3 210.1 77.4l-75.5 75.5c-11.6 11.5-25.8 22.0-25.8 37.1a27.2 27.2 0 0 0 27.1 27.1h271.9c27.1 0 27.1-23.9 27.1-27.1V103.8a27.1 27.1 0 0 0-27.1-27.1z"" />
-                            </local:MyCard>"
-                    Case 2
-                        Logger.Info("主页预设：Minecraft 新闻")
-                        Url = "https://mcnews.meloong.com"
-                    Case 3
-                        Logger.Info("主页预设：简单主页")
-                        Url = "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/MFn233/Custom.xaml"
-                    Case 4
-                        Logger.Info("主页预设：每日整合包推荐")
-                        Url = "https://pclsub.sodamc.com/"
-                    Case 5
-                        Logger.Info("主页预设：Minecraft 皮肤推荐")
-                        Url = "https://forgepixel.com/pcl_sub_file"
-                    Case 6
-                        Logger.Info("主页预设：OpenBMCLAPI 仪表盘 Lite")
-                        Url = "https://pcl-bmcl.milu.ink/"
-                    Case 7
-                        Logger.Info("主页预设：主页市场")
-                        Url = "https://pclhomeplazaoss.lingyunawa.top:26994/p/Homepages/Homepage.Market/Custom.xaml"
-                    Case 8
-                        Logger.Info("主页预设：更新日志")
-                        Url = "https://pclhomeplazaoss.lingyunawa.top:26994/d/Homepages/Joker2184/UpdateHomepage.xaml"
-                    Case 9
-                        Logger.Info("主页预设：PCL 新功能说明书")
-                        Url = "https://raw.gitcode.com/WForst-Breeze/WhatsNewPCL/raw/main/Custom.xaml"
-                    Case 10
-                        Logger.Info("主页预设：OpenMCIM Dashboard")
-                        Url = "https://files.mcimirror.top/PCL"
-                    Case 11
-                        Logger.Info("主页预设：杂志主页")
-                        Url = "https://gh-proxy.com/https://github.com/Neclyon/Magazine-Homepage-PCL/raw/main/output/Custom.xaml"
-                    Case 12
-                        Logger.Info("主页预设：PCL GitHub 仪表盘")
-                        Url = "https://ddf.pcl-community.top/Custom.xaml"
-                    Case 13
-                        Logger.Info("主页预设：PCL-Slash 更新摘要")
-                        Url = "https://raw.gitcode.com/ENC_Euphony/PCL-AI-Summary-HomePage/raw/master/Custom.xaml"
-                    Case 14
-                        Logger.Info("主页预设：今日新闻热点")
-                        Url = "https://pcl.wyc-w.top/index.xaml"
-                    Case 15
-                        Logger.Info("主页预设：Minecraft 芝士站")
-                        Url = "https://mkss-services.awaeric.xyz"
-                    Case 16
-                        Logger.Info("主页预设：整合包推荐引擎")
-                        Url = "https://qawsedrftgyhujiko.fun/pcl2/Custom.xaml"
-                    Case 17
-                        Logger.Info("主页预设：Bangumi 番剧主页")
-                        Url = "https://bangumi.p.kaphia.top"
-                    Case 18
-                        Logger.Info("主页预设：Bilibili 热门")
-                        Url = "https://bilibili.p.kaphia.top"
-                    Case 19
-                        Logger.Info("主页预设：Music 云音乐热门")
-                        Url = "https://cloudmusic.p.kaphia.top"
-                    Case 20
-                        Logger.Info("主页预设：模组推荐")
-                        Url = "https://g-fish.dpdns.org/download/ModPage.xaml"
-                    Case 21
-                        Logger.Info("主页预设：每日游戏推荐")
-                        Url = "https://pcl.xn--9iq209asnop94b.top/download/GamePage.xaml"
-                    Case 22
-                        Logger.Info("主页预设：Wallpaper 每日壁纸")
-                        Url = "https://wallpaper.p.kaphia.top"
-                    Case 23
-                        Logger.Info("主页预设：Weather 天气预报")
-                        Url = "https://weather-p.kaphia.top/{variable:PCLDailyWeatherPage:choose}.xaml"
-                    Case 24
-                        Logger.Info("主页预设：新一代狗屁王大杂烩主页")
-                        Url = "https://end.g-fish.dpdns.org/Custom.xaml"
-                End Select
+                Logger.Info("主页预设：Slash快速上手")
+                Content = SlashQuickStartContent
         End Select
         '联网下载
         If Not String.IsNullOrWhiteSpace(Url) Then
