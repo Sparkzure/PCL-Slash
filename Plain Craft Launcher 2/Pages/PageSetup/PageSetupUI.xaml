@@ -62,16 +62,18 @@
                                               Grid.Column="2" Grid.Row="0" Text="苍绿色" x:Name="RadioLauncherThemeCangGreen" ToolTip="守护世界上最好的公主殿下！" />
                             <local:MyRadioBox local:SettingService.Key="UiThemeSelected" local:SettingService.Value="totoro-blue"
                                               Grid.Column="3" Grid.Row="0" Text="龙猫蓝" x:Name="RadioLauncherThemeTotoroBlue" ToolTip="原汁原味PCL默认主题！" />
+                            <local:MyRadioBox local:SettingService.Key="UiThemeSelected" local:SettingService.Value="night-black"
+                                              Grid.Column="4" Grid.Row="0" Text="暗夜黑" x:Name="RadioLauncherThemeNightBlack" ToolTip="深色背景与明亮文字，对眼睛的极致宠爱！。" />
                             <local:MyRadioBox local:SettingService.Key="UiThemeSelected" local:SettingService.Value="lemon-cyan"
-                                              Grid.Column="4" Grid.Row="0" Text="甜柠青" x:Name="RadioLauncherThemeLemonCyan" ToolTip="甜蜜的柠檬色，清新又不失活力" />
+                                              Grid.Column="5" Grid.Row="0" Text="甜柠青" x:Name="RadioLauncherThemeLemonCyan" ToolTip="甜蜜的柠檬色，清新又不失活力" />
                             <local:MyRadioBox local:SettingService.Key="UiThemeSelected" local:SettingService.Value="grass-green"
-                                              Grid.Column="5" Grid.Row="0" Text="小草绿" x:Name="RadioLauncherThemeGrassGreen" ToolTip="清新自然的绿色，充满生机" />
+                                              Grid.Column="1" Grid.Row="1" Text="小草绿" x:Name="RadioLauncherThemeGrassGreen" ToolTip="清新自然的绿色，充满生机" />
                             <local:MyRadioBox local:SettingService.Key="UiThemeSelected" local:SettingService.Value="pineapple-yellow"
-                                              Grid.Column="1" Grid.Row="1" Text="菠萝黄" x:Name="RadioLauncherThemePineappleYellow" ToolTip="阳光明媚的黄色，带来温暖和快乐" />
+                                              Grid.Column="2" Grid.Row="1" Text="菠萝黄" x:Name="RadioLauncherThemePineappleYellow" ToolTip="阳光明媚的黄色，带来温暖和快乐" />
                             <local:MyRadioBox local:SettingService.Key="UiThemeSelected" local:SettingService.Value="oak-brown"
-                                              Grid.Column="2" Grid.Row="1" Text="橡木棕" x:Name="RadioLauncherThemeOakBrown" ToolTip="温暖的棕色，带来家的感觉" />
+                                              Grid.Column="3" Grid.Row="1" Text="橡木棕" x:Name="RadioLauncherThemeOakBrown" ToolTip="温暖的棕色，带来家的感觉" />
                             <local:MyRadioBox local:SettingService.Key="UiThemeSelected" local:SettingService.Value="custom"
-                                              Grid.Column="3" Grid.Row="1" Text="自定义" x:Name="RadioLauncherThemeCustom" IsEnabled="False" ToolTip="解锁 5 个隐藏主题后开放自定义配色" />
+                                              Grid.Column="4" Grid.Row="1" Text="自定义" x:Name="RadioLauncherThemeCustom" IsEnabled="False" ToolTip="解锁 5 个隐藏主题后开放自定义配色" />
                             <local:MyRadioBox local:SettingService.Key="UiThemeSelected" local:SettingService.Value="monochrome-black"
                                               Grid.Column="1" Grid.Row="3" Text="玄素黑" x:Name="RadioLauncherThemeMonochromeBlack" IsEnabled="False" ToolTip="灰色是个谎言" />
                             <local:MyRadioBox local:SettingService.Key="UiThemeSelected" local:SettingService.Value="funny-rainbow"

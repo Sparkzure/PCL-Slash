@@ -58,6 +58,7 @@ Friend Module ModSecret
         Public Const Custom As String = "custom"
         Public Const TianyiBlue As String = "tianyi-blue"
         Public Const CangGreen As String = "cang-green"
+        Public Const NightBlack As String = "night-black"
     End Class
     Public Const DefaultThemeKey As String = LauncherTheme.TianyiBlue
     Private ReadOnly HiddenThemes As String() = {
@@ -95,6 +96,11 @@ Friend Module ModSecret
     Public ColorSemiTransparent As New MyColor(1, Color8)
 
     Public CurrentTheme As String = DefaultThemeKey
+    Public ReadOnly Property IsDarkTheme As Boolean
+        Get
+            Return CurrentTheme = LauncherTheme.NightBlack
+        End Get
+    End Property
     Public ColorHue As Integer = 210, ColorSat As Integer = 85, ColorLightAdjust As Integer = 0, ColorHueTopbarDelta As OneOf(Of Integer, Integer()) = 0
     Public ThemeDontClick As Integer = 0
 
@@ -145,6 +151,8 @@ Friend Module ModSecret
                     ColorHue = 200 : ColorSat = 100
                 Case LauncherTheme.CangGreen '苍绿色
                     ColorHue = 176 : ColorSat = 55
+                Case LauncherTheme.NightBlack '暗夜黑
+                    ColorHue = 215 : ColorSat = 18 : ColorLightAdjust = -37
             End Select
 
             Color1 = New MyColor().FromHSL2(ColorHue, ColorSat * 0.2, 25 + ColorLightAdjust * 0.3)
@@ -174,8 +182,18 @@ Friend Module ModSecret
                 Color6 = New MyColor(208, 240, 237)
                 Color7 = New MyColor(226, 246, 244)
                 Color8 = New MyColor(239, 251, 249)
+            ElseIf IsDarkTheme Then
+                Color1 = New MyColor("#E5E9F0")
+                Color2 = New MyColor("#8BC8F5")
+                Color3 = New MyColor("#64B5F6")
+                Color4 = New MyColor("#82C7FF")
+                Color5 = New MyColor("#46566B")
+                Color6 = New MyColor("#2A3645")
+                Color7 = New MyColor("#253345")
+                Color8 = New MyColor("#202A38")
             End If
-            ColorBg0 = Color4 * 0.4 + Color5 * 0.4 + ColorGray4 * 0.2
+            ThemeRefreshSurfaces()
+            ColorBg0 = If(IsDarkTheme, New MyColor("#53657D"), Color4 * 0.4 + Color5 * 0.4 + ColorGray4 * 0.2)
             ColorBg1 = New MyColor(190, Color7)
 
             ColorSemiTransparent = New MyColor(1, Color8)
@@ -199,10 +217,74 @@ Friend Module ModSecret
             Application.Current.Resources("ColorObject8") = CType(Color8, Color)
             Application.Current.Resources("ColorObjectBg0") = CType(ColorBg0, Color)
             Application.Current.Resources("ColorObjectBg1") = CType(ColorBg1, Color)
+            Application.Current.Resources("ColorObjectShadow") = CType(If(IsDarkTheme, New MyColor(0, 0, 0), Color1), Color)
+            Application.Current.Resources("ColorBrushTitleText") = New SolidColorBrush(If(IsDarkTheme, Color1, Color8))
             ThemeRefreshMain()
         Catch ex As Exception
             Logger.Error(ex, "刷新主题颜色失败", LogBehavior.Toast)
         End Try
+    End Sub
+    Private Sub ThemeRefreshSurfaces()
+        '表面和中性色随手动选择的主题切换；切回浅色时完整恢复，避免缓存页面保留暗色。
+        Static LastDark As Boolean? = Nothing
+        If LastDark.HasValue AndAlso LastDark.Value = IsDarkTheme Then Return
+        Static TooltipsInitialized As Boolean = False
+        If Not TooltipsInitialized Then
+            TooltipsInitialized = True
+            '显式停用现代提示框时，原生提示框仍使用当前主题的应用样式。
+            EventManager.RegisterClassHandler(GetType(ToolTip), ToolTip.OpenedEvent,
+                New RoutedEventHandler(AddressOf ThemeBindNativeTooltip), True)
+        End If
+        Dim Grays = If(IsDarkTheme,
+            New String() {"#D4DBE5", "#BAC4D0", "#A5B0BF", "#98A7BC", "#65748A", "#303A49", "#27313F", "#222B38"},
+            New String() {"#404040", "#737373", "#8C8C8C", "#A6A6A6", "#CCCCCC", "#EBEBEB", "#F0F0F0", "#F5F5F5"})
+        ColorGray1 = New MyColor(Grays(0)) : ColorGray2 = New MyColor(Grays(1))
+        ColorGray3 = New MyColor(Grays(2)) : ColorGray4 = New MyColor(Grays(3))
+        ColorGray5 = New MyColor(Grays(4)) : ColorGray6 = New MyColor(Grays(5))
+        ColorGray7 = New MyColor(Grays(6)) : ColorGray8 = New MyColor(Grays(7))
+        For i = 0 To Grays.Length - 1
+            Dim Value As New MyColor(Grays(i))
+            Application.Current.Resources("ColorBrushGray" & (i + 1)) = New SolidColorBrush(Value)
+            Application.Current.Resources("ColorObjectGray" & (i + 1)) = CType(Value, Color)
+        Next
+        Dim Surfaces As New Dictionary(Of String, String()) From {
+            {"CardBackground", {"#F5FFFFFF", "#F5222B38"}},
+            {"PopupBackground", {"#FFFFFF", "#283343"}},
+            {"DialogBackground", {"#FBFBFB", "#222B38"}},
+            {"HalfWhite", {"#55FFFFFF", "#553C4B60"}},
+            {"SemiWhite", {"#BBFFFFFF", "#BB222B38"}},
+            {"BackgroundTransparentSidebar", {"#F1FFFFFF", "#F11C2430"}},
+            {"TitleSelected", {"#FFFFFF", "#34445B"}},
+            {"OnAccent", {"#FFFFFF", "#141B24"}},
+            {"RedBack", {"#80FBDDDD", "#803F232B"}},
+            {"RedLight", {"#FF4C4C", "#FF939C"}},
+            {"RedDark", {"#CE2111", "#FF9CA4"}},
+            {"HintBlueBackground", {"#D9ECFF", "#22394F"}},
+            {"HintBlueBorder", {"#1172D4", "#64B5F6"}},
+            {"HintBlueText", {"#0F64B8", "#ACD8FF"}},
+            {"HintRedBackground", {"#FFDDDF", "#442C36"}},
+            {"HintRedBorder", {"#D82929", "#EF7F89"}},
+            {"HintRedText", {"#BF0B0B", "#FFB4BC"}},
+            {"HintYellowBackground", {"#FFEBD7", "#423626"}},
+            {"HintYellowBorder", {"#F57A00", "#E8B468"}},
+            {"HintYellowText", {"#D86C00", "#FFD39A"}}}
+        For Each Pair In Surfaces
+            Application.Current.Resources("ColorBrush" & Pair.Key) = New SolidColorBrush(New MyColor(Pair.Value(If(IsDarkTheme, 1, 0))))
+        Next
+        If IsDarkTheme Then
+            ModernTooltipService.SetColors(DirectCast(Application.Current.Resources("ColorBrushPopupBackground"), Brush),
+                                          DirectCast(Application.Current.Resources("ColorBrushGray5"), Brush), New SolidColorBrush(Color1))
+        Else
+            ModernTooltipService.SetColors()
+        End If
+        LastDark = IsDarkTheme
+    End Sub
+    Private Sub ThemeBindNativeTooltip(Sender As Object, e As RoutedEventArgs)
+        Dim Tip = DirectCast(Sender, ToolTip)
+        '由 WPF 自动创建的提示容器也需要明确查找应用样式；保留调用方提供的自定义样式。
+        If Tip.ReadLocalValue(FrameworkElement.StyleProperty) Is DependencyProperty.UnsetValue OrElse Tip.Style Is Nothing Then
+            Tip.SetResourceReference(FrameworkElement.StyleProperty, GetType(ToolTip))
+        End If
     End Sub
     Friend Sub ThemeRefreshTitle(TitleBar As Grid, TitleImage As MyImage)
         Dim Brush = New LinearGradientBrush With {.EndPoint = New Point(1, 0), .StartPoint = New Point(0, 0)}
@@ -248,20 +330,24 @@ Friend Module ModSecret
         Sub()
             If Not FrmMain.IsLoaded Then Return
             ThemeRefreshTitle(FrmMain.PanTitle, FrmMain.ImgTitleTexture)
-            '主页面背景
-            Dim Brush As LinearGradientBrush
-            If Settings.Get(Of Boolean)("UiThemeColorfulBackground") Then
-                Brush = New LinearGradientBrush With {.EndPoint = New Point(0.1, 1), .StartPoint = New Point(0.9, 0)}
-                Brush.GradientStops.Add(New GradientStop With {.Offset = -0.1, .Color = New MyColor().FromHSL2(ColorHue - 15, ColorSat * 0.8, 91)})
-                Brush.GradientStops.Add(New GradientStop With {.Offset = 0.4, .Color = New MyColor().FromHSL2(ColorHue, ColorSat * 0.8, 91)})
-                Brush.GradientStops.Add(New GradientStop With {.Offset = 1.1, .Color = New MyColor().FromHSL2(ColorHue + 15, ColorSat * 0.8, 91)})
-                FrmMain.PanForm.Background = Brush
-            Else
-                FrmMain.PanForm.Background = New MyColor(245, 245, 245)
-            End If
-            FrmMain.PanForm.Background.Freeze()
+            FrmMain.PanForm.Background = ThemeCreateBackground()
         End Sub)
     End Sub
+    Friend Function ThemeCreateBackground() As Brush
+        Dim Result As Brush
+        If Settings.Get(Of Boolean)("UiThemeColorfulBackground") Then
+            Dim Gradient As New LinearGradientBrush With {.EndPoint = New Point(0.1, 1), .StartPoint = New Point(0.9, 0)}
+            Dim Lightness = If(IsDarkTheme, 11, 91)
+            Gradient.GradientStops.Add(New GradientStop With {.Offset = -0.1, .Color = New MyColor().FromHSL2(ColorHue - 15, ColorSat * 0.8, Lightness)})
+            Gradient.GradientStops.Add(New GradientStop With {.Offset = 0.4, .Color = New MyColor().FromHSL2(ColorHue, ColorSat * 0.8, Lightness)})
+            Gradient.GradientStops.Add(New GradientStop With {.Offset = 1.1, .Color = New MyColor().FromHSL2(ColorHue + 15, ColorSat * 0.8, Lightness)})
+            Result = Gradient
+        Else
+            Result = New SolidColorBrush(If(IsDarkTheme, New MyColor("#161D27"), New MyColor(245, 245, 245)))
+        End If
+        Result.Freeze()
+        Return Result
+    End Function
     Friend Sub ThemeCheckAll(EffectSetup As Boolean)
         Dim SelectedTheme = Settings.Get(Of String)("UiThemeSelected")
         If Not ThemeCheckOne(SelectedTheme) Then Settings.Set("UiThemeSelected", DefaultThemeKey)
@@ -270,7 +356,7 @@ Friend Module ModSecret
     Friend Function ThemeCheckOne(Key As String) As Boolean
         Select Case Key
             Case LauncherTheme.TotoroBlue, LauncherTheme.LemonCyan, LauncherTheme.GrassGreen,
-                 LauncherTheme.PineappleYellow, LauncherTheme.OakBrown, LauncherTheme.TianyiBlue, LauncherTheme.CangGreen
+                 LauncherTheme.PineappleYellow, LauncherTheme.OakBrown, LauncherTheme.TianyiBlue, LauncherTheme.CangGreen, LauncherTheme.NightBlack
                 Return True
             Case LauncherTheme.Custom
                 Return ThemeHiddenUnlockedCount() >= 5

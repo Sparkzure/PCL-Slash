@@ -1,10 +1,12 @@
-﻿param([string]$PreviewPath, [string]$TitlePreviewPath)
+param([string]$PreviewPath, [string]$TitlePreviewPath, [string]$DarkPreviewPath, [string]$TooltipPreviewPath)
 $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $exe = Join-Path $repoRoot 'Plain Craft Launcher 2\bin\Plain Craft Launcher Slash.exe'
 # Keep test settings in the workspace instead of the user's registry or settings.
 $testRoot = Join-Path $repoRoot ('.tool\cache\theme-tests-' + [Guid]::NewGuid().ToString('N'))
 [IO.Directory]::CreateDirectory($testRoot) | Out-Null
+[IO.Directory]::CreateDirectory((Join-Path $testRoot 'PCL')) | Out-Null
+[IO.File]::WriteAllText((Join-Path $testRoot 'PCL\Portable.json'), '{}', [Text.UTF8Encoding]::new($false))
 $oldBase = [AppDomain]::CurrentDomain.BaseDirectory
 [AppDomain]::CurrentDomain.SetData('APPBASE', $testRoot + '\')
 $application = $null
@@ -12,13 +14,15 @@ try {
     $assembly = [Reflection.Assembly]::LoadFrom($exe)
     $application = [Activator]::CreateInstance($assembly.GetType('PCL.Application'), $true)
     $application.InitializeComponent()
+    $wpfAssembly = [Reflection.Assembly]::LoadFrom((Join-Path $repoRoot 'Plain Craft Launcher 2\bin\MeloongCore.Wpf.dll'))
+    $wpfAssembly.GetType('MeloongCore.Wpf.Main').GetMethod('Init').Invoke($null, @())
     $themeType = $assembly.GetType('PCL.ModSecret')
     $themeNames = @{
         'totoro-blue' = 'TotoroBlue'; 'lemon-cyan' = 'LemonCyan'; 'grass-green' = 'GrassGreen'
         'pineapple-yellow' = 'PineappleYellow'; 'oak-brown' = 'OakBrown'; 'monochrome-black' = 'MonochromeBlack'
         'loyal-pink' = 'LoyalPink'; 'mystery-purple' = 'MysteryPurple'; 'active-orange' = 'ActiveOrange'
         'delayed-red' = 'DelayedRed'; 'geek-blue' = 'GeekBlue'; 'funny-rainbow' = 'FunnyRainbow'
-        'lucky-rainbow' = 'LuckyRainbow'; 'custom' = 'Custom'; 'tianyi-blue' = 'TianyiBlue'; 'cang-green' = 'CangGreen'
+        'lucky-rainbow' = 'LuckyRainbow'; 'custom' = 'Custom'; 'tianyi-blue' = 'TianyiBlue'; 'cang-green' = 'CangGreen'; 'night-black' = 'NightBlack'
     }
     $themeKeys = $themeType.GetNestedType('LauncherTheme')
     if ($themeKeys.IsEnum) { throw 'Theme keys still use a numeric enum' }
@@ -50,7 +54,7 @@ try {
     $themePage = [Activator]::CreateInstance($assembly.GetType('PCL.PageSetupUI'))
     $assembly.GetType('PCL.ModMain').GetField('FrmSetupUI').SetValue($null, $themePage)
     $themePage.RefreshThemeChoices()
-    $basic = @('totoro-blue', 'lemon-cyan', 'grass-green', 'pineapple-yellow', 'oak-brown', 'tianyi-blue', 'cang-green')
+    $basic = @('totoro-blue', 'lemon-cyan', 'grass-green', 'pineapple-yellow', 'oak-brown', 'tianyi-blue', 'cang-green', 'night-black')
     $secrets = @('monochrome-black', 'loyal-pink', 'mystery-purple', 'active-orange', 'delayed-red', 'geek-blue', 'funny-rainbow', 'lucky-rainbow')
     foreach ($saved in @('5|6|7|9|10', '[5,6,7,9,10]', '["5","6","7","9","10"]', '["tianyi-blue","custom","unknown"]', '{"monochrome-black":true}', 'invalid-json')) {
         $unlockEntry.Set($saved, $null)
@@ -146,7 +150,7 @@ try {
     $themePage.FindName('RadioLauncherThemeMonochromeBlack').Checked = $true
     if ($themePage.FindName('RadioLauncherThemeTianyiBlue').Checked) { throw 'Sections no longer share a radio selection group' }
     $positions = @($themePage.FindName('PanLauncherTheme').Children | Where-Object { $_.GetType().Name -eq 'MyRadioBox' } | ForEach-Object { '{0},{1}' -f [Windows.Controls.Grid]::GetRow($_), [Windows.Controls.Grid]::GetColumn($_) })
-    if (($positions | Select-Object -Unique).Count -ne 16) { throw 'Theme selectors overlap after unlocking' }
+    if (($positions | Select-Object -Unique).Count -ne 17) { throw 'Theme selectors overlap after unlocking' }
     $colors = @{}
     foreach ($key in ($basic + $secrets + @('custom'))) {
         $refresh.Invoke($null, @($key))
@@ -154,6 +158,192 @@ try {
         if ($themeType.GetField('CurrentTheme').GetValue($null) -ne $key) { throw "Theme $key did not activate" }
     }
     if (($colors.Values | Select-Object -Unique).Count -lt 12) { throw 'Theme switching did not change palettes' }
+    # Existing controls must update in place in both directions, including popups and disabled fields.
+    $refresh.Invoke($null, @('tianyi-blue'))
+    $surfaceKeys = @('ColorBrushCardBackground', 'ColorBrushPopupBackground', 'ColorBrushDialogBackground',
+        'ColorBrushHalfWhite', 'ColorBrushSemiWhite', 'ColorBrushBackgroundTransparentSidebar',
+        'ColorBrushTitleSelected', 'ColorBrushTitleText', 'ColorBrushOnAccent', 'ColorBrushRedBack', 'ColorBrushRedDark', 'ColorBrushRedLight') +
+        @(1..8 | ForEach-Object { 'ColorBrushGray' + $_ }) +
+        @('Blue', 'Red', 'Yellow' | ForEach-Object { 'ColorBrushHint' + $_ + 'Background'; 'ColorBrushHint' + $_ + 'Text' })
+    $lightSurfaces = @{}
+    foreach ($key in $surfaceKeys) { $lightSurfaces[$key] = $application.Resources[$key].ToString() }
+    $button = [Activator]::CreateInstance($assembly.GetType('PCL.MyButton'))
+    $textBox = [Activator]::CreateInstance($assembly.GetType('PCL.MyTextBox'))
+    $textBox.Style = $application.Resources[$textBox.GetType()]
+    $textBox.IsEnabled = $false
+    $textBox.Measure([Windows.Size]::new(240, 28))
+    $combo = [Activator]::CreateInstance($assembly.GetType('PCL.MyComboBox'))
+    $combo.Style = $application.Resources[$combo.GetType()]
+    $combo.Items.Add('Synthetic option') | Out-Null
+    $combo.Measure([Windows.Size]::new(240, 28))
+    $combo.ApplyTemplate() | Out-Null
+    $popupPanel = $combo.Template.FindName('PanPopup', $combo)
+    $hint = [Activator]::CreateInstance($assembly.GetType('PCL.MyHint'))
+    $hint.Theme = [Enum]::Parse($assembly.GetType('PCL.MyHint+Themes'), 'Blue')
+    $tipOwner = [Windows.Controls.TextBlock]::new()
+    $tipOwner.ToolTip = 'Synthetic tooltip'
+    $tipOwner.RaiseEvent([Windows.RoutedEventArgs]::new([Windows.FrameworkElement]::LoadedEvent))
+    $tooltipType = [MeloongCore.Wpf.ModernTooltipService]
+    $customTipOwner = [Windows.Controls.TextBlock]::new()
+    $customTipOwner.ToolTip = 'Synthetic custom tooltip'
+    $tooltipType::SetUseModernTooltip($customTipOwner, $false)
+    $customTipOwner.RaiseEvent([Windows.RoutedEventArgs]::new([Windows.FrameworkElement]::LoadedEvent))
+    # Application resource invalidation reaches controls through a window's logical tree.
+    # Keep the probe window hidden so no launcher loaders or user data are involved.
+    $probeWindow = [Windows.Window]::new()
+    $probePanel = [Windows.Controls.StackPanel]::new()
+    $probeWindow.Content = $probePanel
+    foreach ($control in @($themePage, $button, $textBox, $combo, $hint, $tipOwner)) {
+        $probePanel.Children.Add($control) | Out-Null
+    }
+    $assembly.GetType('PCL.Settings').GetMethod('Set').Invoke($null, @('UiThemeSelected', 'night-black', $null))
+    $selectedEntry.ValueCache.Clear()
+    $assembly.GetType('PCL.ModBase').GetMethod('IniClearCache').Invoke($null, @('Setup'))
+    if ($getSetting.Invoke($null, @('UiThemeSelected', $null)) -cne 'night-black') { throw 'Night black selection did not persist' }
+    if (-not $themeType.GetProperty('IsDarkTheme').GetValue($null, $null)) { throw 'Night black did not enable dark surfaces' }
+    $tooltip = [Windows.Controls.ToolTip]::new()
+    $tooltip.Content = $themePage.FindName('RadioLauncherThemeNightBlack').ToolTip
+    $tooltip.PlacementTarget = $themePage.FindName('RadioLauncherThemeNightBlack')
+    $tooltip.RaiseEvent([Windows.RoutedEventArgs]::new([Windows.Controls.ToolTip]::OpenedEvent))
+    $tooltip.Measure([Windows.Size]::new(240, 60))
+    $tooltip.ApplyTemplate() | Out-Null
+    if ($unlockedCountMethod.Invoke($null, @()) -ne $secrets.Count) { throw 'Night black changed the hidden-theme unlock count' }
+    if ($themePage.FindName('CardLauncher').Children[1].Background.ToString() -ne $application.Resources['ColorBrushCardBackground'].ToString()) { throw 'An existing card retained its light surface' }
+    if ($button.FindName('PanFore').Background.ToString() -ne $application.Resources['ColorBrushHalfWhite'].ToString()) { throw 'An existing button retained its light surface' }
+    if ($textBox.Background.ToString() -ne $application.Resources['ColorBrushGray6'].ToString()) { throw 'A disabled field retained its light surface' }
+    if ($popupPanel.Children[0].Background.ToString() -ne $application.Resources['ColorBrushPopupBackground'].ToString()) { throw 'Combo popup retained its light surface' }
+    if ($tooltip.Background.ToString() -ne $application.Resources['ColorBrushPopupBackground'].ToString()) { throw 'Native tooltip did not use the dark application style' }
+    if (-not $tooltipType::GetUseModernTooltip($tipOwner)) { throw 'Night mode disabled modern tooltip animations' }
+    # Exercise the actual component popup and animation clocks without moving the user's mouse.
+    # A disabled theme choice uses the same renderer and skips the enabled-control mouse hit test.
+    $themeXml = [xml][IO.File]::ReadAllText((Join-Path $repoRoot 'Plain Craft Launcher 2\Pages\PageSetup\PageSetupUI.xaml'), [Text.Encoding]::UTF8)
+    $themeNamespace = [Xml.XmlNamespaceManager]::new($themeXml.NameTable)
+    $themeNamespace.AddNamespace('x', 'http://schemas.microsoft.com/winfx/2006/xaml')
+    $themeNode = $themeXml.SelectSingleNode('//*[@x:Name="PanLauncherTheme"]', $themeNamespace).CloneNode($true)
+    $themeNode.SetAttribute('xmlns:local', ('clr-namespace:PCL;assembly=' + $assembly.GetName().Name))
+    $themeNode.SetAttribute('xmlns:x', 'http://schemas.microsoft.com/winfx/2006/xaml')
+    $liveThemeXml = $themeNode.OuterXml.Replace('clr-namespace:PCL"', ('clr-namespace:PCL;assembly=' + $assembly.GetName().Name + '"'))
+    $liveThemes = [Windows.Markup.XamlReader]::Parse($liveThemeXml)
+    $popupHost = [Windows.Window]::new()
+    $popupHost.ShowActivated = $false
+    $popupHost.ShowInTaskbar = $false
+    $popupHost.Opacity = 0
+    $popupHost.Left = -10000
+    $popupHost.Top = -10000
+    $popupHost.Width = 900
+    $popupHost.Height = 220
+    $popupHost.Content = $liveThemes
+    $beginTooltip = $tooltipType.GetMethod('BeginShow', $flags)
+    $closeTooltip = $tooltipType.GetMethod('Close', $flags)
+    $positionTooltip = $tooltipType.GetMethod('UpdatePosition', $flags)
+    $popupField = $tooltipType.GetField('popup', $flags)
+    $cardField = $tooltipType.GetField('popupCard', $flags)
+    $scaleField = $tooltipType.GetField('popupScale', $flags)
+    try {
+        $popupHost.Show()
+        $popupHost.UpdateLayout()
+        $choice = $liveThemes.FindName('RadioLauncherThemeNightBlack')
+        if (-not $tooltipType::GetUseModernTooltip($choice) -or -not $tooltipType::GetFollowMouse($choice)) { throw 'Theme choice lost modern tooltip animation or mouse following' }
+        $choice.IsEnabled = $false
+        [Windows.Controls.ToolTipService]::SetShowOnDisabled($choice, $true)
+        [Windows.Controls.ToolTipService]::SetInitialShowDelay($choice, 0)
+        $beginTooltip.Invoke($null, @($choice, [Windows.Point]::new(20, 10)))
+        $livePopup = $popupField.GetValue($null)
+        $tooltipCard = $cardField.GetValue($null)
+        $tooltipScale = $scaleField.GetValue($null)
+        if (-not $livePopup.IsOpen) { throw 'The modern tooltip did not open' }
+        $livePopup.Child.Opacity = 0
+        if (-not $tooltipCard.HasAnimatedProperties -or -not $tooltipScale.HasAnimatedProperties) { throw 'The modern tooltip lost its fade or scale animation clocks' }
+        if ($tooltipCard.Background.ToString() -ne $application.Resources['ColorBrushPopupBackground'].ToString() -or
+            $tooltipCard.BorderBrush.ToString() -ne $application.Resources['ColorBrushGray5'].ToString() -or
+            $tooltipCard.Child.Foreground.ToString() -ne $application.Resources['ColorBrush1'].ToString()) { throw 'The animated tooltip retained a light surface or dark text' }
+        $positionTooltip.Invoke($null, @($choice, [Windows.Point]::new(40, 30)))
+        if ($livePopup.HorizontalOffset -ne 55 -or $livePopup.VerticalOffset -ne 55) { throw 'Tooltip no longer follows updated pointer positions' }
+        $refresh.Invoke($null, @('tianyi-blue'))
+        if ($tooltipCard.Background.ToString() -ne '#FFFFFFFF' -or $tooltipCard.BorderBrush.ToString() -ne '#FFD6D6D6' -or
+            $tooltipCard.Child.Foreground.ToString() -ne '#FF525252' -or -not $livePopup.IsOpen) { throw 'An open tooltip did not restore its original light colors' }
+        if (-not $tooltipType::GetUseModernTooltip($choice) -or -not $tooltipScale.HasAnimatedProperties) { throw 'Theme switching replaced the animated tooltip' }
+        $refresh.Invoke($null, @('night-black'))
+        if ($tooltipCard.Background.ToString() -ne $application.Resources['ColorBrushPopupBackground'].ToString()) { throw 'An open tooltip did not return to dark colors' }
+        $originalTip = $choice.ToolTip
+        $choice.ToolTip = 'Synthetic updated tooltip'
+        if ($tooltipCard.Child.Text -ne $choice.ToolTip -or $tooltipCard.Child.Foreground.ToString() -ne $application.Resources['ColorBrush1'].ToString()) { throw 'Updated tooltip content lost the active palette' }
+        $choice.ToolTip = $originalTip
+        $closeTooltip.Invoke($null, @($true))
+        if (-not $livePopup.IsOpen -or -not $tooltipScale.HasAnimatedProperties) { throw 'Tooltip skipped its closing animation' }
+        $closeTooltip.Invoke($null, @($false))
+        # Partial overrides restore omitted colors, and rich content keeps its own appearance and owner.
+        $tooltipType::SetColors([Windows.Media.Brushes]::Navy, $null, $null)
+        $richText = [Windows.Controls.TextBlock]::new()
+        $richText.Text = 'Synthetic rich tooltip'
+        $richText.Foreground = [Windows.Media.Brushes]::HotPink
+        $richTip = [Windows.Controls.ToolTip]::new()
+        $richTip.Content = $richText
+        $choice.ToolTip = $richTip
+        $beginTooltip.Invoke($null, @($choice, [Windows.Point]::new(20, 10)))
+        if ($tooltipCard.Background.ToString() -ne '#FF000080' -or $tooltipCard.BorderBrush.ToString() -ne '#FFD6D6D6' -or
+            -not [object]::ReferenceEquals($tooltipCard.Child.Content, $richText) -or $richText.Foreground.ToString() -ne '#FFFF69B4') { throw 'Palette override changed rich tooltip content or failed to restore default colors' }
+        $closeTooltip.Invoke($null, @($false))
+        if (-not [object]::ReferenceEquals($richTip.Content, $richText)) { throw 'Tooltip did not return borrowed rich content' }
+        $choice.ToolTip = $originalTip
+        $tooltipType::SetColors()
+        $refresh.Invoke($null, @('tianyi-blue'))
+        $refresh.Invoke($null, @('night-black'))
+    } finally {
+        $closeTooltip.Invoke($null, @($false))
+        if ($null -ne $livePopup) { $livePopup.Child.Opacity = 1 }
+        $popupHost.Close()
+    }
+    # Advance real animation frames in a separate WPF process with no launcher startup or queued loaders.
+    & powershell.exe -NoProfile -STA -ExecutionPolicy Bypass -File (Join-Path $repoRoot 'PCLSCore\Tests\verify-tooltip-animation.ps1') -AssemblyPath (Join-Path $repoRoot 'Plain Craft Launcher 2\bin\MeloongCore.Wpf.dll') -TooltipText $originalTip -PreviewPath $TooltipPreviewPath
+    if ($LASTEXITCODE -ne 0) { throw 'Isolated tooltip animation checks failed' }
+    $customTooltip = [Windows.Controls.ToolTip]::new()
+    $customTooltip.Style = [Windows.Style]::new([Windows.Controls.ToolTip])
+    $customStyle = $customTooltip.Style
+    $customTooltip.RaiseEvent([Windows.RoutedEventArgs]::new([Windows.Controls.ToolTip]::OpenedEvent))
+    if (-not [object]::ReferenceEquals($customTooltip.Style, $customStyle)) { throw 'An explicit custom tooltip style was replaced' }
+    if ($hint.Background.ToString() -ne $application.Resources['ColorBrushHintBlueBackground'].ToString() -or
+        $hint.FindName('BtnClose').Foreground.ToString() -ne $application.Resources['ColorBrushHintBlueText'].ToString()) { throw 'Existing hints did not change their surface and close-icon colors' }
+    function Get-Luminance($color) {
+        $components = @($color.R, $color.G, $color.B) | ForEach-Object {
+            $value = $_ / 255.0
+            if ($value -le 0.04045) { $value / 12.92 } else { [Math]::Pow(($value + 0.055) / 1.055, 2.4) }
+        }
+        return $components[0] * 0.2126 + $components[1] * 0.7152 + $components[2] * 0.0722
+    }
+    foreach ($pair in @(@('ColorBrush1', 'ColorBrushCardBackground'), @('ColorBrush3', 'ColorBrushCardBackground'),
+        @('ColorBrushGray2', 'ColorBrushCardBackground'), @('ColorBrushOnAccent', 'ColorBrush3'), @('ColorBrushRedLight', 'ColorBrushCardBackground'),
+        @('ColorBrushHintBlueText', 'ColorBrushHintBlueBackground'), @('ColorBrushHintRedText', 'ColorBrushHintRedBackground'),
+        @('ColorBrushHintYellowText', 'ColorBrushHintYellowBackground'))) {
+        $a = Get-Luminance $application.Resources[$pair[0]].Color
+        $b = Get-Luminance $application.Resources[$pair[1]].Color
+        if (([Math]::Max($a, $b) + 0.05) / ([Math]::Min($a, $b) + 0.05) -lt 4.5) { throw "Night text contrast is too low: $pair" }
+    }
+    $backgroundMethod = $themeType.GetMethod('ThemeCreateBackground', $flags)
+    $colorfulBackground = $getSetting.Invoke($null, @('UiThemeColorfulBackground', $null))
+    foreach ($colorful in @($true, $false)) {
+        $entries['UiThemeColorfulBackground'].Set($colorful, $null)
+        $background = $backgroundMethod.Invoke($null, @())
+        if ($colorful) {
+            if ($background -isnot [Windows.Media.LinearGradientBrush]) { throw 'Colorful background setting stopped working in night mode' }
+            $backgroundColors = @($background.GradientStops | ForEach-Object { $_.Color })
+        } else {
+            $backgroundColors = @($background.Color)
+        }
+        foreach ($color in $backgroundColors) {
+            if ((Get-Luminance $color) -ge 0.05) { throw 'Night mode retained a light main background' }
+        }
+    }
+    $entries['UiThemeColorfulBackground'].Set($colorfulBackground, $null)
+    $refresh.Invoke($null, @('tianyi-blue'))
+    foreach ($key in $surfaceKeys) {
+        if ($application.Resources[$key].ToString() -cne $lightSurfaces[$key]) { throw "Light theme did not restore $key" }
+    }
+    if ($themePage.FindName('CardLauncher').Children[1].Background.ToString() -ne $lightSurfaces['ColorBrushCardBackground'] -or
+        $hint.Background.ToString() -ne $lightSurfaces['ColorBrushHintBlueBackground'] -or -not $tooltipType::GetUseModernTooltip($tipOwner)) { throw 'Existing controls did not return to the light theme' }
+    if ($tooltipType::GetUseModernTooltip($customTipOwner)) { throw 'Theme switching overwrote an explicit tooltip preference' }
+    $probePanel.Children.Clear()
+    $probeWindow.Close()
     $refresh.Invoke($null, @('custom'))
     $customBefore = $application.Resources['ColorObject3'].ToString()
     $entries['UiThemeCustomHue'].Set(300, $null)
@@ -182,6 +372,48 @@ try {
     $titleBar = [Windows.Markup.XamlReader]::Parse($titleXml)
     $titleImage = $titleBar.FindName('ImgTitleTexture')
     $refreshTitle = $themeType.GetMethod('ThemeRefreshTitle', $flags)
+    if ($DarkPreviewPath) {
+        $assembly.GetType('PCL.Settings').GetMethod('Set').Invoke($null, @('UiThemeSelected', 'night-black', $null))
+        $assembly.GetType('PCL.SettingService').GetMethod('RefreshSettings').Invoke($null, @($themePage))
+        foreach ($card in $themePage.FindName('PanMain').Children) {
+            if ($card.GetType().Name -eq 'MyCard') { $null = $card.MainTextBlock }
+        }
+        $refreshTitle.Invoke($null, @($titleBar, $titleImage))
+        $titleBar.FindName('BtnTitleSelect3').Checked = $true
+        $frame = [Windows.Controls.Grid]::new()
+        $frame.Background = $backgroundMethod.Invoke($null, @())
+        $frame.RowDefinitions.Add([Windows.Controls.RowDefinition]::new())
+        $frame.RowDefinitions.Add([Windows.Controls.RowDefinition]::new())
+        $frame.RowDefinitions[0].Height = [Windows.GridLength]::new(48)
+        $frame.ColumnDefinitions.Add([Windows.Controls.ColumnDefinition]::new())
+        $frame.ColumnDefinitions.Add([Windows.Controls.ColumnDefinition]::new())
+        $frame.ColumnDefinitions[0].Width = [Windows.GridLength]::new(150)
+        [Windows.Controls.Grid]::SetColumnSpan($titleBar, 2)
+        $frame.Children.Add($titleBar) | Out-Null
+        $sidebar = [Activator]::CreateInstance($assembly.GetType('PCL.PageSetupLeft'))
+        $item = $sidebar.FindName('ItemUI')
+        $itemTag = $item.Tag
+        $item.Tag = $null
+        $item.Checked = $true
+        $item.Tag = $itemTag
+        $sidebar.SetResourceReference([Windows.Controls.Panel]::BackgroundProperty, 'ColorBrushBackgroundTransparentSidebar')
+        [Windows.Controls.Grid]::SetRow($sidebar, 1)
+        $frame.Children.Add($sidebar) | Out-Null
+        [Windows.Controls.Grid]::SetRow($themePage, 1)
+        [Windows.Controls.Grid]::SetColumn($themePage, 1)
+        $frame.Children.Add($themePage) | Out-Null
+        $frame.Measure([Windows.Size]::new(1100, 650))
+        $frame.Arrange([Windows.Rect]::new(0, 0, 1100, 650))
+        $frame.UpdateLayout()
+        $bitmap = [Windows.Media.Imaging.RenderTargetBitmap]::new(1100, 650, 96, 96, [Windows.Media.PixelFormats]::Pbgra32)
+        $bitmap.Render($frame)
+        $encoder = [Windows.Media.Imaging.PngBitmapEncoder]::new()
+        $encoder.Frames.Add([Windows.Media.Imaging.BitmapFrame]::Create($bitmap))
+        $stream = [IO.File]::Create($DarkPreviewPath)
+        try { $encoder.Save($stream) } finally { $stream.Dispose() }
+        $frame.Children.Clear()
+        $refresh.Invoke($null, @('tianyi-blue'))
+    }
     if ($titleImage.IsHitTestVisible -or -not $titleImage.ClipToBounds) { throw 'Title texture can capture clicks or overflow its bounds' }
     $preview = [Windows.Controls.StackPanel]::new()
     $preview.Background = [Windows.Media.Brushes]::White
@@ -232,12 +464,12 @@ try {
         $stream = [IO.File]::Create($TitlePreviewPath)
         try { $encoder.Save($stream) } finally { $stream.Dispose() }
     }
-    Write-Output 'PASS: theme sections, unlock gates, tooltips, persistence and colors work; bundled title textures load, switch and clear without bypassing unlocks.'
+    Write-Output 'PASS: theme sections, unlock gates, tooltips, persistence and colors work; night mode updates existing controls, restores light surfaces and passes text contrast checks; bundled title textures switch without bypassing unlocks.'
 } finally {
     if ($null -ne $application) { $application.Shutdown() }
     [AppDomain]::CurrentDomain.SetData('APPBASE', $oldBase)
     # Remove only the exact test files (image loading also extracts its native decoder) and empty folders.
-    foreach ($name in @('Setup.ini', 'libwebp.dll')) {
+    foreach ($name in @('Setup.ini', 'Portable.json', 'libwebp.dll')) {
         $testFile = Join-Path $testRoot ('PCL\' + $name)
         if (Test-Path -LiteralPath $testFile) { Remove-Item -LiteralPath $testFile }
     }

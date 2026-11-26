@@ -65,6 +65,11 @@ Public Module ModMain
                         TargetColor0 = New MyColor(215, 255, 53, 11)
                         TargetColor1 = New MyColor(215, 255, 43, 0)
                 End Select
+                Dim HintBase As MyColor = If(IsDarkTheme, New MyColor("#222B38"), New MyColor(255, 255, 255))
+                If IsDarkTheme Then
+                    TargetColor0 = TargetColor0 * 0.7 + HintBase * 0.3
+                    TargetColor1 = TargetColor1 * 0.7 + HintBase * 0.3
+                End If
                 If Not IsNothing(DoubleStack) Then
                     '有重复提示，且该提示的进入动画已播放
                     If Not AniIsRun("Hint Show " & DoubleStack.Tag(1)) Then
@@ -78,8 +83,8 @@ Public Module ModMain
                             AaDouble(Sub(i)
                                          Percent += i
                                          Dim Gradient As LinearGradientBrush = DoubleStack.Background
-                                         Gradient.GradientStops(0).Color = TargetColor0 * Percent + New MyColor(255, 255, 255) * (1 - Percent)
-                                         Gradient.GradientStops(1).Color = TargetColor1 * Percent + New MyColor(255, 255, 255) * (1 - Percent)
+                                         Gradient.GradientStops(0).Color = TargetColor0 * Percent + HintBase * (1 - Percent)
+                                         Gradient.GradientStops(1).Color = TargetColor1 * Percent + HintBase * (1 - Percent)
                                      End Sub, 0.7, 250),
                             AaX(DoubleStack, -50, 200, Delay, New AniEaseInFluent),
                             AaOpacity(DoubleStack, -1, 150, Delay),
@@ -92,8 +97,8 @@ Public Module ModMain
                     '准备控件
                     Dim NewHintControl As New Border With {.Tag = {True, GetUuid()}, .Margin = New Thickness(-70, 0, 20, 0), .Opacity = 0, .Height = 0, .HorizontalAlignment = HorizontalAlignment.Left, .CornerRadius = New CornerRadius(0, 6, 6, 0)}
                     NewHintControl.Background = New LinearGradientBrush(New GradientStopCollection(New List(Of GradientStop) From {
-                        New GradientStop(TargetColor0 * Percent + New MyColor(255, 255, 255) * (1 - Percent), 0),
-                        New GradientStop(TargetColor1 * Percent + New MyColor(255, 255, 255) * (1 - Percent), 1)}), 90)
+                        New GradientStop(TargetColor0 * Percent + HintBase * (1 - Percent), 0),
+                        New GradientStop(TargetColor1 * Percent + HintBase * (1 - Percent), 1)}), 90)
                     NewHintControl.Child = New TextBlock With {.TextTrimming = TextTrimming.CharacterEllipsis, .FontSize = 13, .Text = CurrentHint.Text, .Foreground = New MyColor(255, 255, 255), .Margin = New Thickness(33, 5, 8, 5)}
                     'AddHandler NewHintControl.MouseLeftButtonDown, AddressOf HideAllHint
                     FrmMain.PanHint.Children.Add(NewHintControl)
@@ -114,8 +119,8 @@ Public Module ModMain
                         AaDouble(Sub(i)
                                      Percent += i
                                      Dim Gradient As LinearGradientBrush = NewHintControl.Background
-                                     Gradient.GradientStops(0).Color = TargetColor0 * Percent + New MyColor(255, 255, 255) * (1 - Percent)
-                                     Gradient.GradientStops(1).Color = TargetColor1 * Percent + New MyColor(255, 255, 255) * (1 - Percent)
+                                     Gradient.GradientStops(0).Color = TargetColor0 * Percent + HintBase * (1 - Percent)
+                                     Gradient.GradientStops(1).Color = TargetColor1 * Percent + HintBase * (1 - Percent)
                                  End Sub, 0.7, 250, 100)
                     })
                     AniStart(Animations, "Hint Show " & NewHintControl.Tag(1))
