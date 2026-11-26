@@ -81,13 +81,13 @@ Public Module ModDownloadLib
             Dim Logo As String
             Select Case Entry("type")
                 Case "release"
-                    Logo = PathImage & "Blocks/Grass.png"
+                    Logo = PathImage & "Versions/Release.png"
                 Case "snapshot"
-                    Logo = PathImage & "Blocks/CommandBlock.png"
+                    Logo = PathImage & "Versions/Snapshot.png"
                 Case "special"
-                    Logo = PathImage & "Blocks/GoldBlock.png"
+                    Logo = PathImage & "Versions/AprilFools.png"
                 Case Else
-                    Logo = PathImage & "Blocks/CobbleStone.png"
+                    Logo = PathImage & "Versions/Old.png"
             End Select
             '建立控件
             Dim NewItem As New MyListItem With {.Logo = Logo, .SnapsToDevicePixels = True, .Title = Entry("id").ToString, .Height = 42, .Type = MyListItem.CheckType.Clickable, .Tag = Entry}

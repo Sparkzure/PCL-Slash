@@ -625,6 +625,33 @@ Recheck:
             Return True
         End Function
         ''' <summary>
+        ''' 获取当前版本分类的默认图标。
+        ''' </summary>
+        Friend Function GetDefaultLogo() As String
+            Select Case State
+                Case McInstanceState.Original
+                    Return PathImage & "Versions/Release.png"
+                Case McInstanceState.Snapshot
+                    Return PathImage & "Versions/Snapshot.png"
+                Case McInstanceState.Old
+                    Return PathImage & "Versions/Old.png"
+                Case McInstanceState.Forge
+                    Return PathImage & "Blocks/Anvil.png"
+                Case McInstanceState.NeoForge
+                    Return PathImage & "Blocks/NeoForge.png"
+                Case McInstanceState.Fabric
+                    Return PathImage & "Blocks/Fabric.png"
+                Case McInstanceState.OptiFine
+                    Return PathImage & "Blocks/GrassPath.png"
+                Case McInstanceState.LiteLoader
+                    Return PathImage & "Blocks/Egg.png"
+                Case McInstanceState.Fool
+                    Return PathImage & "Versions/AprilFools.png"
+                Case Else
+                    Return PathImage & "Blocks/RedstoneBlock.png"
+            End Select
+        End Function
+        ''' <summary>
         ''' 加载 Minecraft 版本的详细信息。不使用其缓存，且会更新缓存。
         ''' </summary>
         Public Function Load() As McInstance
@@ -666,28 +693,7 @@ ExitDataLoad:
                 '确定版本图标
                 Logo = ReadIni(PathVersion & "PCL\Setup.ini", "Logo", "")
                 If Logo = "" OrElse Not CType(ReadIni(PathVersion & "PCL\Setup.ini", "LogoCustom", False), Boolean) Then
-                    Select Case State
-                        Case McInstanceState.Original
-                            Logo = PathImage & "Blocks/Grass.png"
-                        Case McInstanceState.Snapshot
-                            Logo = PathImage & "Blocks/CommandBlock.png"
-                        Case McInstanceState.Old
-                            Logo = PathImage & "Blocks/CobbleStone.png"
-                        Case McInstanceState.Forge
-                            Logo = PathImage & "Blocks/Anvil.png"
-                        Case McInstanceState.NeoForge
-                            Logo = PathImage & "Blocks/NeoForge.png"
-                        Case McInstanceState.Fabric
-                            Logo = PathImage & "Blocks/Fabric.png"
-                        Case McInstanceState.OptiFine
-                            Logo = PathImage & "Blocks/GrassPath.png"
-                        Case McInstanceState.LiteLoader
-                            Logo = PathImage & "Blocks/Egg.png"
-                        Case McInstanceState.Fool
-                            Logo = PathImage & "Blocks/GoldBlock.png"
-                        Case Else
-                            Logo = PathImage & "Blocks/RedstoneBlock.png"
-                    End Select
+                    Logo = GetDefaultLogo()
                 End If
                 '确定版本描述
                 RefreshInfo()
@@ -1118,6 +1124,9 @@ OnLoaded:
                         If Instance.Logo = "" Then
                             Logger.Info($"版本 {Instance.Name} 未被加载")
                             Return Nothing
+                        ElseIf Not CType(ReadIni(Instance.PathVersion & "PCL\Setup.ini", "LogoCustom", False), Boolean) Then
+                            '自动图标随当前资源更新；保留用户显式选择的图标和旧缓存的完整性检查。
+                            Instance.Logo = Instance.GetDefaultLogo()
                         End If
 
                     Catch ex As Exception

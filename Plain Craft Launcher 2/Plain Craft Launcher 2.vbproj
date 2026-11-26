@@ -778,6 +778,12 @@
     <Resource Include="Images\Blocks\RedstoneBlock.png" />
   </ItemGroup>
   <ItemGroup>
+    <Resource Include="Images\Versions\Release.png" />
+    <Resource Include="Images\Versions\Snapshot.png" />
+    <Resource Include="Images\Versions\Old.png" />
+    <Resource Include="Images\Versions\AprilFools.png" />
+  </ItemGroup>
+  <ItemGroup>
     <Resource Include="Images\Blocks\GrassPath.png" />
   </ItemGroup>
   <ItemGroup>
