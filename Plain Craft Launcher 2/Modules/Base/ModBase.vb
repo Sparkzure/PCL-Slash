@@ -12,6 +12,7 @@ Public Module ModBase
     Public Const LauncherFileName As String = BrandFullName & ".exe"
     Public Const SourceRepository As String = "https://github.com/sparkzure/PCL-Slash"
     Public Const FeedbackUrl As String = SourceRepository & "/issues"
+    Public Const UserAgreementUrl As String = SourceRepository & "/blob/main/USER_AGREEMENT.md"
     Public Const SingletonMutexName As String = "PCL-Slash_SingletonMutex"
 
     '下列版本信息由版本 Bot 和发布构建维护

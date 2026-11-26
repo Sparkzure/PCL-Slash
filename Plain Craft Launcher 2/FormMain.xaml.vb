@@ -140,18 +140,19 @@ Public Class FormMain
         RunInNewThread(
         Sub()
             'EULA 提示
-            Const EulaVersion As Integer = 2
+            Const EulaVersion As Integer = 3
             If Settings.Get(Of Integer)("SystemEulaVersion") < EulaVersion Then
                 Select Case MyMsgBox(
                     If(Settings.Get(Of Integer)("SystemEulaVersion") = 0,
-                        "在使用 PCL 前，请先阅读用户协议与免责声明。",
-                        $"PCL 的用户协议与免责声明已更新。{vbCrLf}请阅读更新后的用户协议与免责声明。"),
+                        "在使用 PCL-Slash 前，请先阅读用户协议与免责声明。",
+                        $"PCL-Slash 的用户协议与免责声明已更新。{vbCrLf}请阅读更新后的用户协议与免责声明。"),
                         "协议授权", "同意", "拒绝", "查看用户协议与免责声明",
-                        Button3Action:=Sub() OpenWebsite("https://shimo.im/docs/rGrd8pY8xWkt6ryW"))
+                        Button3Action:=Sub() OpenWebsite(UserAgreementUrl))
                     Case 1
                         Settings.Set("SystemEulaVersion", EulaVersion)
                     Case 2
                         EndProgram(False)
+                        Return
                 End Select
             End If
             '启动加载器池

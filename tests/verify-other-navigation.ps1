@@ -44,6 +44,15 @@ try {
     Assert ($credit.Info -eq ([Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('5o+Q5L6b5LqG6IGU5py65qih5Z2X77yB')))) 'Historical EasyTier description changed'
     Assert ($credits.FindName('PanMain').Children.Count -eq 1) 'Credits contains unrelated cards'
     Assert ($page.FindName('PanMain').Children.Count -eq 3) 'About does not retain About, legal and license cards'
+    Assert ($null -ne $page.FindName('BtnAboutAgreement')) 'The launcher agreement entry is missing from About'
+    Assert ($page.FindName('BtnAboutAgreement').Text.StartsWith('PCL-Slash')) 'About still presents the upstream agreement as the launcher agreement'
+    $baseType = $assembly.GetType('PCL.ModBase')
+    $agreementUrl = $baseType.GetField('UserAgreementUrl').GetRawConstantValue()
+    Assert ($agreementUrl -ceq ($baseType.GetField('SourceRepository').GetRawConstantValue() + '/blob/main/USER_AGREEMENT.md')) 'The agreement URL does not point to the repository document'
+    $eventService = $assembly.GetType('PCL.CustomEventService')
+    $agreementButton = $page.FindName('BtnAboutAgreement')
+    Assert ($eventService.GetMethod('GetEventData').Invoke($null, @($agreementButton)) -ceq $agreementUrl) 'About does not open the launcher agreement URL'
+    Assert ($eventService.GetMethod('GetEventType').Invoke($null, @($agreementButton)) -eq [Enum]::Parse($eventType, ([Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('5omT5byA572R6aG1'))))) 'About agreement is not a web link'
     $entries['UiHiddenOtherAbout'].Set($true, $null)
     $sidebar = [Activator]::CreateInstance($sideType)
     Assert ([int]$sidebar.PageID -eq 5) 'Hidden About does not select Credits'
