@@ -919,13 +919,13 @@
     <None Include="Resources\lwjgl-unsafe-agent.jar" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\MeloongCore\Shared\MeloongCore.csproj">
+    <ProjectReference Include="..\PCLSCore\Shared\MeloongCore.csproj">
       <Project>{d22bbf3c-2177-0208-4e29-8466aa41ac6f}</Project>
-      <Name>MeloongCore</Name>
+      <Name>PCLSCore</Name>
     </ProjectReference>
-    <ProjectReference Include="..\MeloongCore\Wpf\MeloongCore.Wpf.csproj">
+    <ProjectReference Include="..\PCLSCore\Wpf\MeloongCore.Wpf.csproj">
       <Project>{2dffe2a0-1101-816b-d240-f644b2d74a68}</Project>
-      <Name>MeloongCore.Wpf</Name>
+      <Name>PCLSCore.Wpf</Name>
     </ProjectReference>
     <ProjectReference Include="..\PCLCS\PCLCS.csproj">
       <Project>{32de4aaf-f4d6-42c5-9604-19236de96c69}</Project>

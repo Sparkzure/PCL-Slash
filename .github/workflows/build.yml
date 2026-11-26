@@ -6,7 +6,8 @@ on:
     paths:
       - 'Plain Craft Launcher 2/**'
       - 'PCLCS/**'
-      - 'MeloongCore'
+      - 'PCLSCore'
+      - '.gitmodules'
       - '.github/**'
       - 'tests/**'
   pull_request:
