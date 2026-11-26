@@ -40,7 +40,7 @@
 ## 鸣谢
 
 - **龙腾猫跃、HerobrineXia 与原版 PCL 的所有贡献者**：提供原项目及持续积累的功能与社区支持。
-- **[MeloongCore](https://github.com/Meloong-Git/MeloongCore)**：提供基础组件与公共能力。
+- **[PCLSCore](https://github.com/Sparkzure/PCLSCore)**：提供基础组件与公共能力，基于 [MeloongCore](https://github.com/Meloong-Git/MeloongCore) 独立维护并保留其历史与贡献。
 - **bangbang93、z0z0r4 与 MC 百科**：提供 BMCLAPI、MCIM 镜像及资源信息支持。
 - **EasyTier**：原版联机功能的历史贡献，本分支保留相关鸣谢。
 - **本项目的贡献者、资源作者和测试用户**：参与功能改进、问题反馈及文档完善。

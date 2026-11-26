@@ -37,18 +37,21 @@ Public Class MyIconButton
     End Enum
     Public Property Theme As Themes = Themes.Color
 
-    Private _Foreground As New SolidColorBrush(Color.FromRgb(128, 128, 128))
     Public Property Foreground As SolidColorBrush
         Get
-            Return _Foreground
+            Return GetValue(ForegroundProperty)
         End Get
         Set(value As SolidColorBrush)
-            _Foreground = value
-            AniControlEnabled += 1
-            RefreshAnim()
-            AniControlEnabled -= 1
+            SetValue(ForegroundProperty, value)
         End Set
     End Property
+    Public Shared ReadOnly ForegroundProperty As DependencyProperty = DependencyProperty.Register("Foreground", GetType(SolidColorBrush), GetType(MyIconButton),
+        New PropertyMetadata(New SolidColorBrush(Color.FromRgb(128, 128, 128)),
+        Sub(d As MyIconButton, e As DependencyPropertyChangedEventArgs)
+            AniControlEnabled += 1
+            d.RefreshAnim()
+            AniControlEnabled -= 1
+        End Sub))
 
     '鼠标点击判定（务必放在点击事件之后，以使得 Button_MouseUp 先于 Button_MouseLeave 执行）
     Private IsMouseDown As Boolean = False
@@ -128,7 +131,7 @@ Public Class MyIconButton
                             AnimList.Add(AaColor(Path, Shape.FillProperty, "ColorBrush4", AnimationColorOut))
                             PanBack.Background = New MyColor(0, 255, 255, 255)
                         Case Themes.White
-                            AnimList.Add(AaColor(Path, Shape.FillProperty, "ColorBrush8", AnimationColorOut))
+                            AnimList.Add(AaColor(Path, Shape.FillProperty, "ColorBrushTitleText", AnimationColorOut))
                             AnimList.Add(AaColor(PanBack, BackgroundProperty, New MyColor(0, 255, 255, 255) - PanBack.Background, AnimationColorOut))
                         Case Themes.Red
                             AnimList.Add(AaColor(Path, Shape.FillProperty, New MyColor(160, 255, 76, 76) - Path.Fill, AnimationColorOut))
@@ -149,7 +152,7 @@ Public Class MyIconButton
                         Case Themes.Color
                             Path.SetResourceReference(Shape.FillProperty, "ColorBrush5")
                         Case Themes.White
-                            Path.SetResourceReference(Shape.FillProperty, "ColorBrush8")
+                            Path.SetResourceReference(Shape.FillProperty, "ColorBrushTitleText")
                         Case Themes.Red
                             Path.Fill = New MyColor(160, 255, 76, 76)
                         Case Themes.Black

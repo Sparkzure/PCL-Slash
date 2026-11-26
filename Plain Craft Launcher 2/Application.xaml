@@ -39,6 +39,7 @@
             <Color x:Key="ColorObject8">#f0faff</Color>
             <Color x:Key="ColorObjectBg0">#b3e6ff</Color>
             <Color x:Key="ColorObjectBg1">#bee5f6ff</Color>
+            <Color x:Key="ColorObjectShadow">#263e4a</Color>
             <SolidColorBrush x:Key="ColorBrushGray1">#404040</SolidColorBrush>
             <SolidColorBrush x:Key="ColorBrushGray2">#737373</SolidColorBrush>
             <SolidColorBrush x:Key="ColorBrushGray3">#8c8c8c</SolidColorBrush>
@@ -64,6 +65,46 @@
             <SolidColorBrush x:Key="ColorBrushTransparent" Color="Transparent" />
             <SolidColorBrush x:Key="ColorBrushSemiTransparent">#01eaf2fe</SolidColorBrush>
             <SolidColorBrush x:Key="ColorBrushBackgroundTransparentSidebar" Color="#F1FFFFFF" />
+            <SolidColorBrush x:Key="ColorBrushCardBackground" Color="#F5FFFFFF" />
+            <SolidColorBrush x:Key="ColorBrushPopupBackground" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="ColorBrushDialogBackground" Color="#FBFBFB" />
+            <SolidColorBrush x:Key="ColorBrushTitleSelected" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="ColorBrushTitleText" Color="#F0FAFF" />
+            <SolidColorBrush x:Key="ColorBrushOnAccent" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="ColorBrushHintBlueBackground" Color="#D9ECFF" />
+            <SolidColorBrush x:Key="ColorBrushHintBlueBorder" Color="#1172D4" />
+            <SolidColorBrush x:Key="ColorBrushHintBlueText" Color="#0F64B8" />
+            <SolidColorBrush x:Key="ColorBrushHintRedBackground" Color="#FFDDDF" />
+            <SolidColorBrush x:Key="ColorBrushHintRedBorder" Color="#D82929" />
+            <SolidColorBrush x:Key="ColorBrushHintRedText" Color="#BF0B0B" />
+            <SolidColorBrush x:Key="ColorBrushHintYellowBackground" Color="#FFEBD7" />
+            <SolidColorBrush x:Key="ColorBrushHintYellowBorder" Color="#F57A00" />
+            <SolidColorBrush x:Key="ColorBrushHintYellowText" Color="#D86C00" />
+
+            <Style TargetType="ToolTip">
+                <Setter Property="Background" Value="{DynamicResource ColorBrushPopupBackground}" />
+                <Setter Property="Foreground" Value="{DynamicResource ColorBrush1}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource ColorBrushGray5}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="Padding" Value="12,9" />
+                <Setter Property="MaxWidth" Value="700" />
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="ToolTip">
+                            <Border x:Name="PanTooltip" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="4" Padding="{TemplateBinding Padding}">
+                                <ContentPresenter>
+                                    <ContentPresenter.Resources>
+                                        <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                                            <Setter Property="TextWrapping" Value="Wrap" />
+                                            <Setter Property="TextTrimming" Value="None" />
+                                        </Style>
+                                    </ContentPresenter.Resources>
+                                </ContentPresenter>
+                            </Border>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
 
             <!-- Window -->
             <Style TargetType="{x:Type Window}" x:Key="MyWindow">
@@ -240,7 +281,7 @@
             <!-- TextBox -->
             <Style TargetType="local:MyTextBox">
                 <Setter Property="BorderThickness" Value="1" />
-                <Setter Property="Background" Value="{StaticResource ColorBrushHalfWhite}" />
+                <Setter Property="Background" Value="{DynamicResource ColorBrushHalfWhite}" />
                 <Setter Property="FontSize" Value="13" />
                 <Setter Property="SelectionBrush" Value="{DynamicResource ColorBrush3}" />
                 <Setter Property="Foreground" Value="{DynamicResource ColorBrush1}" />
@@ -271,7 +312,7 @@
                                     <!-- 由于未知原因，TextView 会有 2,0 的 Margin -->
                                 </Border>
                                 <Border Margin="{TemplateBinding Padding}" IsHitTestVisible="False" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" BorderThickness="0">
-                                    <TextBlock x:Name="labHint" Foreground="{StaticResource ColorBrushGray4}" Margin="7,0,0,0" Padding="{TemplateBinding BorderThickness}" FontSize="{TemplateBinding FontSize}" FontFamily="Resources/#PCL English, Microsoft YaHei UI" />
+                                    <TextBlock x:Name="labHint" Foreground="{DynamicResource ColorBrushGray4}" Margin="7,0,0,0" Padding="{TemplateBinding BorderThickness}" FontSize="{TemplateBinding FontSize}" FontFamily="Resources/#PCL English, Microsoft YaHei UI" />
                                 </Border>
                                 <TextBlock Grid.Row="1" x:Name="labWrong" Height="0" Foreground="{TemplateBinding BorderBrush}" Padding="0,4,0,0" Margin="0,0,0,-3" />
                             </Grid>
@@ -285,7 +326,7 @@
                 <Setter Property="VerticalContentAlignment" Value="Top" />
                 <Setter Property="SelectionBrush" Value="{DynamicResource ColorBrush3}" />
                 <Setter Property="Foreground" Value="{DynamicResource ColorBrush1}" />
-                <Setter Property="Background" Value="{StaticResource ColorBrushHalfWhite}" />
+                <Setter Property="Background" Value="{DynamicResource ColorBrushHalfWhite}" />
                 <Setter Property="BorderBrush" Value="{DynamicResource ColorBrushBg0}" />
                 <Setter Property="KeyboardNavigation.TabNavigation" Value="None"/>
                 <Setter Property="HorizontalContentAlignment" Value="Left"/>
@@ -300,8 +341,8 @@
                             <ControlTemplate.Triggers>
                                 <Trigger Property="IsEnabled" Value="False">
                                     <Trigger.Setters>
-                                        <Setter Property="BorderBrush" Value="{StaticResource ColorBrushGray5}" />
-                                        <Setter Property="Background" Value="{StaticResource ColorBrushGray6}" />
+                                        <Setter Property="BorderBrush" Value="{DynamicResource ColorBrushGray5}" />
+                                        <Setter Property="Background" Value="{DynamicResource ColorBrushGray6}" />
                                     </Trigger.Setters>
                                 </Trigger>
                                 <Trigger Property="IsMouseOver" Value="True">
@@ -337,7 +378,7 @@
                 <Setter Property="OverridesDefaultStyle" Value="True" />
                 <Setter Property="SnapsToDevicePixels" Value="True" />
                 <Setter Property="Foreground" Value="{DynamicResource ColorBrushBg0}" />
-                <Setter Property="Background" Value="{StaticResource ColorBrushHalfWhite}" />
+                <Setter Property="Background" Value="{DynamicResource ColorBrushHalfWhite}" />
                 <Setter Property="FocusVisualStyle" Value="{x:Null}" />
                 <Setter Property="FontSize" Value="13" />
                 <Setter Property="MaxDropDownHeight" Value="320" />
@@ -353,7 +394,7 @@
                                                   ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}" />
                                 <Popup x:Name="PART_Popup" SnapsToDevicePixels="True" VerticalOffset="-1.5" AllowsTransparency="True" IsOpen="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}" Placement="Bottom" PopupAnimation="Fade">
                                     <Grid x:Name="PanPopup">
-                                        <Border Background="White" CornerRadius="3" />
+                                        <Border Background="{DynamicResource ColorBrushPopupBackground}" CornerRadius="3" />
                                         <Border x:Name="dropDownBorder" CornerRadius="3" BorderBrush="{TemplateBinding Foreground}" BorderThickness="1" Width="{TemplateBinding Width}" MaxHeight="{TemplateBinding MaxDropDownHeight}">
                                             <local:MyScrollViewer x:Name="DropDownScrollViewer" PanningMode="VerticalOnly" SnapsToDevicePixels="False" Style="{StaticResource ScrollViewerFullMargin}" ScrollViewer.CanContentScroll="False" VerticalScrollBarVisibility="Auto">
                                                 <ItemsPresenter x:Name="ItemsPresenter" KeyboardNavigation.DirectionalNavigation="Contained" />
@@ -383,7 +424,7 @@
                                         <local:MyTextBox x:Name="PART_EditableTextBox" BorderThickness="0" Margin="1.5,0,21.5,0" Padding="0" Background="{x:Null}" />
                                         <Popup x:Name="PART_Popup" SnapsToDevicePixels="True" VerticalOffset="-1.5" AllowsTransparency="True" IsOpen="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}" Placement="Bottom" PopupAnimation="Fade">
                                             <Grid x:Name="PanPopup">
-                                                <Border Background="White" CornerRadius="3" />
+                                                <Border Background="{DynamicResource ColorBrushPopupBackground}" CornerRadius="3" />
                                                 <Border x:Name="dropDownBorder" SnapsToDevicePixels="False" CornerRadius="3" BorderBrush="{TemplateBinding Foreground}" BorderThickness="1" Width="{TemplateBinding Width}" MaxHeight="{TemplateBinding MaxDropDownHeight}">
                                                     <local:MyScrollViewer x:Name="DropDownScrollViewer" Style="{StaticResource ScrollViewerFullMargin}" ScrollViewer.CanContentScroll="False" VerticalScrollBarVisibility="Auto">
                                                         <ItemsPresenter x:Name="ItemsPresenter" KeyboardNavigation.DirectionalNavigation="Contained" />
@@ -482,7 +523,7 @@
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="ContextMenu">
-                            <Border BorderBrush="{DynamicResource ColorBrush1}" BorderThickness="1" CornerRadius="3" Background="White" Margin="0,0,4,4" SnapsToDevicePixels="True">
+                            <Border BorderBrush="{DynamicResource ColorBrush1}" BorderThickness="1" CornerRadius="3" Background="{DynamicResource ColorBrushPopupBackground}" Margin="0,0,4,4" SnapsToDevicePixels="True">
                                 <Border.Effect>
                                     <DropShadowEffect Opacity="0.4" BlurRadius="4" ShadowDepth="2" />
                                 </Border.Effect>

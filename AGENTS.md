@@ -26,7 +26,7 @@
 | --- | --- |
 | `Plain Craft Launcher 2/` | VB.NET / WPF 主程序，目标 .NET Framework 4.8；命名空间、页面编号与程序集资源引用需保持兼容 |
 | `PCLCS/` | C# 公共实现，当前使用 C# 13、目标 `net48` |
-| `MeloongCore/` | 独立 Git 子模块；涉及它时先读其 `AGENTS.md`，未经任务明确授权不得修改内容或更新子模块指针 |
+| `PCLSCore/` | 独立 Git 子模块；涉及它时先读其 `AGENTS.md`，未经任务明确授权不得修改内容或更新子模块指针 |
 | `.github/` | 构建、提交检查、PR 反馈和发布自动化；工作流改动须核对事件与权限边界 |
 | `tests/` | 现有 Windows/WPF 回归脚本，优先复用相关检查 |
 
