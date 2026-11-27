@@ -166,10 +166,6 @@ Public Class FormMain
             Catch ex As Exception
                 Logger.Error(ex, "初始化加载池运行失败")
             End Try
-            '开源版本提示
-            If VersionBranchMain = "OpenSource" Then
-                MyMsgBox($"该版本中无法使用以下特性：{vbCrLf}- CurseForge API 调用：需要自行申请 API Key，然后添加到 ModSecret.vb 的开头{vbCrLf}- 正版登录：需要自行向微软申请 Client ID，然后添加到 ModSecret.vb 的开头{vbCrLf}- 更新与联网通知：避免滥用隐患{vbCrLf}- 百宝箱：开发早期往里面塞了些开发工具，整理起来太麻烦了……", "开源版本说明")
-            End If
         End Sub, "初始化", ThreadPriority.Lowest)
 
         Logger.Info($"第三阶段加载用时：{GetTimeMs() - ApplicationStartTick} ms")
@@ -869,6 +865,10 @@ Public Class FormMain
         ''' 社区资源详情。这是一个副页面。
         ''' </summary>
         ResourceDetail = 8
+        ''' <summary>
+        ''' 扫雷。这是一个副页面。
+        ''' </summary>
+        Minesweeper = 9
     End Enum
     ''' <summary>
     ''' 次要页面种类。导航使用对应控件的 Tag 匹配编号。
@@ -911,6 +911,8 @@ Public Class FormMain
                 Return "版本设置 - " & If(PageInstanceLeft.Instance Is Nothing, "未知版本", PageInstanceLeft.Instance.Name)
             Case PageType.ResourceDetail
                 Return CType(Stack.Additional(0), ResourceProject).TranslatedName
+            Case PageType.Minesweeper
+                Return "扫雷"
             Case Else
                 Return ""
         End Select
@@ -1139,6 +1141,9 @@ Public Class FormMain
                 Case PageType.ResourceDetail '社区资源详情
                     If FrmDownloadResourceDetail Is Nothing Then FrmDownloadResourceDetail = New PageDownloadResourceDetail
                     PageChangeAnim(New MyPageLeft, FrmDownloadResourceDetail)
+                Case PageType.Minesweeper '扫雷
+                    If FrmOtherMinesweeper Is Nothing Then FrmOtherMinesweeper = New PageOtherMinesweeper
+                    PageChangeAnim(New MyPageLeft, FrmOtherMinesweeper)
             End Select
 #End Region
 

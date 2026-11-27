@@ -12,6 +12,11 @@ try {
     $assembly = [Reflection.Assembly]::LoadFrom((Join-Path $repoRoot 'Plain Craft Launcher 2\bin\Plain Craft Launcher Slash.exe'))
     $application = [Activator]::CreateInstance($assembly.GetType('PCL.Application'), $true)
     $application.InitializeComponent()
+    $toolboxType = $assembly.GetType('PCL.PageOtherTest')
+    foreach ($method in @('GetRandomHint', 'GetRandomCave', 'GetRandomPresetHint')) {
+        Assert ([string]::IsNullOrEmpty($toolboxType.GetMethod($method).Invoke($null, @()))) 'A legacy open-source edition placeholder is still returned'
+    }
+    Assert ($assembly.GetType('PCL.ModMain').GetMethod('ArgumentReplace').Invoke($null, @('a{hint}b{cave}c', $null, $false)) -ceq 'abc') 'Home variables still insert legacy placeholders'
     $entries = $assembly.GetType('PCL.Settings').GetField('Entries').GetValue($null)
     foreach ($key in @('SystemHelpVersion', 'UiHiddenOtherHelp')) {
         Assert (-not $entries.ContainsKey($key)) "Removed help setting remains: $key"

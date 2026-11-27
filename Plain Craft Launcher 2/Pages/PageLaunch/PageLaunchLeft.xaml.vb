@@ -787,11 +787,12 @@ ExitRefresh:
             If (Not IsLaunched) = (LabLaunchingProgress.Visibility = Visibility.Collapsed) Then 'IsProgressStateChanged
                 LabLaunchingProgress.Visibility = Visibility.Visible
                 LabLaunchingProgressLeft.Visibility = Visibility.Visible
-                If IsLaunched Then PanLaunchingHint.Visibility = Visibility.Visible
+                Dim HasHint = IsLaunched AndAlso Not String.IsNullOrWhiteSpace(LabLaunchingHint.Text)
+                PanLaunchingHint.Visibility = If(HasHint, Visibility.Visible, Visibility.Collapsed)
                 AnimList.AddRange({
                     AaOpacity(LabLaunchingProgress, If(Not IsLaunched, 1, 0) - LabLaunchingProgress.Opacity, 90),
                     AaOpacity(LabLaunchingProgressLeft, If(Not IsLaunched, 0.5, 0) - LabLaunchingProgressLeft.Opacity, 90),
-                    AaOpacity(PanLaunchingHint, If(IsLaunched, 1, 0) - PanLaunchingHint.Opacity, 90)
+                    AaOpacity(PanLaunchingHint, If(HasHint, 1, 0) - PanLaunchingHint.Opacity, 90)
                 })
             End If
             AniStart(AnimList, "Launching Progress")
