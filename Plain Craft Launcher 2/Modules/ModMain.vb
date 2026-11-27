@@ -402,6 +402,7 @@ EndHint:
     Public FrmOtherAbout As PageOtherAbout
     Public FrmOtherCredits As PageOtherCredits
     Public FrmOtherTest As PageOtherTest
+    Public FrmOtherMinesweeper As PageOtherMinesweeper
 
     '登录页面声明
     Public FrmLoginLegacy As PageLoginLegacy

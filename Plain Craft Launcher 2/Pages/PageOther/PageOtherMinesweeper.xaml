@@ -1,0 +1,64 @@
+<local:MyPageRight x:Class="PageOtherMinesweeper"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:PCL" PanScroll="PanBack">
+    <local:MyPageRight.Resources>
+        <Style x:Key="MineCellStyle" TargetType="Button">
+            <Setter Property="Width" Value="30" />
+            <Setter Property="Height" Value="30" />
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="FontFamily" Value="Segoe UI Symbol" />
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="IsTabStop" Value="False" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderBrush" Value="{DynamicResource ColorBrush5}" />
+            <Setter Property="SnapsToDevicePixels" Value="True" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="CellBorder" Margin="1" CornerRadius="3" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                            <TextBlock x:Name="CellLabel" Text="{TemplateBinding Content}" Foreground="{TemplateBinding Foreground}"
+                                       FontFamily="{TemplateBinding FontFamily}" FontSize="{TemplateBinding FontSize}" FontWeight="{TemplateBinding FontWeight}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="CellBorder" Property="Background" Value="{DynamicResource ColorBrush5}" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="CellBorder" Property="Background" Value="{DynamicResource ColorBrush4}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </local:MyPageRight.Resources>
+    <local:MyScrollViewer x:Name="PanBack" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="25,10">
+            <local:MyCard x:Name="CardMinesweeper" Title="扫雷" Margin="0,15">
+                <StackPanel Margin="25,40,25,20">
+                    <WrapPanel Margin="0,0,0,14">
+                        <local:MyComboBox x:Name="ComboMineDifficulty" Width="180" Height="30" SelectedIndex="0" Margin="0,0,12,8">
+                            <local:MyComboBoxItem Content="初级 · 9 × 9 · 10 雷" />
+                            <local:MyComboBoxItem Content="中级 · 16 × 16 · 40 雷" />
+                        </local:MyComboBox>
+                        <local:MyButton x:Name="BtnMineRestart" Text="重新开始" Height="30" Padding="14,0" Margin="0,0,18,8" />
+                        <TextBlock x:Name="LabMineRemaining" VerticalAlignment="Center" Margin="0,0,18,8" />
+                        <TextBlock x:Name="LabMineTime" VerticalAlignment="Center" Margin="0,0,0,8" />
+                    </WrapPanel>
+                    <TextBlock x:Name="LabMineStatus" FontSize="15" FontWeight="Bold" TextWrapping="Wrap" Margin="0,0,0,12"
+                               Foreground="{DynamicResource ColorBrush1}" />
+                    <ScrollViewer x:Name="MineBoardScroll" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled"
+                                  HorizontalContentAlignment="Center" Focusable="False" Margin="-1,0,-1,12">
+                        <UniformGrid x:Name="PanMineBoard" HorizontalAlignment="Center" />
+                    </ScrollViewer>
+                    <TextBlock Text="左键翻开，右键插旗或取消插旗。离开页面会暂停计时，返回后继续。"
+                               TextWrapping="Wrap" Foreground="{DynamicResource ColorBrushGray2}" />
+                </StackPanel>
+            </local:MyCard>
+        </StackPanel>
+    </local:MyScrollViewer>
+</local:MyPageRight>

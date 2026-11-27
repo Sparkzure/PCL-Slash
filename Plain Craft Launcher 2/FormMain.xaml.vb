@@ -865,6 +865,10 @@ Public Class FormMain
         ''' 社区资源详情。这是一个副页面。
         ''' </summary>
         ResourceDetail = 8
+        ''' <summary>
+        ''' 扫雷。这是一个副页面。
+        ''' </summary>
+        Minesweeper = 9
     End Enum
     ''' <summary>
     ''' 次要页面种类。导航使用对应控件的 Tag 匹配编号。
@@ -907,6 +911,8 @@ Public Class FormMain
                 Return "版本设置 - " & If(PageInstanceLeft.Instance Is Nothing, "未知版本", PageInstanceLeft.Instance.Name)
             Case PageType.ResourceDetail
                 Return CType(Stack.Additional(0), ResourceProject).TranslatedName
+            Case PageType.Minesweeper
+                Return "扫雷"
             Case Else
                 Return ""
         End Select
@@ -1135,6 +1141,9 @@ Public Class FormMain
                 Case PageType.ResourceDetail '社区资源详情
                     If FrmDownloadResourceDetail Is Nothing Then FrmDownloadResourceDetail = New PageDownloadResourceDetail
                     PageChangeAnim(New MyPageLeft, FrmDownloadResourceDetail)
+                Case PageType.Minesweeper '扫雷
+                    If FrmOtherMinesweeper Is Nothing Then FrmOtherMinesweeper = New PageOtherMinesweeper
+                    PageChangeAnim(New MyPageLeft, FrmOtherMinesweeper)
             End Select
 #End Region
 

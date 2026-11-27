@@ -1,5 +1,9 @@
 Public Class PageOtherTest
 
+    Private Sub OpenMinesweeper(sender As Object, e As EventArgs) Handles BtnMinesweeper.Click
+        FrmMain.PageChange(FormMain.PageType.Minesweeper)
+    End Sub
+
     Public Shared Sub StartCustomDownload(Url As String, FileName As String, Optional Folder As String = Nothing)
         Hint("尚未实现自定义下载事件。", HintType.Red)
     End Sub
