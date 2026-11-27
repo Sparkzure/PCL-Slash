@@ -30,7 +30,7 @@ CI 脚本使用 Node.js 24，无需额外 npm 依赖：
 node --test .github/scripts/*.test.cjs
 ```
 
-验证应与改动对应：应用行为变更先构建，再执行 [tests](tests) 中相关的 `verify-*.ps1`；Windows/WPF 脚本使用 `powershell.exe -NoProfile -STA -ExecutionPolicy Bypass -File <脚本路径>`。只改文档时检查内容、链接与排版即可。具体检查索引见 [AGENTS.md](AGENTS.md#验证要求)。
+验证应与改动对应：应用行为变更先构建，再执行 [tests](tests) 中相关的 `verify-*.ps1`；Windows/WPF 脚本使用 `powershell.exe -NoProfile -STA -ExecutionPolicy Bypass -File <脚本路径>`。只改文档时检查内容、链接与排版即可。验证原则见 [AGENTS.md](AGENTS.md#验证要求)。
 
 保持现有代码风格，避免无关重构或整仓格式化。配置、存储、迁入或备份行为变化应说明兼容性和失败处理，并补充有实际价值的验证。构建产物、个人数据、凭据和本机工具目录不应提交。
 
