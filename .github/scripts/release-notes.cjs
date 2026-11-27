@@ -10,7 +10,7 @@ function previousTag(tag, cwd) {
   const git = args => execFileSync('git', args, { cwd, encoding: 'utf8' }).trim();
   const channel = tagChannel(tag);
   const candidates = git(['tag', '--merged', tag]).split('\n').filter(value => value !== tag && tagPattern.test(value) &&
-    (channel === 'release' ? tagChannel(value) === 'release' : channel === 'beta' ? tagChannel(value) === 'beta' : true));
+    (channel === 'release' ? tagChannel(value) === 'release' : channel === 'beta' ? ['beta', 'release'].includes(tagChannel(value)) : true));
   if (!candidates.length) return null;
   try { return git(['describe', '--tags', '--abbrev=0', ...candidates.map(value => `--match=${value}`), `${tag}^`]); }
   catch { return null; } // 首个版本或根提交没有更早的版本标签。

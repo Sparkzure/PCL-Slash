@@ -9,7 +9,7 @@ const feedback = require('./pr-feedback.cjs');
 const commit = (sha, message = `chore: ${sha}`, extra = {}) => ({ sha, commit: { message, author: { name: 'Lecyn', email: 'test@example.invalid' } },
   author: { login: 'lecyn' }, parents: [{ sha: 'parent' }], ...extra });
 
-test('beta starts at the previous beta; snapshot starts at any previous version; stable ignores prereleases', async t => {
+test('beta starts at the previous beta or release; snapshot starts at any previous version; stable ignores prereleases', async t => {
   const cwd = fs.mkdtempSync(path.join(os.tmpdir(), 'pcl-notes-'));
   t.after(() => {
     assert.equal(path.dirname(cwd), os.tmpdir());
@@ -21,18 +21,20 @@ test('beta starts at the previous beta; snapshot starts at any previous version;
   git(['-c', 'user.name=Tests', '-c', 'user.email=test@example.invalid', 'commit', '--allow-empty', '-m', 'chore: baseline']);
   const baseline = git(['rev-parse', 'HEAD']);
   const shas = [];
-  for (const tag of ['v1.0.0', 'v1.1.0-snapshot.1', 'v1.1.0-beta.1', 'v1.1.0', 'v1.2.0-snapshot.1', 'v1.2.0-beta.1', 'v1.2.0-snapshot.2', 'v1.2.0']) {
+  for (const tag of ['v1.0.0', 'v1.1.0-snapshot.1', 'v1.1.0-beta.1', 'v1.1.0', 'v1.2.0-snapshot.1', 'v1.2.0-beta.1', 'v1.2.0-snapshot.2', 'v1.2.0-beta.2', 'v1.2.0']) {
     git(['-c', 'user.name=Tests', '-c', 'user.email=test@example.invalid', 'commit', '--allow-empty', '-m', `chore: ${tag}`]);
     shas.push(git(['rev-parse', 'HEAD']));
     git(['tag', tag]);
   }
-  assert.equal(previousTag('v1.1.0-beta.1', cwd), null);
-  assert.equal(previousTag('v1.2.0-beta.1', cwd), 'v1.1.0-beta.1');
+  assert.equal(previousTag('v1.1.0-beta.1', cwd), 'v1.0.0');
+  assert.equal(previousTag('v1.2.0-beta.1', cwd), 'v1.1.0');
+  assert.equal(previousTag('v1.2.0-beta.2', cwd), 'v1.2.0-beta.1');
   assert.equal(previousTag('v1.2.0-snapshot.1', cwd), 'v1.1.0');
   assert.equal(previousTag('v1.2.0-snapshot.2', cwd), 'v1.2.0-beta.1');
   assert.equal(previousTag('v1.2.0', cwd), 'v1.1.0');
-  assert.deepEqual(readRange('v1.2.0-beta.1', 'v1.1.0-beta.1', cwd, baseline), shas.slice(3, 6));
-  assert.deepEqual(readRange('v1.1.0-beta.1', null, cwd, baseline), shas.slice(0, 3));
+  assert.deepEqual(readRange('v1.2.0-beta.1', previousTag('v1.2.0-beta.1', cwd), cwd, baseline), shas.slice(4, 6));
+  assert.deepEqual(readRange('v1.1.0-beta.1', previousTag('v1.1.0-beta.1', cwd), cwd, baseline), shas.slice(1, 3));
+  assert.deepEqual(readRange('v1.2.0-beta.2', previousTag('v1.2.0-beta.2', cwd), cwd, baseline), shas.slice(6, 8));
   const calls = [];
   const github = { rest: { repos: {
     async compareCommitsWithBasehead(args) { calls.push(args); return { data: { commits: shas.slice(2, 6).reverse().map(sha => commit(sha)) } }; },
@@ -42,12 +44,12 @@ test('beta starts at the previous beta; snapshot starts at any previous version;
   await generateNotes({ github, context: { repo: { owner: 'Sparkzure', repo: 'PCL-Slash' } }, core: { info() {} },
     tag: 'v1.2.0-beta.1', cwd, directory, baseline });
   const notes = fs.readFileSync(path.join(directory, 'draft-body.md'), 'utf8');
-  assert.ok(!notes.includes(shas[2]));
-  assert.ok(notes.includes(shas[3]) && notes.includes(shas[5]));
-  assert.ok(notes.indexOf(shas[3]) < notes.indexOf(shas[5]));
+  assert.ok(!notes.includes(shas[2]) && !notes.includes(shas[3]));
+  assert.ok(notes.includes(shas[4]) && notes.includes(shas[5]));
+  assert.ok(notes.indexOf(shas[4]) < notes.indexOf(shas[5]));
   assert.equal(notes, fs.readFileSync(path.join(directory, 'CHANGELOG.md'), 'utf8'));
   assert.equal(calls[0].per_page, 100);
-  assert.equal(calls[0].basehead, 'v1.1.0-beta.1...v1.2.0-beta.1');
+  assert.equal(calls[0].basehead, 'v1.1.0...v1.2.0-beta.1');
   await generateNotes({ github, context: { repo: { owner: 'Sparkzure', repo: 'PCL-Slash' } }, core: { info() {} },
     tag: 'v1.0.0', cwd, directory, baseline });
   assert.equal(calls[1].sha, 'v1.0.0');
