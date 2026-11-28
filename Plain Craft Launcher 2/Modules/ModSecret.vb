@@ -386,6 +386,14 @@ Friend Module ModSecret
         End Try
         Return Unlocked
     End Function
+    Friend Sub ThemeUnlockOnStartup(RunCount As Integer, LuckyRoll As Integer)
+        If RunCount >= 99 AndAlso ThemeUnlock(LauncherTheme.LoyalPink, False) Then
+            MyMsgBox("你已经使用了 99 次 PCL-Slash 啦，感谢你长期以来的支持！" & vbCrLf &
+                     "隐藏主题 铁杆粉 已解锁！", "提示")
+        End If
+        If LuckyRoll = 1 Then ThemeUnlock(LauncherTheme.LuckyRainbow, False, "隐藏主题 欧皇彩 已解锁！")
+    End Sub
+
     Friend Function ThemeUnlock(Key As String, Optional ShowDoubleHint As Boolean = True, Optional UnlockHint As String = Nothing) As Boolean
         If Not HiddenThemes.Contains(Key) Then Return False
         Dim Unlocked = GetUnlockedThemes()

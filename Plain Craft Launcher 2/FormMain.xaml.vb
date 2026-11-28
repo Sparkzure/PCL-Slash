@@ -172,7 +172,8 @@ Public Class FormMain
     End Sub
     '启动提示与根据打开次数触发的事件
     Private Sub RunCountSub()
-        Settings.Set("SystemCount", Settings.Get(Of Integer)("SystemCount") + 1)
+        Dim RunCount = Settings.Get(Of Integer)("SystemCount") + 1
+        Settings.Set("SystemCount", RunCount)
         If BuildType = BuildTypes.Snapshot Then
             'Beta 与 Snapshot 共用 Snapshot 构建配置，按版本后缀区分，每次启动都显示说明。
             Select Case GetLauncherUpdateChannel(VersionBaseName, False)
@@ -185,13 +186,8 @@ Public Class FormMain
                              "Beta 版用于测试准备发布的功能与修复，可能仍存在兼容性或稳定性问题。" & vbCrLf &
                              "欢迎通过关于页面中的问题反馈入口，告诉我们你遇到的问题。", "Beta 版使用说明")
             End Select
-            If Settings.Get(Of Integer)("SystemCount") >= 99 Then
-                If ThemeUnlock(LauncherTheme.LoyalPink, False) Then
-                    MyMsgBox("你已经使用了 99 次 PCL-Slash 啦，感谢你长期以来的支持！" & vbCrLf &
-                             "隐藏主题 铁杆粉 已解锁！", "提示")
-                End If
-            End If
         End If
+        ThemeUnlockOnStartup(RunCount, RandomInteger(1, 10000))
     End Sub
     '升级与降级事件
     Private Sub UpgradeSub(LastVersionCode As Integer)
