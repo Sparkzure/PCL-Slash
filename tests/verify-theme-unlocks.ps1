@@ -76,8 +76,13 @@ try {
     Assert (Complete $registry 'minesweeper') 'A completed game could not recover a malformed progress record'
     Assert (-not (Is-Unlocked 'active-orange')) 'Malformed progress was treated as full completion'
     Set-Setting 'ToolMinigameCompleted' '[]'
-    $registry = New-Registry -keys @('minesweeper')
-    Assert ((Complete $registry 'minesweeper') -and (Is-Unlocked 'active-orange')) 'The current single-game roster did not unlock active orange'
+    Set-Setting 'UiThemeUnlocked' '[]'
+    $registry = $progressType.GetField('Current', $flags).GetValue($null)
+    Assert (Complete $registry 'minesweeper') 'The current roster did not record minesweeper'
+    Assert (-not (Is-Unlocked 'active-orange')) 'The current roster ignored its second game'
+    Assert (Complete $registry 'tetris') 'The current roster did not record tetris'
+    Assert (-not (Is-Unlocked 'active-orange')) 'The current roster ignored its third game'
+    Assert ((Complete $registry 'tile-match') -and (Is-Unlocked 'active-orange')) 'Completing the current roster did not unlock active orange'
     $page = [Activator]::CreateInstance($assembly.GetType('PCL.PageSetupUI'))
     $expectedTip = -join [char[]]@(0x6E38,0x620F,0x5927,0x738B,0xFF01,0xFF01,0xFF01)
     Assert ($page.FindName('RadioLauncherThemeActiveOrange').ToolTip -ceq $expectedTip) 'Active orange tooltip does not match the requested text'

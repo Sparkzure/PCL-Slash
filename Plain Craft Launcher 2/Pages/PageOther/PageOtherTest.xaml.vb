@@ -1,5 +1,13 @@
 Public Class PageOtherTest
 
+    Private Sub OpenTileMatch(sender As Object, e As EventArgs) Handles BtnTileMatch.Click
+        FrmMain.PageChange(FormMain.PageType.TileMatch)
+    End Sub
+
+    Private Sub OpenTetris(sender As Object, e As EventArgs) Handles BtnTetris.Click
+        FrmMain.PageChange(FormMain.PageType.Tetris)
+    End Sub
+
     Private Sub OpenMinesweeper(sender As Object, e As EventArgs) Handles BtnMinesweeper.Click
         FrmMain.PageChange(FormMain.PageType.Minesweeper)
     End Sub

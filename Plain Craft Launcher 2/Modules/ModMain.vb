@@ -403,6 +403,8 @@ EndHint:
     Public FrmOtherCredits As PageOtherCredits
     Public FrmOtherTest As PageOtherTest
     Public FrmOtherMinesweeper As PageOtherMinesweeper
+    Public FrmOtherTetris As PageOtherTetris
+    Public FrmOtherTileMatch As PageOtherTileMatch
 
     '登录页面声明
     Public FrmLoginLegacy As PageLoginLegacy
