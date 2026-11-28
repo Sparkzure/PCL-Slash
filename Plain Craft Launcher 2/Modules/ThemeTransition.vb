@@ -7,10 +7,14 @@ Friend NotInheritable Class ThemeTransition
     End Sub
 
     Private NotInheritable Class Reveal
-        Public Root As Grid
+        Public Frame As Grid
+        Public Layer As Canvas
+        Public Content As FrameworkElement
         Public Snapshot As RenderTargetBitmap
         Public Origin As Point
         Public Size As Size
+        Public ContentSize As Size
+        Public Clip As Geometry
         Public Overlay As Image
         Public Mask As RadialGradientBrush
     End Class
@@ -18,26 +22,41 @@ Friend NotInheritable Class ThemeTransition
     Private Shared Pending As Reveal
     Private Shared Active As Reveal
 
-    Friend Shared Sub Prepare(Root As Grid, Origin As Point)
+    Friend Shared Sub Prepare(Layer As Canvas, Content As FrameworkElement, Origin As Point)
         Pending = Nothing
-        If Root Is Nothing OrElse Not Root.IsLoaded OrElse Not Root.IsVisible OrElse AniControlEnabled <> 0 OrElse AniSpeed >= 200 Then Return
-        Dim Width = Root.ActualWidth, Height = Root.ActualHeight
-        If Width <= 0 OrElse Height <= 0 Then Return
+        If Layer Is Nothing OrElse Content Is Nothing OrElse Not Layer.IsLoaded OrElse Not Layer.IsVisible OrElse
+           AniControlEnabled <> 0 OrElse AniSpeed >= 200 Then Return
+        '最外层 Frame 和专用 Canvas 共用窗口坐标，不让截图参与原界面的测量或布局。
+        Dim Frame = TryCast(Layer.Parent, Grid)
+        If Frame Is Nothing OrElse Window.GetWindow(Frame)?.Content IsNot Frame Then Return
         Try
-            Dim Dpi = VisualTreeHelper.GetDpi(Root)
+            Frame.UpdateLayout()
+            Dim Width = Frame.ActualWidth, Height = Frame.ActualHeight
+            If Width <= 0 OrElse Height <= 0 Then Return
+            Dim Dpi = VisualTreeHelper.GetDpi(Frame)
             Dim PixelWidth = Math.Ceiling(Width * Dpi.DpiScaleX)
             Dim PixelHeight = Math.Ceiling(Height * Dpi.DpiScaleY)
             If PixelWidth * PixelHeight > 16777216 Then Return
+            Dim ContentToFrame = TryCast(Content.TransformToAncestor(Frame), Transform)
+            If ContentToFrame Is Nothing Then Return
+            Dim Clip = If(Content.Clip, New RectangleGeometry(New Rect(Content.RenderSize))).CloneCurrentValue()
+            Dim ClipTransforms As New TransformGroup
+            ClipTransforms.Children.Add(Clip.Transform)
+            ClipTransforms.Children.Add(ContentToFrame)
+            Clip.Transform = ClipTransforms
+            Clip.Freeze()
             '连续切换时连同当前遮罩一起截图，避免先跳到上一次动画的终点。
+            '只截窗口内容，避免将窗口透明度再次叠加到旧画面上。
             Dim Snapshot As New RenderTargetBitmap(CInt(PixelWidth), CInt(PixelHeight), Dpi.PixelsPerInchX, Dpi.PixelsPerInchY, PixelFormats.Pbgra32)
-            Snapshot.Render(Root)
+            Snapshot.Render(Frame)
             Snapshot.Freeze()
             Dim Prepared As New Reveal With {
-                .Root = Root, .Snapshot = Snapshot, .Size = New Size(Width, Height),
+                .Frame = Frame, .Layer = Layer, .Content = Content, .Clip = Clip, .ContentSize = Content.RenderSize,
+                .Snapshot = Snapshot, .Size = Frame.RenderSize,
                 .Origin = New Point(Math.Max(0, Math.Min(Width, Origin.X)), Math.Max(0, Math.Min(Height, Origin.Y)))}
             Pending = Prepared
             '鼠标抬起后若未触发设置改变，不把这次点击带到之后的程序化刷新。
-            Root.Dispatcher.BeginInvoke(DispatcherPriority.ContextIdle, New Action(
+            Frame.Dispatcher.BeginInvoke(DispatcherPriority.ContextIdle, New Action(
                 Sub()
                     If ReferenceEquals(Pending, Prepared) Then Pending = Nothing
                 End Sub))
@@ -51,8 +70,9 @@ Friend NotInheritable Class ThemeTransition
         Pending = Nothing
         Finish(Active)
         RefreshTheme()
-        If Prepared Is Nothing OrElse Not Prepared.Root.IsLoaded OrElse Not Prepared.Root.IsVisible OrElse
-           Prepared.Root.RenderSize <> Prepared.Size OrElse AniControlEnabled <> 0 OrElse AniSpeed >= 200 Then Return
+        If Prepared Is Nothing OrElse Not Prepared.Layer.IsLoaded OrElse Not Prepared.Layer.IsVisible OrElse
+           Prepared.Frame.RenderSize <> Prepared.Size OrElse Prepared.Content.RenderSize <> Prepared.ContentSize OrElse
+           AniControlEnabled <> 0 OrElse AniSpeed >= 200 Then Return
         Try
             Dim FarX = Math.Max(Prepared.Origin.X, Prepared.Size.Width - Prepared.Origin.X)
             Dim FarY = Math.Max(Prepared.Origin.Y, Prepared.Size.Height - Prepared.Origin.Y)
@@ -63,15 +83,16 @@ Friend NotInheritable Class ThemeTransition
             Prepared.Mask.GradientStops.Add(New GradientStop(Colors.Transparent, 0.85))
             Prepared.Mask.GradientStops.Add(New GradientStop(Colors.White, 1))
             Prepared.Overlay = New Image With {
-                .Source = Prepared.Snapshot, .OpacityMask = Prepared.Mask, .Stretch = Stretch.Fill,
+                .Source = Prepared.Snapshot, .Width = Prepared.Snapshot.Width, .Height = Prepared.Snapshot.Height,
+                .Stretch = Stretch.Fill, .UseLayoutRounding = False, .SnapsToDevicePixels = False,
                 .IsHitTestVisible = False, .Focusable = False}
-            Grid.SetRowSpan(Prepared.Overlay, Math.Max(1, Prepared.Root.RowDefinitions.Count))
-            Grid.SetColumnSpan(Prepared.Overlay, Math.Max(1, Prepared.Root.ColumnDefinitions.Count))
-            Panel.SetZIndex(Prepared.Overlay, Integer.MaxValue)
             Active = Prepared
-            Prepared.Root.Children.Add(Prepared.Overlay)
-            AddHandler Prepared.Root.SizeChanged, AddressOf RootSizeChanged
-            AddHandler Prepared.Root.Unloaded, AddressOf RootUnloaded
+            Prepared.Layer.Clip = Prepared.Clip
+            Prepared.Layer.OpacityMask = Prepared.Mask
+            Prepared.Layer.Children.Add(Prepared.Overlay)
+            AddHandler Prepared.Frame.SizeChanged, AddressOf ViewportSizeChanged
+            AddHandler Prepared.Content.SizeChanged, AddressOf ViewportSizeChanged
+            AddHandler Prepared.Layer.Unloaded, AddressOf LayerUnloaded
             Dim Animation As New DoubleAnimation(0.1, Radius, TimeSpan.FromMilliseconds(750 / AniSpeed)) With {
                 .EasingFunction = New CubicEase With {.EasingMode = EasingMode.EaseOut}}
             Dim VerticalAnimation = Animation.Clone()
@@ -89,23 +110,25 @@ Friend NotInheritable Class ThemeTransition
         Finish(Active)
     End Sub
 
-    Private Shared Sub RootSizeChanged(Sender As Object, e As SizeChangedEventArgs)
+    Private Shared Sub ViewportSizeChanged(Sender As Object, e As SizeChangedEventArgs)
         Finish(Active)
     End Sub
 
-    Private Shared Sub RootUnloaded(Sender As Object, e As RoutedEventArgs)
+    Private Shared Sub LayerUnloaded(Sender As Object, e As RoutedEventArgs)
         Finish(Active)
     End Sub
 
     Private Shared Sub Finish(State As Reveal)
         If State Is Nothing OrElse Not ReferenceEquals(Active, State) Then Return
         Active = Nothing
-        RemoveHandler State.Root.SizeChanged, AddressOf RootSizeChanged
-        RemoveHandler State.Root.Unloaded, AddressOf RootUnloaded
+        RemoveHandler State.Frame.SizeChanged, AddressOf ViewportSizeChanged
+        RemoveHandler State.Content.SizeChanged, AddressOf ViewportSizeChanged
+        RemoveHandler State.Layer.Unloaded, AddressOf LayerUnloaded
         State.Mask.BeginAnimation(RadialGradientBrush.RadiusXProperty, Nothing)
         State.Mask.BeginAnimation(RadialGradientBrush.RadiusYProperty, Nothing)
-        State.Root.Children.Remove(State.Overlay)
-        State.Overlay.OpacityMask = Nothing
+        State.Layer.Children.Remove(State.Overlay)
+        State.Layer.OpacityMask = Nothing
+        State.Layer.Clip = Nothing
         State.Overlay.Source = Nothing
         State.Snapshot = Nothing
     End Sub

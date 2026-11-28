@@ -1,7 +1,7 @@
 Public Class PageSetupUI
 
     Private Sub ThemeTransition_MouseUp(sender As Object, e As MouseButtonEventArgs) Handles CheckThemeDarkMode.PreviewMouseLeftButtonUp, PanLauncherTheme.PreviewMouseLeftButtonUp
-        If FrmMain?.PanForm Is Nothing Then Return
+        If FrmMain?.PanThemeTransition Is Nothing Then Return
         If sender Is PanLauncherTheme Then
             Dim Source = TryCast(e.OriginalSource, FrameworkElement)
             While Source IsNot Nothing AndAlso Source IsNot PanLauncherTheme AndAlso TypeOf Source IsNot MyRadioBox
@@ -10,7 +10,7 @@ Public Class PageSetupUI
             Dim Choice = TryCast(Source, MyRadioBox)
             If Choice Is Nothing OrElse Not Choice.IsEnabled OrElse Choice.Checked OrElse Not ThemeCheckOne(SettingService.GetValue(Choice)) Then Return
         End If
-        ThemeTransition.Prepare(FrmMain.PanForm, e.GetPosition(FrmMain.PanForm))
+        ThemeTransition.Prepare(FrmMain.PanThemeTransition, FrmMain.BorderForm, e.GetPosition(FrmMain.PanThemeTransition))
     End Sub
 
     Private Sub ThemeTransition_Unloaded() Handles Me.Unloaded
