@@ -16,12 +16,12 @@ Public Module ModBase
     Public Const SingletonMutexName As String = "PCL-Slash_SingletonMutex"
 
     '下列版本信息由版本 Bot 和发布构建维护
-    Public Const VersionBaseName As String = "2.14.1.1-snapshot.7" '显示用版本名
+    Public Const VersionBaseName As String = "2.14.1.1-snapshot.8" '显示用版本名
     Public Const CommitHash As String = "" 'Commit Hash，由 GitHub Workflow 自动替换
 #If RELEASE Then
     Public Const VersionCode As Integer = 411 '正式版
 #Else
-    Public Const VersionCode As Integer = 422 '快照版
+    Public Const VersionCode As Integer = 423 '快照版
 #End If
 
     '版本信息
