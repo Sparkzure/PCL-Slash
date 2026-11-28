@@ -1,8 +1,9 @@
 ''' <summary>按小游戏保存达标记录；所有已登记的小游戏均通关后解锁活跃橙。</summary>
 Friend NotInheritable Class MinigameProgress
     Friend Const Minesweeper As String = "minesweeper"
+    Friend Const Tetris As String = "tetris"
     '新增小游戏时在此登记稳定的名称，由对应页面在满足自身通关条件后记录完成。
-    Friend Shared ReadOnly Current As New MinigameProgress({Minesweeper})
+    Friend Shared ReadOnly Current As New MinigameProgress({Minesweeper, Tetris})
 
     Private ReadOnly RegisteredGames As HashSet(Of String)
     Private ReadOnly Gate As New Object

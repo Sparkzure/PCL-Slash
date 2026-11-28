@@ -865,6 +865,10 @@ Public Class FormMain
         ''' 扫雷。这是一个副页面。
         ''' </summary>
         Minesweeper = 9
+        ''' <summary>
+        ''' 俄罗斯方块。这是一个副页面。
+        ''' </summary>
+        Tetris = 10
     End Enum
     ''' <summary>
     ''' 次要页面种类。导航使用对应控件的 Tag 匹配编号。
@@ -909,6 +913,8 @@ Public Class FormMain
                 Return CType(Stack.Additional(0), ResourceProject).TranslatedName
             Case PageType.Minesweeper
                 Return "扫雷"
+            Case PageType.Tetris
+                Return "俄罗斯方块"
             Case Else
                 Return ""
         End Select
@@ -1140,6 +1146,9 @@ Public Class FormMain
                 Case PageType.Minesweeper '扫雷
                     If FrmOtherMinesweeper Is Nothing Then FrmOtherMinesweeper = New PageOtherMinesweeper
                     PageChangeAnim(New MyPageLeft, FrmOtherMinesweeper)
+                Case PageType.Tetris '俄罗斯方块
+                    If FrmOtherTetris Is Nothing Then FrmOtherTetris = New PageOtherTetris
+                    PageChangeAnim(New MyPageLeft, FrmOtherTetris)
             End Select
 #End Region
 

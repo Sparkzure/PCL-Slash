@@ -1,5 +1,9 @@
 Public Class PageOtherTest
 
+    Private Sub OpenTetris(sender As Object, e As EventArgs) Handles BtnTetris.Click
+        FrmMain.PageChange(FormMain.PageType.Tetris)
+    End Sub
+
     Private Sub OpenMinesweeper(sender As Object, e As EventArgs) Handles BtnMinesweeper.Click
         FrmMain.PageChange(FormMain.PageType.Minesweeper)
     End Sub
