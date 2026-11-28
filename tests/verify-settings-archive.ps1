@@ -60,6 +60,8 @@ try {
     Set-Setting 'UiMusicVolume' 321
     Set-Setting 'UiLogoText' 'archive-fixture'
     Set-Setting 'UiLauncherLogo' $false
+    Set-Setting 'UiThemeSelected' 'cang-green'
+    Set-Setting 'UiThemeDarkMode' $true
     Set-Setting 'LaunchArgumentJavaSelect' 'Z:\fixture\java.exe'
     Set-Setting 'LaunchArgumentJavaAll' '[{"path":"Z:\\fixture\\java.exe"}]'
     Set-Setting 'CacheMsV2Access' 'synthetic-account-token'
@@ -86,6 +88,7 @@ try {
     } finally { $zip.Dispose() }
     Assert ($manifest.settings.ToolDownloadThread -eq '23') 'Portable setting was not exported'
     Assert ($manifest.settings.UiMusicVolume -eq '321') 'Normal setting was not exported'
+    Assert ($manifest.settings.UiThemeSelected -ceq 'cang-green' -and $manifest.settings.UiThemeDarkMode -eq 'True') 'Theme and dark mode were not exported independently'
     foreach ($key in @('LaunchArgumentJavaSelect', 'LaunchArgumentJavaAll', 'CacheJavaListVersion', 'LaunchFolders', 'LaunchFolderSelect')) {
         Assert ($null -eq $manifest.settings.PSObject.Properties[$key]) "Machine-specific path was exported: $key"
     }
@@ -99,6 +102,8 @@ try {
     Set-Setting 'UiMusicVolume' 500
     Set-Setting 'UiLogoText' 'changed'
     Set-Setting 'UiLauncherLogo' $true
+    Set-Setting 'UiThemeSelected' 'totoro-blue'
+    Set-Setting 'UiThemeDarkMode' $false
     Set-Setting 'CacheMsV2Access' 'newer-local-account'
     Set-Setting 'LaunchArgumentJavaSelect' 'X:\current-machine\java.exe'
     $encryptedBefore = [IO.File]::ReadAllText($portablePath) | ConvertFrom-Json
@@ -116,6 +121,7 @@ try {
     Assert ((Get-Setting 'UiMusicVolume') -eq 321) 'Normal settings cache was not refreshed'
     Assert ((Get-Setting 'UiLogoText') -ceq 'archive-fixture') 'String setting did not round-trip'
     Assert ((Get-Setting 'UiLauncherLogo') -eq $false) 'Boolean setting did not round-trip'
+    Assert ((Get-Setting 'UiThemeSelected') -ceq 'cang-green' -and (Get-Setting 'UiThemeDarkMode') -eq $true) 'Theme and dark mode did not round-trip independently'
     Assert ([IO.File]::ReadAllText((Join-Path $dataRoot 'Logo.png')) -ceq 'restored-logo') 'Resource was not restored'
     Assert ([IO.File]::ReadAllText((Join-Path $dataRoot 'Pictures\keep.png')) -ceq 'keep-existing-resource') 'Import removed an unrelated resource'
     $encryptedAfter = [IO.File]::ReadAllText($portablePath) | ConvertFrom-Json

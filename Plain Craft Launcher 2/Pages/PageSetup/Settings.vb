@@ -127,6 +127,7 @@ Public Class Settings
         New Setting("UiThemeCustomGradient", 90),
         New Setting("UiThemeCustomLightness", 20),
         New Setting("UiThemeSelected", DefaultThemeKey, OnChanged:=AddressOf ThemeRefresh),
+        New Setting("UiThemeDarkMode", False, OnChanged:=Sub() ThemeRefresh()),
         New Setting("UiThemeUnlocked", "[]", Source:=Sources.Registry, Encrypted:=True),
         New Setting("UiLauncherLogo", True),
         New Setting("UiLauncherEmail", False),

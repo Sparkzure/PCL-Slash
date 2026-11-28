@@ -58,7 +58,6 @@ Friend Module ModSecret
         Public Const Custom As String = "custom"
         Public Const TianyiBlue As String = "tianyi-blue"
         Public Const CangGreen As String = "cang-green"
-        Public Const NightBlack As String = "night-black"
     End Class
     Public Const DefaultThemeKey As String = LauncherTheme.TianyiBlue
     Private ReadOnly HiddenThemes As String() = {
@@ -98,7 +97,7 @@ Friend Module ModSecret
     Public CurrentTheme As String = DefaultThemeKey
     Public ReadOnly Property IsDarkTheme As Boolean
         Get
-            Return CurrentTheme = LauncherTheme.NightBlack
+            Return Settings.Get(Of Boolean)("UiThemeDarkMode")
         End Get
     End Property
     Public ColorHue As Integer = 210, ColorSat As Integer = 85, ColorLightAdjust As Integer = 0, ColorHueTopbarDelta As OneOf(Of Integer, Integer()) = 0
@@ -151,8 +150,6 @@ Friend Module ModSecret
                     ColorHue = 200 : ColorSat = 100
                 Case LauncherTheme.CangGreen '苍绿色
                     ColorHue = 176 : ColorSat = 55
-                Case LauncherTheme.NightBlack '暗夜黑
-                    ColorHue = 215 : ColorSat = 18 : ColorLightAdjust = -37
             End Select
 
             Color1 = New MyColor().FromHSL2(ColorHue, ColorSat * 0.2, 25 + ColorLightAdjust * 0.3)
@@ -182,18 +179,22 @@ Friend Module ModSecret
                 Color6 = New MyColor(208, 240, 237)
                 Color7 = New MyColor(226, 246, 244)
                 Color8 = New MyColor(239, 251, 249)
-            ElseIf IsDarkTheme Then
+            End If
+            If IsDarkTheme Then
+                '沿用所选主题的强调色，提亮交互文字，并以同色系点缀深色表面。
+                Dim Accent = Color4
+                Dim White As New MyColor(255, 255, 255)
                 Color1 = New MyColor("#E5E9F0")
-                Color2 = New MyColor("#8BC8F5")
-                Color3 = New MyColor("#64B5F6")
-                Color4 = New MyColor("#82C7FF")
-                Color5 = New MyColor("#46566B")
-                Color6 = New MyColor("#2A3645")
-                Color7 = New MyColor("#253345")
-                Color8 = New MyColor("#202A38")
+                Color2 = Accent * 0.3 + White * 0.7
+                Color3 = Accent * 0.4 + White * 0.6
+                Color4 = Accent * 0.2 + White * 0.8
+                Color5 = Accent * 0.18 + New MyColor("#344151") * 0.82
+                Color6 = Accent * 0.08 + New MyColor("#263140") * 0.92
+                Color7 = Accent * 0.05 + New MyColor("#222D3B") * 0.95
+                Color8 = Accent * 0.03 + New MyColor("#1E2835") * 0.97
             End If
             ThemeRefreshSurfaces()
-            ColorBg0 = If(IsDarkTheme, New MyColor("#53657D"), Color4 * 0.4 + Color5 * 0.4 + ColorGray4 * 0.2)
+            ColorBg0 = If(IsDarkTheme, New MyColor("#4F5E73") * 0.8 + Color3 * 0.2, Color4 * 0.4 + Color5 * 0.4 + ColorGray4 * 0.2)
             ColorBg1 = New MyColor(190, Color7)
 
             ColorSemiTransparent = New MyColor(1, Color8)
@@ -225,7 +226,7 @@ Friend Module ModSecret
         End Try
     End Sub
     Private Sub ThemeRefreshSurfaces()
-        '表面和中性色随手动选择的主题切换；切回浅色时完整恢复，避免缓存页面保留暗色。
+        '表面和中性色随手动选择的明暗模式切换；切回浅色时完整恢复，避免缓存页面保留暗色。
         Static LastDark As Boolean? = Nothing
         If LastDark.HasValue AndAlso LastDark.Value = IsDarkTheme Then Return
         Static TooltipsInitialized As Boolean = False
@@ -289,15 +290,17 @@ Friend Module ModSecret
     Friend Sub ThemeRefreshTitle(TitleBar As Grid, TitleImage As MyImage)
         Dim Brush = New LinearGradientBrush With {.EndPoint = New Point(1, 0), .StartPoint = New Point(0, 0)}
         Dim Deltas = ColorHueTopbarDelta.Switch(Function(d) New Integer() {-d, 0, d}, Function(d) d)
-        Brush.GradientStops.Add(New GradientStop With {.Offset = 0, .Color = New MyColor().FromHSL2(ColorHue + Deltas(0), ColorSat, 48 + ColorLightAdjust)})
-        Brush.GradientStops.Add(New GradientStop With {.Offset = 0.5, .Color = New MyColor().FromHSL2(ColorHue + Deltas(1), ColorSat, 54 + ColorLightAdjust)})
-        Brush.GradientStops.Add(New GradientStop With {.Offset = 1, .Color = New MyColor().FromHSL2(ColorHue + Deltas(2), ColorSat, 48 + ColorLightAdjust)})
+        Dim Saturation = ColorSat * If(IsDarkTheme, 0.6, 1)
+        Dim Lightness = If(IsDarkTheme, 20 + ColorLightAdjust * 0.2, 48 + ColorLightAdjust)
+        Brush.GradientStops.Add(New GradientStop With {.Offset = 0, .Color = New MyColor().FromHSL2(ColorHue + Deltas(0), Saturation, Lightness)})
+        Brush.GradientStops.Add(New GradientStop With {.Offset = 0.5, .Color = New MyColor().FromHSL2(ColorHue + Deltas(1), Saturation, Lightness + 6)})
+        Brush.GradientStops.Add(New GradientStop With {.Offset = 1, .Color = New MyColor().FromHSL2(ColorHue + Deltas(2), Saturation, Lightness)})
         Brush.Freeze()
         TitleBar.Background = Brush
         TitleImage.Width = Double.NaN
         TitleImage.HorizontalAlignment = HorizontalAlignment.Stretch
         TitleImage.Margin = New Thickness(0)
-        TitleImage.Opacity = 1
+        TitleImage.Opacity = If(IsDarkTheme, 0.4, 1)
         '通过主题名称查找纹理，文件名直接描述图案内容。
         Dim TextureFile As String = Nothing
         If ThemeTitleTextureFiles.TryGetValue(CurrentTheme, TextureFile) Then
@@ -356,7 +359,7 @@ Friend Module ModSecret
     Friend Function ThemeCheckOne(Key As String) As Boolean
         Select Case Key
             Case LauncherTheme.TotoroBlue, LauncherTheme.LemonCyan, LauncherTheme.GrassGreen,
-                 LauncherTheme.PineappleYellow, LauncherTheme.OakBrown, LauncherTheme.TianyiBlue, LauncherTheme.CangGreen, LauncherTheme.NightBlack
+                 LauncherTheme.PineappleYellow, LauncherTheme.OakBrown, LauncherTheme.TianyiBlue, LauncherTheme.CangGreen
                 Return True
             Case LauncherTheme.Custom
                 Return ThemeHiddenUnlockedCount() >= 5

@@ -22,7 +22,7 @@ try {
         'pineapple-yellow' = 'PineappleYellow'; 'oak-brown' = 'OakBrown'; 'monochrome-black' = 'MonochromeBlack'
         'loyal-pink' = 'LoyalPink'; 'mystery-purple' = 'MysteryPurple'; 'active-orange' = 'ActiveOrange'
         'delayed-red' = 'DelayedRed'; 'geek-blue' = 'GeekBlue'; 'funny-rainbow' = 'FunnyRainbow'
-        'lucky-rainbow' = 'LuckyRainbow'; 'custom' = 'Custom'; 'tianyi-blue' = 'TianyiBlue'; 'cang-green' = 'CangGreen'; 'night-black' = 'NightBlack'
+        'lucky-rainbow' = 'LuckyRainbow'; 'custom' = 'Custom'; 'tianyi-blue' = 'TianyiBlue'; 'cang-green' = 'CangGreen'
     }
     $themeKeys = $themeType.GetNestedType('LauncherTheme')
     if ($themeKeys.IsEnum) { throw 'Theme keys still use a numeric enum' }
@@ -40,10 +40,14 @@ try {
     $unlock = $themeType.GetMethod('ThemeUnlock', $flags)
     $unlockedCountMethod = $themeType.GetMethod('ThemeHiddenUnlockedCount', $flags)
     $entries = $assembly.GetType('PCL.Settings').GetField('Entries').GetValue($null)
+    $settingsSet = $assembly.GetType('PCL.Settings').GetMethod('Set')
+    function Set-DarkMode([bool]$enabled) { $settingsSet.Invoke($null, @('UiThemeDarkMode', $enabled, $null)) }
     foreach ($oldKey in @('UiLauncherTheme', 'UiLauncherThemeHide', 'UiLauncherThemeHide2', 'UiLauncherHue', 'UiLauncherSat', 'UiLauncherLight', 'UiLauncherDelta', 'UiBackgroundColorful')) {
         if ($entries.ContainsKey($oldKey)) { throw "Legacy theme setting remains: $oldKey" }
     }
     if ($entries['UiThemeSelected'].DefaultValue -cne 'tianyi-blue' -or $entries['UiThemeSelected'].Type -ne [string]) { throw 'Default theme key is incorrect' }
+    if ($entries['UiThemeDarkMode'].Type -ne [bool] -or $entries['UiThemeDarkMode'].DefaultValue -ne $false) { throw 'Dark mode does not default to an independent disabled Boolean setting' }
+    if ($null -ne $themeKeys.GetField('NightBlack')) { throw 'The removed night-black theme is still registered' }
     if ($entries['UiThemeUnlocked'].DefaultValue -ne '[]') { throw 'New installations start with unlocked hidden themes' }
     $unlockEntry = $entries['UiThemeUnlocked']
     $unlockEntry.Source = [Enum]::Parse($assembly.GetType('PCL.Settings+Sources'), 'Normal')
@@ -54,8 +58,26 @@ try {
     $themePage = [Activator]::CreateInstance($assembly.GetType('PCL.PageSetupUI'))
     $assembly.GetType('PCL.ModMain').GetField('FrmSetupUI').SetValue($null, $themePage)
     $themePage.RefreshThemeChoices()
-    $basic = @('totoro-blue', 'lemon-cyan', 'grass-green', 'pineapple-yellow', 'oak-brown', 'tianyi-blue', 'cang-green', 'night-black')
+    $basic = @('totoro-blue', 'lemon-cyan', 'grass-green', 'pineapple-yellow', 'oak-brown', 'tianyi-blue', 'cang-green')
     $secrets = @('monochrome-black', 'loyal-pink', 'mystery-purple', 'active-orange', 'delayed-red', 'geek-blue', 'funny-rainbow', 'lucky-rainbow')
+    $darkChoice = $themePage.FindName('CheckThemeDarkMode')
+    $settingService = $assembly.GetType('PCL.SettingService')
+    if ($null -eq $darkChoice -or $darkChoice.GetType().Name -ne 'MyCheckBox' -or $settingService.GetMethod('GetKey').Invoke($null, @($darkChoice)) -cne 'UiThemeDarkMode') { throw 'Dark mode checkbox is not bound to its independent setting' }
+    $basicControls = @($darkChoice.Parent.Children)
+    $darkIndex = [Array]::IndexOf($basicControls, $darkChoice)
+    if ($darkIndex -lt 1 -or $settingService.GetMethod('GetKey').Invoke($null, @($basicControls[$darkIndex - 1])) -cne 'UiLauncherLogo') { throw 'Dark mode is not immediately after the startup-logo checkbox' }
+    $logoChoice = $basicControls[$darkIndex - 1]
+    foreach ($width in @(420, 760)) {
+        $card = $themePage.FindName('CardLauncher')
+        $card.Measure([Windows.Size]::new($width, [double]::PositiveInfinity))
+        $card.Arrange([Windows.Rect]::new(0, 0, $width, $card.DesiredSize.Height))
+        $card.UpdateLayout()
+        $logoPosition = $logoChoice.TranslatePoint([Windows.Point]::new(0, 0), $darkChoice.Parent)
+        $darkPosition = $darkChoice.TranslatePoint([Windows.Point]::new(0, 0), $darkChoice.Parent)
+        if ([Math]::Abs($darkPosition.Y - $logoPosition.Y) -gt 0.5 -or $darkPosition.X -lt $logoPosition.X + $logoChoice.ActualWidth + 12) { throw 'Dark mode and startup-logo checkboxes are not aligned side by side' }
+        if ($darkPosition.X + $darkChoice.ActualWidth -gt $darkChoice.Parent.ActualWidth + 0.5) { throw 'Dark mode checkbox overflows the settings card' }
+    }
+    if ($null -ne $themePage.FindName('RadioLauncherThemeNightBlack')) { throw 'The removed night-black theme choice is still visible' }
     foreach ($saved in @('5|6|7|9|10', '[5,6,7,9,10]', '["5","6","7","9","10"]', '["tianyi-blue","custom","unknown"]', '{"monochrome-black":true}', 'invalid-json')) {
         $unlockEntry.Set($saved, $null)
         if ($unlockedCountMethod.Invoke($null, @()) -ne 0 -or $check.Invoke($null, @('custom'))) { throw 'Legacy or malformed unlock data was accepted' }
@@ -78,6 +100,10 @@ try {
         if (-not $themePage.FindName("RadioLauncherTheme$($themeNames[$key])").IsEnabled) { throw "Basic theme $key is disabled" }
     }
     if ($check.Invoke($null, @('custom')) -or $themePage.FindName('RadioLauncherThemeCustom').IsEnabled) { throw 'Custom theme starts unlocked' }
+    Set-DarkMode $true
+    $refresh.Invoke($null, @('custom'))
+    if ($themeType.GetField('CurrentTheme').GetValue($null) -cne 'tianyi-blue' -or $check.Invoke($null, @('custom')) -or $unlockedCountMethod.Invoke($null, @()) -ne 0) { throw 'Dark mode bypassed the custom or hidden-theme unlock gates' }
+    Set-DarkMode $false
     foreach ($label in @('LabLauncherThemeHeading', 'LabLauncherHiddenThemeHeading')) {
         $title = $themePage.FindName($label)
         if ([Windows.Controls.Grid]::GetRowSpan($title) -ne 1) { throw 'Theme heading spans multiple option rows' }
@@ -150,7 +176,7 @@ try {
     $themePage.FindName('RadioLauncherThemeMonochromeBlack').Checked = $true
     if ($themePage.FindName('RadioLauncherThemeTianyiBlue').Checked) { throw 'Sections no longer share a radio selection group' }
     $positions = @($themePage.FindName('PanLauncherTheme').Children | Where-Object { $_.GetType().Name -eq 'MyRadioBox' } | ForEach-Object { '{0},{1}' -f [Windows.Controls.Grid]::GetRow($_), [Windows.Controls.Grid]::GetColumn($_) })
-    if (($positions | Select-Object -Unique).Count -ne 17) { throw 'Theme selectors overlap after unlocking' }
+    if (($positions | Select-Object -Unique).Count -ne 16) { throw 'Theme selectors overlap after unlocking' }
     $colors = @{}
     foreach ($key in ($basic + $secrets + @('custom'))) {
         $refresh.Invoke($null, @($key))
@@ -196,18 +222,21 @@ try {
     foreach ($control in @($themePage, $button, $textBox, $combo, $hint, $tipOwner)) {
         $probePanel.Children.Add($control) | Out-Null
     }
-    $assembly.GetType('PCL.Settings').GetMethod('Set').Invoke($null, @('UiThemeSelected', 'night-black', $null))
+    $settingsSet.Invoke($null, @('UiThemeSelected', 'tianyi-blue', $null))
+    $darkChoice.Checked = $true
+    $settingService.GetMethod('SaveSetting').Invoke($null, @($darkChoice))
     $selectedEntry.ValueCache.Clear()
+    $entries['UiThemeDarkMode'].ValueCache.Clear()
     $assembly.GetType('PCL.ModBase').GetMethod('IniClearCache').Invoke($null, @('Setup'))
-    if ($getSetting.Invoke($null, @('UiThemeSelected', $null)) -cne 'night-black') { throw 'Night black selection did not persist' }
-    if (-not $themeType.GetProperty('IsDarkTheme').GetValue($null, $null)) { throw 'Night black did not enable dark surfaces' }
+    if ($getSetting.Invoke($null, @('UiThemeSelected', $null)) -cne 'tianyi-blue' -or -not $getSetting.Invoke($null, @('UiThemeDarkMode', $null))) { throw 'Dark mode checkbox did not persist independently of the selected theme' }
+    if (-not $themeType.GetProperty('IsDarkTheme').GetValue($null, $null)) { throw 'Dark mode did not enable dark surfaces' }
     $tooltip = [Windows.Controls.ToolTip]::new()
-    $tooltip.Content = $themePage.FindName('RadioLauncherThemeNightBlack').ToolTip
-    $tooltip.PlacementTarget = $themePage.FindName('RadioLauncherThemeNightBlack')
+    $tooltip.Content = $themePage.FindName('RadioLauncherThemeTianyiBlue').ToolTip
+    $tooltip.PlacementTarget = $themePage.FindName('RadioLauncherThemeTianyiBlue')
     $tooltip.RaiseEvent([Windows.RoutedEventArgs]::new([Windows.Controls.ToolTip]::OpenedEvent))
     $tooltip.Measure([Windows.Size]::new(240, 60))
     $tooltip.ApplyTemplate() | Out-Null
-    if ($unlockedCountMethod.Invoke($null, @()) -ne $secrets.Count) { throw 'Night black changed the hidden-theme unlock count' }
+    if ($unlockedCountMethod.Invoke($null, @()) -ne $secrets.Count) { throw 'Dark mode changed the hidden-theme unlock count' }
     if ($themePage.FindName('CardLauncher').Children[1].Background.ToString() -ne $application.Resources['ColorBrushCardBackground'].ToString()) { throw 'An existing card retained its light surface' }
     if ($button.FindName('PanFore').Background.ToString() -ne $application.Resources['ColorBrushHalfWhite'].ToString()) { throw 'An existing button retained its light surface' }
     if ($textBox.Background.ToString() -ne $application.Resources['ColorBrushGray6'].ToString()) { throw 'A disabled field retained its light surface' }
@@ -242,7 +271,7 @@ try {
     try {
         $popupHost.Show()
         $popupHost.UpdateLayout()
-        $choice = $liveThemes.FindName('RadioLauncherThemeNightBlack')
+        $choice = $liveThemes.FindName('RadioLauncherThemeTianyiBlue')
         if (-not $tooltipType::GetUseModernTooltip($choice) -or -not $tooltipType::GetFollowMouse($choice)) { throw 'Theme choice lost modern tooltip animation or mouse following' }
         $choice.IsEnabled = $false
         [Windows.Controls.ToolTipService]::SetShowOnDisabled($choice, $true)
@@ -259,11 +288,11 @@ try {
             $tooltipCard.Child.Foreground.ToString() -ne $application.Resources['ColorBrush1'].ToString()) { throw 'The animated tooltip retained a light surface or dark text' }
         $positionTooltip.Invoke($null, @($choice, [Windows.Point]::new(40, 30)))
         if ($livePopup.HorizontalOffset -ne 55 -or $livePopup.VerticalOffset -ne 55) { throw 'Tooltip no longer follows updated pointer positions' }
-        $refresh.Invoke($null, @('tianyi-blue'))
+        Set-DarkMode $false
         if ($tooltipCard.Background.ToString() -ne '#FFFFFFFF' -or $tooltipCard.BorderBrush.ToString() -ne '#FFD6D6D6' -or
             $tooltipCard.Child.Foreground.ToString() -ne '#FF525252' -or -not $livePopup.IsOpen) { throw 'An open tooltip did not restore its original light colors' }
         if (-not $tooltipType::GetUseModernTooltip($choice) -or -not $tooltipScale.HasAnimatedProperties) { throw 'Theme switching replaced the animated tooltip' }
-        $refresh.Invoke($null, @('night-black'))
+        Set-DarkMode $true
         if ($tooltipCard.Background.ToString() -ne $application.Resources['ColorBrushPopupBackground'].ToString()) { throw 'An open tooltip did not return to dark colors' }
         $originalTip = $choice.ToolTip
         $choice.ToolTip = 'Synthetic updated tooltip'
@@ -287,8 +316,8 @@ try {
         if (-not [object]::ReferenceEquals($richTip.Content, $richText)) { throw 'Tooltip did not return borrowed rich content' }
         $choice.ToolTip = $originalTip
         $tooltipType::SetColors()
-        $refresh.Invoke($null, @('tianyi-blue'))
-        $refresh.Invoke($null, @('night-black'))
+        Set-DarkMode $false
+        Set-DarkMode $true
     } finally {
         $closeTooltip.Invoke($null, @($false))
         if ($null -ne $livePopup) { $livePopup.Child.Opacity = 1 }
@@ -311,6 +340,39 @@ try {
         }
         return $components[0] * 0.2126 + $components[1] * 0.7152 + $components[2] * 0.0722
     }
+    $darkAccents = @{}
+    foreach ($key in ($basic + $secrets + @('custom'))) {
+        $settingsSet.Invoke($null, @('UiThemeSelected', $key, $null))
+        Set-DarkMode $false
+        $lightAccent = $application.Resources['ColorObject3'].ToString()
+        Set-DarkMode $true
+        if ($getSetting.Invoke($null, @('UiThemeSelected', $null)) -cne $key -or $themeType.GetField('CurrentTheme').GetValue($null) -cne $key) { throw "Dark mode changed the selected theme: $key" }
+        $darkAccents[$key] = $application.Resources['ColorObject3'].ToString()
+        foreach ($pair in @(@('ColorBrush1', 'ColorBrushCardBackground'), @('ColorBrush2', 'ColorBrushCardBackground'),
+            @('ColorBrush3', 'ColorBrushCardBackground'), @('ColorBrush4', 'ColorBrushCardBackground'),
+            @('ColorBrushOnAccent', 'ColorBrush3'))) {
+            $a = Get-Luminance $application.Resources[$pair[0]].Color
+            $b = Get-Luminance $application.Resources[$pair[1]].Color
+            if (([Math]::Max($a, $b) + 0.05) / ([Math]::Min($a, $b) + 0.05) -lt 4.5) { throw "Dark $key text contrast is too low: $pair" }
+        }
+        Set-DarkMode $false
+        if ($key -ne 'funny-rainbow' -and $application.Resources['ColorObject3'].ToString() -cne $lightAccent) { throw "Turning off dark mode did not restore $key" }
+        Set-DarkMode $true
+    }
+    if (($darkAccents.Values | Select-Object -Unique).Count -lt 12) { throw 'Dark mode replaced theme accents with one shared palette' }
+    $customBeforeDarkProbe = @{}
+    foreach ($key in @('UiThemeCustomHue', 'UiThemeCustomSaturation', 'UiThemeCustomLightness')) { $customBeforeDarkProbe[$key] = $getSetting.Invoke($null, @($key, $null)) }
+    foreach ($custom in @(@(0, 0, 0), @(60, 100, 40), @(240, 100, 0), @(300, 100, 40))) {
+        $entries['UiThemeCustomHue'].Set($custom[0], $null)
+        $entries['UiThemeCustomSaturation'].Set($custom[1], $null)
+        $entries['UiThemeCustomLightness'].Set($custom[2], $null)
+        $refresh.Invoke($null, @('custom'))
+        $a = Get-Luminance $application.Resources['ColorBrush3'].Color
+        $b = Get-Luminance $application.Resources['ColorBrushCardBackground'].Color
+        if (([Math]::Max($a, $b) + 0.05) / ([Math]::Min($a, $b) + 0.05) -lt 4.5) { throw 'Dark custom-theme text is unreadable at slider extremes' }
+    }
+    foreach ($key in $customBeforeDarkProbe.Keys) { $entries[$key].Set($customBeforeDarkProbe[$key], $null) }
+    $refresh.Invoke($null, @('custom'))
     foreach ($pair in @(@('ColorBrush1', 'ColorBrushCardBackground'), @('ColorBrush3', 'ColorBrushCardBackground'),
         @('ColorBrushGray2', 'ColorBrushCardBackground'), @('ColorBrushOnAccent', 'ColorBrush3'), @('ColorBrushRedLight', 'ColorBrushCardBackground'),
         @('ColorBrushHintBlueText', 'ColorBrushHintBlueBackground'), @('ColorBrushHintRedText', 'ColorBrushHintRedBackground'),
@@ -335,6 +397,7 @@ try {
         }
     }
     $entries['UiThemeColorfulBackground'].Set($colorfulBackground, $null)
+    Set-DarkMode $false
     $refresh.Invoke($null, @('tianyi-blue'))
     foreach ($key in $surfaceKeys) {
         if ($application.Resources[$key].ToString() -cne $lightSurfaces[$key]) { throw "Light theme did not restore $key" }
@@ -344,6 +407,11 @@ try {
     if ($tooltipType::GetUseModernTooltip($customTipOwner)) { throw 'Theme switching overwrote an explicit tooltip preference' }
     $probePanel.Children.Clear()
     $probeWindow.Close()
+    Set-DarkMode $true
+    $settingService.GetMethod('ResetSettings').Invoke($null, @($themePage.FindName('CardLauncher')))
+    $settingService.GetMethod('RefreshSettings').Invoke($null, @($themePage))
+    if ($getSetting.Invoke($null, @('UiThemeDarkMode', $null)) -or $darkChoice.Checked -or $themeType.GetProperty('IsDarkTheme').GetValue($null, $null)) { throw 'Appearance reset did not disable dark mode' }
+    if ($unlockedCountMethod.Invoke($null, @()) -ne $secrets.Count) { throw 'Appearance reset changed hidden-theme unlocks' }
     $refresh.Invoke($null, @('custom'))
     $customBefore = $application.Resources['ColorObject3'].ToString()
     $entries['UiThemeCustomHue'].Set(300, $null)
@@ -354,10 +422,11 @@ try {
     if ($unlock.Invoke($null, @('cang-green', $false, $null))) { throw 'Cang green must be available without unlocking' }
     $refresh.Invoke($null, @('tianyi-blue'))
     if ($application.Resources['ColorObject4'].ToString() -ne '#FF66CCFF') { throw 'Tianyi blue must use #66CCFF' }
-    foreach ($invalid in @('8', '99', '15', 'autumn-gold', 'unknown')) {
+    foreach ($invalid in @('8', '99', '15', 'autumn-gold', 'unknown', 'night-black')) {
         if ($unlock.Invoke($null, @($invalid, $false, $null))) { throw 'Removed or invalid theme can be unlocked' }
         $refresh.Invoke($null, @($invalid))
         if ($themeType.GetField('CurrentTheme').GetValue($null) -ne 'tianyi-blue') { throw 'Invalid theme did not fall back to default' }
+        if ($getSetting.Invoke($null, @('UiThemeDarkMode', $null))) { throw 'Invalid or removed themes enabled dark mode' }
     }
     if ($null -ne $themePage.FindName('RadioLauncherThemeRemovedSponsor') -or $null -ne $themePage.FindName('PanLauncherHide')) { throw 'Sponsor theme or gate remains' }
     # Load the real title-bar XAML without opening the launcher or starting its loaders.
@@ -373,7 +442,7 @@ try {
     $titleImage = $titleBar.FindName('ImgTitleTexture')
     $refreshTitle = $themeType.GetMethod('ThemeRefreshTitle', $flags)
     if ($DarkPreviewPath) {
-        $assembly.GetType('PCL.Settings').GetMethod('Set').Invoke($null, @('UiThemeSelected', 'night-black', $null))
+        Set-DarkMode $true
         $assembly.GetType('PCL.SettingService').GetMethod('RefreshSettings').Invoke($null, @($themePage))
         foreach ($card in $themePage.FindName('PanMain').Children) {
             if ($card.GetType().Name -eq 'MyCard') { $null = $card.MainTextBlock }
@@ -412,7 +481,7 @@ try {
         $stream = [IO.File]::Create($DarkPreviewPath)
         try { $encoder.Save($stream) } finally { $stream.Dispose() }
         $frame.Children.Clear()
-        $refresh.Invoke($null, @('tianyi-blue'))
+        Set-DarkMode $false
     }
     if ($titleImage.IsHitTestVisible -or -not $titleImage.ClipToBounds) { throw 'Title texture can capture clicks or overflow its bounds' }
     $preview = [Windows.Controls.StackPanel]::new()
@@ -445,6 +514,33 @@ try {
             $titleImage = $titleBar.FindName('ImgTitleTexture')
         }
     }
+    Set-DarkMode $true
+    foreach ($key in ($secrets + $basic + @('custom'))) {
+        $refresh.Invoke($null, @($key))
+        $refreshTitle.Invoke($null, @($titleBar, $titleImage))
+        if ($themeType.GetField('CurrentTheme').GetValue($null) -cne $key) { throw "Dark title lost theme $key" }
+        if ($textureFiles.ContainsKey($key)) {
+            if ($titleImage.Visibility.ToString() -ne 'Visible' -or $titleImage.ActualSource -notlike "*/Themes/$($textureFiles[$key])") { throw "Dark theme $key lost its texture" }
+            $expectedOpacity = if ($key -in @('tianyi-blue', 'cang-green')) { 0.27 } else { 0.4 }
+            if ($titleImage.Opacity -ne $expectedOpacity) { throw "Dark theme $key texture is too bright" }
+        } elseif ($titleImage.Visibility.ToString() -ne 'Collapsed') { throw "Dark theme $key retained another theme's texture" }
+        $a = Get-Luminance $application.Resources['ColorBrushTitleText'].Color
+        foreach ($stop in $titleBar.Background.GradientStops) {
+            $b = Get-Luminance $stop.Color
+            if (([Math]::Max($a, $b) + 0.05) / ([Math]::Min($a, $b) + 0.05) -lt 4.5) { throw "Dark title $key text contrast is too low" }
+        }
+        if ($TitlePreviewPath) {
+            $label = [Windows.Controls.TextBlock]::new()
+            $label.Text = '[Dark] ' + $themePage.FindName("RadioLauncherTheme$($themeNames[$key])").Text
+            $label.Foreground = [Windows.Media.Brushes]::Black
+            $label.Margin = [Windows.Thickness]::new(0, 10, 0, 3)
+            $preview.Children.Add($label) | Out-Null
+            $preview.Children.Add($titleBar) | Out-Null
+            $titleBar = [Windows.Markup.XamlReader]::Parse($titleXml)
+            $titleImage = $titleBar.FindName('ImgTitleTexture')
+        }
+    }
+    Set-DarkMode $false
     # A locked hidden theme must clear a previously visible texture and fall back to the default.
     $refresh.Invoke($null, @('loyal-pink'))
     $refreshTitle.Invoke($null, @($titleBar, $titleImage))
@@ -464,7 +560,7 @@ try {
         $stream = [IO.File]::Create($TitlePreviewPath)
         try { $encoder.Save($stream) } finally { $stream.Dispose() }
     }
-    Write-Output 'PASS: theme sections, unlock gates, tooltips, persistence and colors work; night mode updates existing controls, restores light surfaces and passes text contrast checks; bundled title textures switch without bypassing unlocks.'
+    Write-Output 'PASS: independent dark-mode checkbox, all theme palettes and title textures, unlock gates, animated tooltips, persistence, appearance reset, light restoration and text contrast checks.'
 } finally {
     if ($null -ne $application) { $application.Shutdown() }
     [AppDomain]::CurrentDomain.SetData('APPBASE', $oldBase)

@@ -201,12 +201,14 @@ public static class MinesweeperRegression {
     $refresh = $assembly.GetType('PCL.ModSecret').GetMethod('ThemeRefresh')
     $cell = $boardPanel.Children[0]
     $lightBrush = $null
-    foreach ($theme in @('tianyi-blue', 'night-black')) {
-        $refresh.Invoke($null, @($theme)) | Out-Null
+    foreach ($darkMode in @($false, $true)) {
+        $assembly.GetType('PCL.Settings').GetMethod('Set').Invoke($null, @('UiThemeDarkMode', $darkMode, $null))
+        $theme = if ($darkMode) { 'tianyi-blue-dark' } else { 'tianyi-blue' }
+        $refresh.Invoke($null, @('tianyi-blue')) | Out-Null
         Assert ($cell.Background.Color -eq $application.Resources['ColorBrush6'].Color) "Cells do not follow $theme : actual=$($cell.Background.Color), expected=$($application.Resources['ColorBrush6'].Color)"
         Assert ($cell.Foreground.Color -eq $application.Resources['ColorBrush1'].Color) 'Cell text does not follow the theme'
-        if ($theme -eq 'tianyi-blue') { $lightBrush = $cell.Background.Color }
-        else { Assert ($cell.Background.Color -ne $lightBrush) 'Night theme keeps the light board colors' }
+        if (-not $darkMode) { $lightBrush = $cell.Background.Color }
+        else { Assert ($cell.Background.Color -ne $lightBrush) 'Dark mode keeps the light board colors' }
         if ($Preview) {
             $previewGame = [MinesweeperRegression]::CreateBoard()
             $previewGame.Reveal(40) | Out-Null
