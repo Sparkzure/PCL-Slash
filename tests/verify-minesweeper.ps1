@@ -13,13 +13,31 @@ function Assert($value, $message) { if (-not $value) { throw $message } }
 try {
     $bin = Join-Path $repoRoot 'Plain Craft Launcher 2/bin'
     $core = [Reflection.Assembly]::LoadFrom((Join-Path $bin 'PCLCS.dll'))
-    Add-Type -ReferencedAssemblies @($core.Location, 'System.Core') -TypeDefinition @'
+    Add-Type -ReferencedAssemblies @($core.Location, 'System.Core', 'System.dll') -TypeDefinition @'
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Reflection;
 using PCLCS;
 public static class MinesweeperRegression {
     public static MinesweeperBoard CreateBoard() { return new MinesweeperBoard(9, 9, 10, 11); }
+    public static MinesweeperBoard CreateFinishedBoard(int width, int height, int mines, bool won) {
+        var board = new MinesweeperBoard(width, height, mines, 11);
+        board.Reveal(width * height / 2);
+        if (won) {
+            for (int i = 0; i < width * height; i++) if (!board.GetCell(i).HasMine) board.Reveal(i);
+        } else {
+            board.Reveal(Enumerable.Range(0, width * height).First(i => board.GetCell(i).HasMine));
+        }
+        return board;
+    }
+    public static void SetElapsed(Stopwatch clock, double seconds) {
+        clock.Reset();
+        var field = typeof(Stopwatch).GetFields(BindingFlags.Instance | BindingFlags.NonPublic)
+            .Single(f => f.FieldType == typeof(long) && f.Name.ToLowerInvariant().Contains("elapsed"));
+        field.SetValue(clock, (long)Math.Round(seconds * Stopwatch.Frequency));
+    }
     static void Check(bool condition, string message) { if (!condition) throw new Exception(message); }
     static IEnumerable<int> Around(MinesweeperBoard board, int index) {
         int x = index % board.Width, y = index / board.Width;
@@ -238,7 +256,34 @@ public static class MinesweeperRegression {
             $cell = $boardPanel.Children[0]
         }
     }
-    Write-Output 'PASS: independent page, toolbox button, stable navigation IDs, two difficulties, centered boards, mouse-only cells without focus selection, restart, timer pause and light/night themes.'
+    $settings = $assembly.GetType('PCL.Settings')
+    $setSetting = $settings.GetMethod('Set')
+    $getSetting = @($settings.GetMethods() | Where-Object { $_.Name -eq 'Get' -and -not $_.IsGenericMethod })[0]
+    $refreshGame = $page.GetType().GetMethod('RefreshGame', $flags)
+    foreach ($level in @(@(0,9,9,10), @(1,16,16,40))) {
+        $combo.SelectedIndex = $level[0]
+        foreach ($case in @(@('Won',6.9,$true), @('Won',7.0,$true), @('Won',7.0001,$false), @('Won',7.004,$false), @('Lost',6.0,$false), @('Playing',6.0,$false))) {
+            $setSetting.Invoke($null, @('ToolMinigameCompleted', '[]', $null))
+            $setSetting.Invoke($null, @('UiThemeUnlocked', '[]', $null))
+            if ($case[0] -eq 'Playing') {
+                $probeGame = [MinesweeperRegression]::CreateBoard()
+                if ($level[0] -eq 1) { $probeGame = [PCLCS.MinesweeperBoard]::new(16,16,40,11) }
+                $probeGame.Reveal($probeGame.Width * $probeGame.Height / 2) | Out-Null
+            } else {
+                $probeGame = [MinesweeperRegression]::CreateFinishedBoard($level[1], $level[2], $level[3], ($case[0] -eq 'Won'))
+            }
+            Assert ($probeGame.State.ToString() -eq $case[0]) 'Achievement fixture has the wrong game state'
+            $gameField.SetValue($page, $probeGame)
+            [MinesweeperRegression]::SetElapsed($clock, $case[1])
+            $refreshGame.Invoke($page, @()) | Out-Null
+            $completed = ConvertFrom-Json -InputObject ([string]$getSetting.Invoke($null, @('ToolMinigameCompleted', $null)))
+            Assert (($completed -contains 'minesweeper') -eq $case[2]) 'Minesweeper completion ignored the win state or actual seven-second limit'
+            $saved = [string]$getSetting.Invoke($null, @('ToolMinigameCompleted', $null))
+            $refreshGame.Invoke($page, @()) | Out-Null
+            Assert ([string]$getSetting.Invoke($null, @('ToolMinigameCompleted', $null)) -ceq $saved) 'Repeated victory refresh changed completed-game progress'
+        }
+    }
+    Write-Output 'PASS: independent page, toolbox button, stable navigation IDs, two difficulties, centered boards, mouse-only cells without focus selection, restart, timer pause, light/night themes and win-only completion using the actual seven-second limit.'
 } finally {
     if ($page) { $page.GetType().GetMethod('PageUnloaded', [Reflection.BindingFlags]'Instance, NonPublic').Invoke($page, @($page, $null)) | Out-Null }
     if ($hostWindow) { $hostWindow.Content = $null; $hostWindow.Close() }

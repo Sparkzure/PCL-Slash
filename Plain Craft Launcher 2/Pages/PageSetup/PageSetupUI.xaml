@@ -83,7 +83,7 @@
                             <local:MyRadioBox local:SettingService.Key="UiThemeSelected" local:SettingService.Value="lucky-rainbow"
                                               Grid.Column="5" Grid.Row="3" Text="欧皇彩" x:Name="RadioLauncherThemeLuckyRainbow" IsEnabled="False" ToolTip="这就是传说中的欧皇了吧" />
                             <local:MyRadioBox local:SettingService.Key="UiThemeSelected" local:SettingService.Value="active-orange"
-                                              Grid.Column="1" Grid.Row="4" Text="活跃橙" x:Name="RadioLauncherThemeActiveOrange" IsEnabled="False" />
+                                              Grid.Column="1" Grid.Row="4" Text="活跃橙" x:Name="RadioLauncherThemeActiveOrange" IsEnabled="False" ToolTip="游戏大王！！！" />
                             <local:MyRadioBox local:SettingService.Key="UiThemeSelected" local:SettingService.Value="delayed-red"
                                               Grid.Column="2" Grid.Row="4" Text="跳票红" x:Name="RadioLauncherThemeDelayedRed" IsEnabled="False" ToolTip="进行一次正版登录，支持正版游戏！" />
                             <local:MyRadioBox local:SettingService.Key="UiThemeSelected" local:SettingService.Value="geek-blue"

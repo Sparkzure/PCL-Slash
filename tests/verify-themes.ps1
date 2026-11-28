@@ -91,7 +91,7 @@ try {
         $tooltips[$key] = $choice.ToolTip
         if (-not [Windows.Controls.ToolTipService]::GetShowOnDisabled($choice)) { throw "Theme $key tooltip is unavailable while locked" }
     }
-    foreach ($key in @('monochrome-black', 'loyal-pink', 'mystery-purple', 'delayed-red', 'geek-blue', 'funny-rainbow', 'lucky-rainbow', 'custom')) {
+    foreach ($key in @('monochrome-black', 'loyal-pink', 'mystery-purple', 'active-orange', 'delayed-red', 'geek-blue', 'funny-rainbow', 'lucky-rainbow', 'custom')) {
         if ([string]::IsNullOrWhiteSpace($tooltips[$key])) { throw "Theme $key lost its tooltip" }
     }
     foreach ($key in $basic) {

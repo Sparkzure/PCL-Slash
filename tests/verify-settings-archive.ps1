@@ -67,6 +67,7 @@ try {
     Set-Setting 'CacheMsV2Access' 'synthetic-account-token'
     Set-Setting 'LoginAuthPass' 'synthetic-password'
     Set-Setting 'UiThemeUnlocked' '["fixture-unlock"]'
+    Set-Setting 'ToolMinigameCompleted' '["fixture-completion"]'
     $portable.GetMethod('SetValue').Invoke($null, @('CustomEventfixture', "line1`nline2:with=characters"))
     $portable.GetMethod('SetValue').Invoke($null, @('UnknownRawSecret', 'must-not-leak'))
     foreach ($name in @('Logo.png', 'Custom.xaml', 'CustomSkin.png', 'Pictures\nested\background.png', 'Musics\track.ogg')) { Write-Fixture $name ('fixture:' + $name) }
@@ -79,7 +80,7 @@ try {
         Assert ($zip.Entries.Count -eq 6) 'Export included files outside the supported resource list'
         $reader = [IO.StreamReader]::new($zip.GetEntry('settings.json').Open())
         try { $manifestText = $reader.ReadToEnd() } finally { $reader.Dispose() }
-        Assert (-not ($manifestText -match 'dpapi:v1:|synthetic-account-token|synthetic-password|fixture-unlock|must-not-leak')) 'Export leaked excluded data'
+        Assert (-not ($manifestText -match 'dpapi:v1:|synthetic-account-token|synthetic-password|fixture-unlock|fixture-completion|must-not-leak')) 'Export leaked excluded data'
         $manifest = $manifestText | ConvertFrom-Json
         foreach ($property in $manifest.settings.PSObject.Properties) {
             $entry = $entries[$property.Name]
