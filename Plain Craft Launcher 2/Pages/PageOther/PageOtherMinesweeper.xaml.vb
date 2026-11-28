@@ -59,6 +59,10 @@ Public Class PageOtherMinesweeper
     End Sub
 
     Private Sub RefreshGame()
+        UpdateTimer()
+        If Game.State = MinesweeperState.Won AndAlso Clock.Elapsed <= TimeSpan.FromSeconds(7) Then
+            MinigameProgress.Current.RecordCompletion(MinigameProgress.Minesweeper)
+        End If
         Dim Finished = Game.State = MinesweeperState.Won OrElse Game.State = MinesweeperState.Lost
         For Index = 0 To Cells.Count - 1
             Dim Data = Game.GetCell(Index), Cell = Cells(Index)
@@ -97,7 +101,6 @@ Public Class PageOtherMinesweeper
             Case MinesweeperState.Won : LabMineStatus.Text = "全部安全格已找到，你赢了！"
             Case MinesweeperState.Lost : LabMineStatus.Text = "踩到地雷了，再来一局吧。"
         End Select
-        UpdateTimer()
     End Sub
 
     Private Sub UpdateTimer()
