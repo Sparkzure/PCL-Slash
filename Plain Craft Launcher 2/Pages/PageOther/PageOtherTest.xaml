@@ -11,7 +11,8 @@
             <local:MyCard Title="小游戏" Margin="0,15">
                 <WrapPanel Margin="25,40,25,20">
                     <local:MyButton x:Name="BtnMinesweeper" Text="开始扫雷" HorizontalAlignment="Left" Height="35" Padding="18,0" Margin="0,0,12,0" />
-                    <local:MyButton x:Name="BtnTetris" Text="开始俄罗斯方块" HorizontalAlignment="Left" Height="35" Padding="18,0" />
+                    <local:MyButton x:Name="BtnTetris" Text="开始俄罗斯方块" HorizontalAlignment="Left" Height="35" Padding="18,0" Margin="0,0,12,0" />
+                    <local:MyButton x:Name="BtnTileMatch" Text="连连看" HorizontalAlignment="Left" Height="35" Padding="18,0" />
                 </WrapPanel>
             </local:MyCard>
         </StackPanel>

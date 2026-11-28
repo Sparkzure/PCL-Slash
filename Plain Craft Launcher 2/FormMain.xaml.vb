@@ -869,6 +869,10 @@ Public Class FormMain
         ''' 俄罗斯方块。这是一个副页面。
         ''' </summary>
         Tetris = 10
+        ''' <summary>
+        ''' 连连看。这是一个副页面。
+        ''' </summary>
+        TileMatch = 11
     End Enum
     ''' <summary>
     ''' 次要页面种类。导航使用对应控件的 Tag 匹配编号。
@@ -915,6 +919,8 @@ Public Class FormMain
                 Return "扫雷"
             Case PageType.Tetris
                 Return "俄罗斯方块"
+            Case PageType.TileMatch
+                Return "连连看"
             Case Else
                 Return ""
         End Select
@@ -1149,6 +1155,9 @@ Public Class FormMain
                 Case PageType.Tetris '俄罗斯方块
                     If FrmOtherTetris Is Nothing Then FrmOtherTetris = New PageOtherTetris
                     PageChangeAnim(New MyPageLeft, FrmOtherTetris)
+                Case PageType.TileMatch '连连看
+                    If FrmOtherTileMatch Is Nothing Then FrmOtherTileMatch = New PageOtherTileMatch
+                    PageChangeAnim(New MyPageLeft, FrmOtherTileMatch)
             End Select
 #End Region
 

@@ -347,6 +347,9 @@
     <Compile Include="Pages\PageOther\PageOtherTetris.xaml.vb">
       <DependentUpon>PageOtherTetris.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Pages\PageOther\PageOtherTileMatch.xaml.vb">
+      <DependentUpon>PageOtherTileMatch.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Pages\PageLaunch\MySkin.xaml.vb">
       <DependentUpon>MySkin.xaml</DependentUpon>
     </Compile>
@@ -592,6 +595,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Pages\PageOther\PageOtherTetris.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Pages\PageOther\PageOtherTileMatch.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
